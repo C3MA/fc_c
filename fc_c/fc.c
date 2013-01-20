@@ -41,21 +41,40 @@ int add_type(uint8_t *buffer, int offset, int typ)
 /*
  * @param[in] buffer
  * @param[in] offset
+ * @param[out] sniptyp of the snip
+ * @param[out] length of the snip 
+ * @return the new offset
+ */
+int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
+{
+    int id, type;
+    if (sscanf((char*)buffer, "%10d",length)!= 1) {
+        return -1;
+    }
+    offset += 10;
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+        return -1;
+    
+    offset = parse_number(buffer, offset, sniptyp);
+    
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
  * @param[out] value the counter, that was read
  * @return the new offset
  */
 int recv_ping(uint8_t *buffer, int offset, int *value)
 {
-    /*
-     send msg snip, typ ping, mesg ping mit count
-     */
     int id, type;
     offset = parse(buffer, offset, &id, &type);
     if (id != SNIP_PINGSNIP || type != PROTOTYPE_LENGTHD)
         return -1;
     
     offset = parse_number(buffer, offset, &type); // use type to store the length
-    printf("Offset in rcv_ping = %d, length of dataset=%d\n",offset, type);
     offset = parse(buffer, offset, &id, &type);
     if (id != PINGSNIP_COUNT || type != PROTOTYPE_VARIANT)
     {
@@ -119,7 +138,6 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
         return -1;
     
     offset = parse_number(buffer, offset, &type); // use type to store the length
-    printf("Offset in rcv_pong = %d, length of dataset=%d\n",offset, type);
     offset = parse(buffer, offset, &id, &type);
     if (id != PONGSNIP_COUNT || type != PROTOTYPE_VARIANT)
     {

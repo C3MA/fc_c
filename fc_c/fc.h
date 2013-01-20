@@ -34,6 +34,7 @@
 #define NETWORK_PORT 24567
 
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput);
+int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length);
 int recv_ping(uint8_t *buffer, int offset, int *value);
 int send_ping(uint8_t *buffer, int offset, int counter);
 int recv_pong(uint8_t *buffer, int offset, int *value);

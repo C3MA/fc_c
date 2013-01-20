@@ -6,10 +6,6 @@
 //  Copyright (c) 2013 C3MA. All rights reserved.
 //
 
-/*
- TODO: - recv_header oder sowas
- */
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -32,6 +28,8 @@ int main(int argc, char *argv[])
     uint8_t output[2048];
     int offset;
     int counter;
+    int type=-1;
+    int length = 0;
     
     if(argc != 2)
     {
@@ -77,6 +75,17 @@ int main(int argc, char *argv[])
     
     write(sockfd, output, offset+10);
     
+    do {
+        n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
+        if (n < 10) {
+            printf("\n Error : Network read error\n");
+            return 1;
+        }
+        offset = get_header((uint8_t*)recvBuff, 0, &type, &length);
+        printf("typ: %d laenge: %d\n",type,length);
+    } while (type == -1);
+    
+    /*
     while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
     {
         recvBuff[n] = 0;
@@ -90,8 +99,9 @@ int main(int argc, char *argv[])
     {
         printf("\n Read error \n");
     }
+    */
     //Testcode
-    recv_pong((uint8_t*)recvBuff, 10, &counter);
+    recv_pong((uint8_t*)recvBuff, offset, &counter);
     printf("Pong Counter: %d\n",counter);
     
     return 0;
