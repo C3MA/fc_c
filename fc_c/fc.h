@@ -31,6 +31,8 @@
 #define SNIP_PONGSNIP   12
 #define PONGSNIP_COUNT 1
 
+#define HEADER_LENGTH 10
+
 #define NETWORK_PORT 24567
 
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput);

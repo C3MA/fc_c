@@ -18,10 +18,10 @@
  */
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
 {
-    char header[12];
+    char header[HEADER_LENGTH+2];
     sprintf(header, "%10d", lengthInput);
-    memcpy(pOutput, header, 10);
-    memcpy(pOutput+10, pInput, lengthInput);
+    memcpy(pOutput, header, HEADER_LENGTH);
+    memcpy(pOutput+HEADER_LENGTH, pInput, lengthInput);
 }
 
 /*
@@ -51,7 +51,7 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
     if (sscanf((char*)buffer, "%10d",length)!= 1) {
         return -1;
     }
-    offset += 10;
+    offset += HEADER_LENGTH;
     offset = parse(buffer, offset, &id, &type);
     if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
         return -1;

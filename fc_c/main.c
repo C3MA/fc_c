@@ -73,36 +73,32 @@ int main(int argc, char *argv[])
     printf("\n");
     */
     
-    write(sockfd, output, offset+10);
+    write(sockfd, output, offset+HEADER_LENGTH);
     
     do {
         n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
-        if (n < 10) {
+        if (n < HEADER_LENGTH) {
             printf("\n Error : Network read error\n");
             return 1;
         }
         offset = get_header((uint8_t*)recvBuff, 0, &type, &length);
+        if (offset == -1) {
+            printf("\n Error : Could not analyze header\n");
+            return 1;
+        }
         printf("typ: %d laenge: %d\n",type,length);
     } while (type == -1);
     
-    /*
-    while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
-    {
-        recvBuff[n] = 0;
-        if(fputs(recvBuff, stdout) == EOF)
-        {
-            printf("\n Error : Fputs error\n");
-        }
+    switch (type) {
+        case 2:
+            recv_pong((uint8_t*)recvBuff, offset, &counter);
+            printf("Pong Counter: %d\n",counter);
+            break;
+            
+        default:
+            printf("Unknown type: %d",type);
+            break;
     }
-    
-    if(n < 0)
-    {
-        printf("\n Read error \n");
-    }
-    */
-    //Testcode
-    recv_pong((uint8_t*)recvBuff, offset, &counter);
-    printf("Pong Counter: %d\n",counter);
     
     return 0;
 }
