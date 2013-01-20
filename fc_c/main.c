@@ -6,6 +6,10 @@
 //  Copyright (c) 2013 C3MA. All rights reserved.
 //
 
+/*
+ TODO: - recv_header oder sowas
+ */
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -24,6 +28,10 @@ int main(int argc, char *argv[])
     long n = 0;
     char recvBuff[1024];
     struct sockaddr_in serv_addr;
+    uint8_t buffer[2048];
+    uint8_t output[2048];
+    int offset;
+    int counter;
     
     if(argc != 2)
     {
@@ -54,7 +62,21 @@ int main(int argc, char *argv[])
         printf("\n Error : Connect Failed \n");
         return 1;
     }
-    /*
+    
+    offset = send_ping(buffer, 0, 42);
+    add_header(buffer, output, offset);
+    
+    /* DEBUG FUNCTION
+    printf("New offset is %d\n", offset);
+    
+    for (int i=0; i< 10; i++) {
+        printf("%.2X ", buffer[i]);
+    }
+    printf("\n");
+    */
+    
+    write(sockfd, output, offset+10);
+    
     while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
     {
         recvBuff[n] = 0;
@@ -68,7 +90,9 @@ int main(int argc, char *argv[])
     {
         printf("\n Read error \n");
     }
-    */
+    //Testcode
+    recv_pong((uint8_t*)recvBuff, 10, &counter);
+    printf("Pong Counter: %d\n",counter);
     
     return 0;
 }

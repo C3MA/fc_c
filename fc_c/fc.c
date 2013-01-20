@@ -16,12 +16,26 @@
  * @param[out] pOutput the buffer to fill with input and the corresponding header
  * @param[in] the length of the input protobuf data
  */
-void add_header(uint8_t* pInput, uint8_t* pOutput, uint32_t lengthInput)
+void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
 {
-    char header[10];
+    char header[12];
     sprintf(header, "%10d", lengthInput);
     memcpy(pOutput, header, 10);
     memcpy(pOutput+10, pInput, lengthInput);
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] typ of the snip
+ * @return the new offset
+ */
+int add_type(uint8_t *buffer, int offset, int typ)
+{
+    buffer[offset] = serialize(SNIP_TYPE, PROTOTYPE_VARIANT);
+    offset++;
+    offset = serialize_number(buffer, offset, typ);
+    return offset;
 }
 
 /*
@@ -66,9 +80,7 @@ int send_ping(uint8_t *buffer, int offset, int counter)
 {
     int offset4length;
     
-    /*
-     send msg snip, typ ping, mesg ping mit count
-     */
+    offset = add_type(buffer, offset, SNIPTYPE_PING);
     
     /*
      * Write the header for Ping structure
@@ -132,9 +144,7 @@ int send_pong(uint8_t *buffer, int offset, int counter)
 {
     int offset4length;
     
-    /*
-     send msg snip, typ ping, mesg ping mit count
-     */
+    offset = add_type(buffer, offset, SNIPTYPE_PONG);
     
     /*
      * Write the header for Ping structure
