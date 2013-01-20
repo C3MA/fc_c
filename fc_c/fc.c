@@ -9,6 +9,20 @@
 #include <stdio.h>
 #include "proto.h"
 #include "fc.h"
+#include <string.h>
+
+/*
+ * @param[in] pInput buffer with the protobuf content
+ * @param[out] pOutput the buffer to fill with input and the corresponding header
+ * @param[in] the length of the input protobuf data
+ */
+void add_header(uint8_t* pInput, uint8_t* pOutput, uint32_t lengthInput)
+{
+    char header[10];
+    sprintf(header, "%10d", lengthInput);
+    memcpy(pOutput, header, 10);
+    memcpy(pOutput+10, pInput, lengthInput);
+}
 
 /*
  * @param[in] buffer

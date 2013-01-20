@@ -19,6 +19,8 @@
 #define SNIPTYPE_PONG   2
 #define PONGSNIP_COUNT 1
 
+#define NETWORK_PORT 24567
+
 int recv_ping(uint8_t *buffer, int offset, int *value);
 int send_ping(uint8_t *buffer, int offset, int counter);
 int recv_pong(uint8_t *buffer, int offset, int *value);

@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include "fc.h"
 
 int main(int argc, char *argv[])
 {
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
     memset(&serv_addr, '0', sizeof(serv_addr));
     
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(5000);
+    serv_addr.sin_port = htons(NETWORK_PORT);
     
     if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
     {
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
         printf("\n Error : Connect Failed \n");
         return 1;
     }
-    
+    /*
     while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
     {
         recvBuff[n] = 0;
@@ -66,7 +67,8 @@ int main(int argc, char *argv[])
     if(n < 0)
     {
         printf("\n Read error \n");
-    } 
+    }
+    */
     
     return 0;
 }
