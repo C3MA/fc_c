@@ -25,14 +25,27 @@ void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
 /*
  * @param[in] buffer
  * @param[in] offset
- * @param[out] typ of the snip
+ * @param[in] id of the variant
+ * @param[in] value
+ * @return the new offset
+ */
+int add_variant(uint8_t *buffer, int offset, int id ,int value)
+{
+    buffer[offset] = serialize(id, PROTOTYPE_VARIANT);
+    offset++;
+    offset = serialize_number(buffer, offset, value);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[in] typ of the snip
  * @return the new offset
  */
 int add_type(uint8_t *buffer, int offset, int typ)
 {
-    buffer[offset] = serialize(SNIP_TYPE, PROTOTYPE_VARIANT);
-    offset++;
-    offset = serialize_number(buffer, offset, typ);
+    add_variant(buffer, offset, SNIP_TYPE, typ);
     return offset;
 }
 
@@ -153,7 +166,7 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
 /*
  * @param[in] buffer
  * @param[in] offset
- * @param[out] value the counter, to write
+ * @param[in] value the counter, to write
  * @return the new offset
  */
 int send_pong(uint8_t *buffer, int offset, int counter)
@@ -181,3 +194,47 @@ int send_pong(uint8_t *buffer, int offset, int counter)
     
     return offset;
 }
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[in] color, string with color
+ * @param[in] seqId, ID of the Sequence
+ * @param[in] meta, buffer with Binarysequenzemetadta
+ * @return the new offset
+ */
+int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t meta)
+{
+    
+}
+
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[in] frames_per_second
+ * @param[in] width
+ * @param[in] height
+ * @param[in] generator_name
+ * @param[in] generator_version 
+ * @return the new offset
+ */
+int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int width, int heigtht, char *generator_name, char *generator_version)
+{
+    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_FRAMESPERSECOND, PROTOTYPE_VARIANT);
+    offset++;
+    
+    offset = serialize_number(buffer, offset, frames_per_second);
+    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_WIDTH, PROTOTYPE_VARIANT);
+    offset++;
+    offset = serialize_number(buffer, offset, width);
+    
+    
+    
+    return offset;
+}
+
+
+
+
+
