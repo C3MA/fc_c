@@ -28,6 +28,11 @@ int main(int argc, char *argv[])
     int type=-1;
     int length = 0;
     
+    //test
+    char genn[] = "Hallo";
+    char genv[] = "99.1";
+    
+    /*
     if(argc != 2)
     {
         printf("\n Usage: %s <ip of server> \n",argv[0]);
@@ -60,16 +65,19 @@ int main(int argc, char *argv[])
     
     offset = send_ping(buffer, 0, 42);
     add_header(buffer, output, offset);
+    */
+    /* DEBUG FUNCTION */
     
-    /* DEBUG FUNCTION
+    offset = create_metadata(buffer, 0, 19, 23, 12, genn, genv);
+    
     printf("New offset is %d\n", offset);
     
-    for (int i=0; i< 10; i++) {
+    for (int i=0; i< 20; i++) {
         printf("%.2X ", buffer[i]);
     }
     printf("\n");
-    */
-    
+
+    /*
     write(sockfd, output, offset+HEADER_LENGTH);
     
     do {
@@ -96,6 +104,6 @@ int main(int argc, char *argv[])
             printf("Unknown type: %d",type);
             break;
     }
-    
+    */
     return 0;
 }

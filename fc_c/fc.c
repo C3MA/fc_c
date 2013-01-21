@@ -219,27 +219,28 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
  * @param[in] generator_version 
  * @return the new offset
  */
+// TODO: sizeof ist nicht die Lösung da muss was her was die Bytes bis 0 Zählt!
 int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version)
 {
     long length_generator_name, length_generator_version;
+    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
+    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_WIDTH, width);
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_HEIGHT, heigtht);
     
-    length_generator_name = sizeof(generator_name);
+    length_generator_name = sizeof(generator_name)-3; //BOESE
     buffer[offset] = serialize(BINARYSEQUENCEMETADATA_GENERATORNAME, PROTOTYPE_LENGTHD);
     offset++;
     offset = serialize_number(buffer, offset, (int) length_generator_name);
-    
-    memcpy(buffer, generator_name, length_generator_name);
+    memcpy(buffer+offset, generator_name, length_generator_name);
     offset +=  (int) length_generator_name;
     
-    length_generator_version = sizeof(generator_version);
+    length_generator_version = sizeof(generator_version)-4;//BOESE
     buffer[offset] = serialize(BINARYSEQUENCEMETADATA_GENERATORVERSION, PROTOTYPE_LENGTHD);
     offset++;
     offset = serialize_number(buffer, offset, (int) length_generator_version);
-    
-    memcpy(buffer, generator_version, length_generator_version);
+    memcpy(buffer+offset, generator_version, length_generator_version);
     offset +=  (int) length_generator_version;
     
     return offset;
