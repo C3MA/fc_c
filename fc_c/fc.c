@@ -25,6 +25,29 @@ void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
 /*
  * @param[in] buffer
  * @param[in] offset
+ * @param[out] sniptyp of the snip
+ * @param[out] length of the snip
+ * @return the new offset
+ */
+int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
+{
+    int id, type;
+    if (sscanf((char*)buffer, "%10d",length)!= 1) {
+        return -1;
+    }
+    offset += HEADER_LENGTH;
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+        return -1;
+    
+    offset = parse_number(buffer, offset, sniptyp);
+    
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
  * @param[in] id of the variant
  * @param[in] value
  * @return the new offset
@@ -48,29 +71,6 @@ int add_variant(uint8_t *buffer, int offset, int id ,int value)
 int add_type(uint8_t *buffer, int offset, int typ)
 {
     add_variant(buffer, offset, SNIP_TYPE, typ);
-    return offset;
-}
-
-/*
- * @param[in] buffer
- * @param[in] offset
- * @param[out] sniptyp of the snip
- * @param[out] length of the snip 
- * @return the new offset
- */
-int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
-{
-    int id, type;
-    if (sscanf((char*)buffer, "%10d",length)!= 1) {
-        return -1;
-    }
-    offset += HEADER_LENGTH;
-    offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
-        return -1;
-    
-    offset = parse_number(buffer, offset, sniptyp);
-    
     return offset;
 }
 
@@ -203,7 +203,7 @@ int send_pong(uint8_t *buffer, int offset, int counter)
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
-int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t meta)
+int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int offset_meta)
 {
     
 }

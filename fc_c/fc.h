@@ -85,9 +85,14 @@
 
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput);
 int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length);
+int add_variant(uint8_t *buffer, int offset, int id ,int value)
+int add_type(uint8_t *buffer, int offset, int typ)
 int recv_ping(uint8_t *buffer, int offset, int *value);
 int send_ping(uint8_t *buffer, int offset, int counter);
 int recv_pong(uint8_t *buffer, int offset, int *value);
 int send_pong(uint8_t *buffer, int offset, int counter);
+int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int offset_meta);
+int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version);
+
 
 #endif
