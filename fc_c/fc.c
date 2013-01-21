@@ -90,7 +90,21 @@ int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long l
     offset +=  (int) length;
     return offset;
 }
-    
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[in] proto_id
+ * @return the new offset
+ */
+int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
+{
+    buffer[offset] = serialize(proto_id, PROTOTYPE_LENGTHD);
+    offset++;
+    offset = serialize_number(buffer, offset, (int) 0);
+    return offset;
+}
+
 /*
  * @param[in] buffer
  * @param[in] offset
@@ -228,7 +242,6 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
     return offset;
 }
 
-
 /*
  * @param[in] buffer
  * @param[in] offset
@@ -253,6 +266,17 @@ int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uin
     return offset;
 }
 
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+int send_start(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_START);
+    offset = add_lengthd_empty(buffer, offset, SNIP_STARTSNIP);
+    return offset;
+}
 
 
 
