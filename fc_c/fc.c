@@ -48,14 +48,13 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
 /*
  * @param[in] buffer
  * @param[in] offset
- * @param[in] id of the variant
+ * @param[in] proto_id of the variant
  * @param[in] value
  * @return the new offset
  */
-// TODO: find better Name for ID!
-int add_variant(uint8_t *buffer, int offset, int id ,int value)
+int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
 {
-    buffer[offset] = serialize(id, PROTOTYPE_VARIANT);
+    buffer[offset] = serialize(proto_id, PROTOTYPE_VARIANT);
     offset++;
     offset = serialize_number(buffer, offset, value);
     return offset;
@@ -67,13 +66,31 @@ int add_variant(uint8_t *buffer, int offset, int id ,int value)
  * @param[in] typ of the snip
  * @return the new offset
  */
-//TODO: Check if necessary
 int add_type(uint8_t *buffer, int offset, int typ)
 {
     add_variant(buffer, offset, SNIP_TYPE, typ);
     return offset;
 }
 
+
+/*
+ * @param[in|out] buffer
+ * @param[in] offset
+ * @param[in] proto_id
+ * @param[in] data buffer
+ * @param[in] legngth data
+ * @return the new offset
+ */
+int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long length)
+{
+    buffer[offset] = serialize(proto_id, PROTOTYPE_LENGTHD);
+    offset++;
+    offset = serialize_number(buffer, offset, (int) length);
+    memcpy(buffer+offset, data, length);
+    offset +=  (int) length;
+    return offset;
+}
+    
 /*
  * @param[in] buffer
  * @param[in] offset
@@ -141,9 +158,6 @@ int send_ping(uint8_t *buffer, int offset, int counter)
  */
 int recv_pong(uint8_t *buffer, int offset, int *value)
 {
-    /*
-     send msg snip, typ ping, mesg ping mit count
-     */
     int id, type;
     offset = parse(buffer, offset, &id, &type);
     if (id != SNIP_PONGSNIP || type != PROTOTYPE_LENGTHD)
@@ -203,9 +217,15 @@ int send_pong(uint8_t *buffer, int offset, int counter)
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
-int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int offset_meta)
+int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int length_meta)
 {
+    offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, strlen(color));
     
+    offset = add_variant(buffer, offset, REQUESTSNIP_SEQID, seqId);
+    
+    offset = add_lengthd(buffer, offset, REQUESTSNIP_META, meta, length_meta);
+    
+    return offset;
 }
 
 
@@ -219,29 +239,16 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
  * @param[in] generator_version 
  * @return the new offset
  */
-// TODO: sizeof ist nicht die Lösung da muss was her was die Bytes bis 0 Zählt!
 int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version)
-{
-    long length_generator_name, length_generator_version;
-    
+{    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
     
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_WIDTH, width);
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_HEIGHT, heigtht);
     
-    length_generator_name = sizeof(generator_name)-3; //BOESE
-    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_GENERATORNAME, PROTOTYPE_LENGTHD);
-    offset++;
-    offset = serialize_number(buffer, offset, (int) length_generator_name);
-    memcpy(buffer+offset, generator_name, length_generator_name);
-    offset +=  (int) length_generator_name;
+    offset = add_lengthd(buffer, offset, BINARYSEQUENCEMETADATA_GENERATORNAME, (uint8_t*) generator_name, strlen(generator_name));
     
-    length_generator_version = sizeof(generator_version)-4;//BOESE
-    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_GENERATORVERSION, PROTOTYPE_LENGTHD);
-    offset++;
-    offset = serialize_number(buffer, offset, (int) length_generator_version);
-    memcpy(buffer+offset, generator_version, length_generator_version);
-    offset +=  (int) length_generator_version;
+    offset = add_lengthd(buffer, offset, BINARYSEQUENCEMETADATA_GENERATORVERSION, (uint8_t*) generator_version, strlen(generator_version));
     
     return offset;
 }
