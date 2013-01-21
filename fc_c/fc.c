@@ -29,6 +29,7 @@ void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
  * @param[in] value
  * @return the new offset
  */
+// TODO: find better Name for ID!
 int add_variant(uint8_t *buffer, int offset, int id ,int value)
 {
     buffer[offset] = serialize(id, PROTOTYPE_VARIANT);
@@ -43,6 +44,7 @@ int add_variant(uint8_t *buffer, int offset, int id ,int value)
  * @param[in] typ of the snip
  * @return the new offset
  */
+//TODO: Check if necessary
 int add_type(uint8_t *buffer, int offset, int typ)
 {
     add_variant(buffer, offset, SNIP_TYPE, typ);
@@ -124,9 +126,8 @@ int send_ping(uint8_t *buffer, int offset, int counter)
     /*
      * store the value into the buffer
      */
-    buffer[offset] = serialize(PINGSNIP_COUNT, PROTOTYPE_VARIANT);
-    offset++;
-    offset = serialize_number(buffer, offset, counter);
+    offset = add_variant(buffer, offset, PINGSNIP_COUNT, counter);
+    //TODO: check if serialize_number?
     buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
@@ -187,9 +188,8 @@ int send_pong(uint8_t *buffer, int offset, int counter)
     /*
      * store the value into the buffer
      */
-    buffer[offset] = serialize(PONGSNIP_COUNT, PROTOTYPE_VARIANT);
-    offset++;
-    offset = serialize_number(buffer, offset, counter);
+    offset = add_variant(buffer, offset, PONGSNIP_COUNT, counter);
+    //TODO: check if serialize_number?
     buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
@@ -219,17 +219,28 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t me
  * @param[in] generator_version 
  * @return the new offset
  */
-int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int width, int heigtht, char *generator_name, char *generator_version)
+int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version)
 {
-    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_FRAMESPERSECOND, PROTOTYPE_VARIANT);
+    long length_generator_name, length_generator_version;
+    offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
+    offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_WIDTH, width);
+    offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_HEIGHT, heigtht);
+    
+    length_generator_name = sizeof(generator_name);
+    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_GENERATORNAME, PROTOTYPE_LENGTHD);
     offset++;
+    offset = serialize_number(buffer, offset, (int) length_generator_name);
     
-    offset = serialize_number(buffer, offset, frames_per_second);
-    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_WIDTH, PROTOTYPE_VARIANT);
+    memcpy(buffer, generator_name, length_generator_name);
+    offset +=  (int) length_generator_name;
+    
+    length_generator_version = sizeof(generator_version);
+    buffer[offset] = serialize(BINARYSEQUENCEMETADATA_GENERATORVERSION, PROTOTYPE_LENGTHD);
     offset++;
-    offset = serialize_number(buffer, offset, width);
+    offset = serialize_number(buffer, offset, (int) length_generator_version);
     
-    
+    memcpy(buffer, generator_version, length_generator_version);
+    offset +=  (int) length_generator_version;
     
     return offset;
 }
