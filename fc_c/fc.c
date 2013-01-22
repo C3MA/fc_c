@@ -278,6 +278,42 @@ int send_start(uint8_t *buffer, int offset)
     return offset;
 }
 
+// int send_frame(uint8_t *buffer, int offset, )
 
+/*
+ * @param[in|out] buffer
+ * @param[in] offset
+ * @param[in] red
+ * @param[in] green
+ * @param[in] blue
+ * @param[in] x
+ * @param[in] y
+ * @return the new offset
+ */
+int RGBValue(uint8_t *buffer, int offset, uint8_t red, uint8_t green, uint8_t blue, uint8_t x, uint8_t y)
+{
+    offset = add_variant(buffer, offset, RGBVALUE_RED, red);
+    offset = add_variant(buffer, offset, RGBVALUE_GREEN, green);
+    offset = add_variant(buffer, offset, RGBVALUE_BLUE, blue);
+    offset = add_variant(buffer, offset, RGBVALUE_X, x);
+    offset = add_variant(buffer, offset, RGBVALUE_Y, y);
+    return offset;
+}
+
+
+/*
+ * @param[in|out] buffer
+ * @param[in] offset
+ * @param[in] pixel
+ * @param[in] length_pixel
+ * @return the new offset
+ */
+int Frame(uint8_t *buffer, int offset, uint8_t *pixel, int length_pixel)
+{
+    for (int i = 0; i <= length_pixel; i++) {
+        offset = add_lengthd(buffer, offset, BINARYFRAME_PIXEL, &pixel[i], sizeof(pixel[i]));
+    }
+    return offset;
+}
 
 

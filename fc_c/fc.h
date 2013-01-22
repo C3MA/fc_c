@@ -96,6 +96,6 @@ int send_pong(uint8_t *buffer, int offset, int counter);
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int offset_meta);
 int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version);
 int send_start(uint8_t *buffer, int offset);
-
+int RGBValue(uint8_t *buffer, int offset, uint8_t red, uint8_t green, uint8_t blue, uint8_t x, uint8_t y);
 
 #endif
