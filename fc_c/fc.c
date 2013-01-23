@@ -314,4 +314,10 @@ int frame_add_pixel(uint8_t *buffer, int offset, uint8_t red, uint8_t green, uin
     return offset;
 }
 
+/*
+ Problem: Frame muss wissen wie lang er ist. Kann er aber nicht, da Value 255 > 7bit!
+ Möglichkeit: frame_add_Pixel gibt offset zurück, aus den Summen der offsets länge berechnen und Framebuffer in Hauptbuffer überführen (memcpy) 
+ anders memmv ist aber auch nicht schön, eher mit mehreren Buffern Arbeiten, oder Größe vorher wissen!
+ 
+ */
 
