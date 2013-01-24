@@ -321,3 +321,32 @@ int frame_add_pixel(uint8_t *buffer, int offset, uint8_t red, uint8_t green, uin
  
  */
 
+/*
+ * @param[in|out] buffer
+ * @param[in] offset
+ * @param[in] frames buffer with frame
+ * @param[in] length_frames length of buffer
+ * @return the new offset
+ */
+int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
+{
+    int lenght_frame_length;
+    uint8_t length_frame_serialized[10]; //TODO: Größe ermitteln
+    
+    offset = add_type(buffer, offset, SNIPTYPE_FRAME);
+    
+    lenght_frame_length = serialize_number(length_frame_serialized, 0, (int)length_frame);
+    
+    offset = add_lengthd_empty(buffer, offset, SNIP_FRAMESNIP);
+    buffer[offset] = 0x01;
+    offset++;
+    /*
+     * Add header for Frames, with two lenght values. Calculate first with length + length of next header :-/
+     */
+    offset = serialize_number(buffer, offset, (int)length_frame + lenght_frame_length + 1);
+    
+    offset = add_lengthd(buffer, offset, FRAMESNIP_FRAME, frame, (long)length_frame);
+    
+    return offset;
+}
+
