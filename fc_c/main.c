@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
     //test
     char genn[] = "Hallo";
     char genv[] = "99.1";
+    int frame_offset , offset_first;
+    uint8_t frame[1024];
     
     /*
     if(argc != 2)
@@ -68,11 +70,19 @@ int main(int argc, char *argv[])
     */
     /* DEBUG FUNCTION */
     
-    offset = create_metadata(buffer, 0, 19, 23, 12, genn, genv);
+    offset = 0;
+    frame_offset = 0;
+    offset_first = offset;
+    
+    frame_offset = frame_add_pixel(frame, frame_offset, 1, 2, 3, 4, 5);
+    frame_offset = frame_add_pixel(frame, frame_offset, 99, 98, 97, 96, 95);
+    
+    offset = send_frame(buffer, offset, frame, (long)frame_offset);
+    
     
     printf("New offset is %d\n", offset);
     
-    for (int i=0; i< 20; i++) {
+    for (int i=0; i< 40; i++) {
         printf("%.2X ", buffer[i]);
     }
     printf("\n");

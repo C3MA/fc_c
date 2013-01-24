@@ -68,7 +68,7 @@ int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
  */
 int add_type(uint8_t *buffer, int offset, int typ)
 {
-    add_variant(buffer, offset, SNIP_TYPE, typ);
+    offset = add_variant(buffer, offset, SNIP_TYPE, typ);
     return offset;
 }
 
@@ -252,6 +252,7 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
  * @param[in] generator_version 
  * @return the new offset
  */
+// TODO: TEST
 int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version)
 {    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
@@ -271,6 +272,7 @@ int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uin
  * @param[in] offset
  * @return the new offset
  */
+// TODO: TEST
 int send_start(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_START);
@@ -328,6 +330,7 @@ int frame_add_pixel(uint8_t *buffer, int offset, uint8_t red, uint8_t green, uin
  * @param[in] length_frames length of buffer
  * @return the new offset
  */
+// TODO: TEST
 int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
 {
     int lenght_frame_length;
@@ -337,7 +340,8 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
     
     lenght_frame_length = serialize_number(length_frame_serialized, 0, (int)length_frame);
     
-    offset = add_lengthd_empty(buffer, offset, SNIP_FRAMESNIP);
+    buffer[offset] = serialize(SNIP_FRAMESNIP, PROTOTYPE_LENGTHD);
+    offset++;
     buffer[offset] = 0x01;
     offset++;
     /*
