@@ -346,7 +346,6 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int send_ack(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_ACK);
@@ -359,7 +358,6 @@ int send_ack(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int send_nack(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_NACK);
@@ -372,7 +370,6 @@ int send_nack(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int send_timeout(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_TIMEOUT);
@@ -385,7 +382,6 @@ int send_timeout(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int send_abort(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_ABORT);
@@ -404,5 +400,3 @@ int send_eos(uint8_t *buffer, int offset)
     offset = add_lengthd_empty(buffer, offset, SNIP_EOSSNIP);
     return offset;
 }
-
-// Check length of snips for short comands like start, eos, etc.
