@@ -231,6 +231,7 @@ int send_pong(uint8_t *buffer, int offset, int counter)
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
+// TODO: TEST
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int length_meta)
 {
     offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, strlen(color));
@@ -253,7 +254,7 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
  * @return the new offset
  */
 // TODO: TEST
-int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version)
+int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int width, int heigtht, char *generator_name, char *generator_version)
 {    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
     
@@ -290,7 +291,7 @@ int send_start(uint8_t *buffer, int offset)
  * @param[in] y
  * @return the new offset
  */
-int frame_add_pixel(uint8_t *buffer, int offset, uint8_t red, uint8_t green, uint8_t blue, uint8_t x, uint8_t y)
+int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, int x, int y)
 {
     int offset4length;
     
