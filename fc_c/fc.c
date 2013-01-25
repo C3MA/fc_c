@@ -413,3 +413,5 @@ int send_eos(uint8_t *buffer, int offset)
     offset = add_lengthd_empty(buffer, offset, SNIP_EOSSNIP);
     return offset;
 }
+
+// Check length of snips for short comands like start, eos, etc.
