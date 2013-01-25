@@ -407,7 +407,6 @@ int send_abort(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int send_eos(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_EOS);
