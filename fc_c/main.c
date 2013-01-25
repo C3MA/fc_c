@@ -73,7 +73,52 @@ int main(int argc, char *argv[])
     offset = 0;
     
     offset = send_eos(buffer, offset);
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
     
+    offset = send_start(buffer, offset);
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    
+    offset = send_abort(buffer, offset);
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    
+    offset = send_timeout(buffer, offset);
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    
+    offset = send_ack(buffer, offset);
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    
+    offset = send_nack(buffer, offset);
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
+    buffer[offset] = 0xFF;
+    offset++;
     
     printf("New offset is %d\n", offset);
     

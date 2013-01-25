@@ -54,8 +54,7 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
  */
 int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
 {
-    buffer[offset] = serialize(proto_id, PROTOTYPE_VARIANT);
-    offset++;
+    offset = serialize(buffer, offset, proto_id, PROTOTYPE_VARIANT);
     offset = serialize_number(buffer, offset, value);
     return offset;
 }
@@ -83,8 +82,7 @@ int add_type(uint8_t *buffer, int offset, int typ)
  */
 int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long length)
 {
-    buffer[offset] = serialize(proto_id, PROTOTYPE_LENGTHD);
-    offset++;
+    offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
     offset = serialize_number(buffer, offset, (int) length);
     memcpy(buffer+offset, data, length);
     offset +=  (int) length;
@@ -99,10 +97,7 @@ int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long l
  */
 int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
 {
-    buffer[offset] = serialize(proto_id, PROTOTYPE_LENGTHD);
-    offset++;
-    buffer[offset] = 0x01;
-    offset++;
+    offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
     buffer[offset] = 0x00;
     offset++;
     return offset;
@@ -151,8 +146,7 @@ int send_ping(uint8_t *buffer, int offset, int counter)
     /*
      * Write the header for Ping structure
      */
-    buffer[offset] = serialize(SNIP_PINGSNIP, PROTOTYPE_LENGTHD);
-    offset++;
+    offset = serialize(buffer, offset, SNIP_PINGSNIP, PROTOTYPE_LENGTHD);
     // offset +1 : here the length must be caluculated
     offset4length = offset;
     offset++;
@@ -210,8 +204,7 @@ int send_pong(uint8_t *buffer, int offset, int counter)
     /*
      * Write the header for Ping structure
      */
-    buffer[offset] = serialize(SNIP_PONGSNIP, PROTOTYPE_LENGTHD);
-    offset++;
+    offset = serialize(buffer, offset, SNIP_PONGSNIP, PROTOTYPE_LENGTHD);
     // offset +1 : here the length must be caluculated
     offset4length = offset;
     offset++;
@@ -301,8 +294,7 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
     /*
      * Write the header for pixel structure
      */
-    buffer[offset] = serialize(BINARYFRAME_PIXEL, PROTOTYPE_LENGTHD);
-    offset++;
+    offset = serialize(buffer, offset, BINARYFRAME_PIXEL, PROTOTYPE_LENGTHD);
     // offset +1 : here the length must be caluculated
     offset4length = offset;
     offset++;
@@ -336,8 +328,7 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
     
     lenght_frame_length = serialize_number(length_frame_serialized, 0, (int)length_frame);
     
-    buffer[offset] = serialize(SNIP_FRAMESNIP, PROTOTYPE_LENGTHD);
-    offset++;
+    offset = serialize(buffer, offset, SNIP_FRAMESNIP, PROTOTYPE_LENGTHD);
     buffer[offset] = 0x01;
     offset++;
     /*
