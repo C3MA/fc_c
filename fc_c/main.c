@@ -71,16 +71,8 @@ int main(int argc, char *argv[])
     /* DEBUG FUNCTION */
     
     offset = 0;
-    frame_offset = 0;
-    offset_first = offset;
     
-    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
-    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
-    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
-    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
-    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
-    
-    offset = send_frame(buffer, offset, frame, (long)frame_offset);
+    offset = send_eos(buffer, offset);
     
     
     printf("New offset is %d\n", offset);

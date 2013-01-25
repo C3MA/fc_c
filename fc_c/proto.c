@@ -58,6 +58,7 @@ int parse_number(uint8_t *buffer, int offset, int *value)
  * @param[out] value that will be written
  * @return the new offset
  */
+// TODO was passiert bei value 0?
 int serialize_number(uint8_t *buffer, int offset, int value)
 {
     do {

@@ -101,7 +101,10 @@ int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
 {
     buffer[offset] = serialize(proto_id, PROTOTYPE_LENGTHD);
     offset++;
-    offset = serialize_number(buffer, offset, (int) 0);
+    buffer[offset] = 0x01;
+    offset++;
+    buffer[offset] = 0x00;
+    offset++;
     return offset;
 }
 
@@ -318,20 +321,12 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
 }
 
 /*
- Problem: Frame muss wissen wie lang er ist. Kann er aber nicht, da Value 255 > 7bit!
- Möglichkeit: frame_add_Pixel gibt offset zurück, aus den Summen der offsets länge berechnen und Framebuffer in Hauptbuffer überführen (memcpy) 
- anders memmv ist aber auch nicht schön, eher mit mehreren Buffern Arbeiten, oder Größe vorher wissen!
- 
- */
-
-/*
  * @param[in|out] buffer
  * @param[in] offset
  * @param[in] frames buffer with frame
  * @param[in] length_frames length of buffer
  * @return the new offset
  */
-// TODO: TEST
 int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
 {
     int lenght_frame_length;
@@ -355,3 +350,67 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
     return offset;
 }
 
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int send_ack(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_ACK);
+    offset = add_lengthd_empty(buffer, offset, SNIP_ACKSNIP);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int send_nack(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_NACK);
+    offset = add_lengthd_empty(buffer, offset, SNIP_NACKSNIP);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int send_timeout(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_TIMEOUT);
+    offset = add_lengthd_empty(buffer, offset, SNIP_TIMEOUTSNIP);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int send_abort(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_ABORT);
+    offset = add_lengthd_empty(buffer, offset, SNIP_ABORTSNIP);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int send_eos(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_EOS);
+    offset = add_lengthd_empty(buffer, offset, SNIP_EOSSNIP);
+    return offset;
+}

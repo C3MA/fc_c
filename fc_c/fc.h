@@ -98,5 +98,10 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
 int send_start(uint8_t *buffer, int offset);
 int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, int x, int y);
 int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame);
+int send_ack(uint8_t *buffer, int offset);
+int send_nack(uint8_t *buffer, int offset);
+int send_timeout(uint8_t *buffer, int offset);
+int send_abort(uint8_t *buffer, int offset);
+int send_eos(uint8_t *buffer, int offset);
 
 #endif
