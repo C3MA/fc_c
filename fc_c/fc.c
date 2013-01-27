@@ -5,6 +5,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "proto.h"
 #include "fc.h"
 #include <string.h>
@@ -106,34 +107,6 @@ int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
 /*
  * @param[in] buffer
  * @param[in] offset
- * @param[out] value the counter, that was read
- * @return the new offset
- */
-int recv_ping(uint8_t *buffer, int offset, int *value)
-{
-    int id, type;
-    offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_PINGSNIP || type != PROTOTYPE_LENGTHD)
-        return -1;
-    
-    offset = parse_number(buffer, offset, &type); // use type to store the length
-    offset = parse(buffer, offset, &id, &type);
-    if (id != PINGSNIP_COUNT || type != PROTOTYPE_VARIANT)
-    {
-        (*value) = -1;
-        return offset;
-    }
-    else
-    {
-        int tmpOffset;
-        tmpOffset = parse_number(buffer,offset, value);
-        return tmpOffset;
-    }
-}
-
-/*
- * @param[in] buffer
- * @param[in] offset
  * @param[out] value the counter, to write
  * @return the new offset
  */
@@ -167,16 +140,16 @@ int send_ping(uint8_t *buffer, int offset, int counter)
  * @param[out] value the counter, that was read
  * @return the new offset
  */
-int recv_pong(uint8_t *buffer, int offset, int *value)
+int recv_ping(uint8_t *buffer, int offset, int *value)
 {
     int id, type;
     offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_PONGSNIP || type != PROTOTYPE_LENGTHD)
+    if (id != SNIP_PINGSNIP || type != PROTOTYPE_LENGTHD)
         return -1;
     
     offset = parse_number(buffer, offset, &type); // use type to store the length
     offset = parse(buffer, offset, &id, &type);
-    if (id != PONGSNIP_COUNT || type != PROTOTYPE_VARIANT)
+    if (id != PINGSNIP_COUNT || type != PROTOTYPE_VARIANT)
     {
         (*value) = -1;
         return offset;
@@ -217,6 +190,34 @@ int send_pong(uint8_t *buffer, int offset, int counter)
     buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] value the counter, that was read
+ * @return the new offset
+ */
+int recv_pong(uint8_t *buffer, int offset, int *value)
+{
+    int id, type;
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_PONGSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    
+    offset = parse_number(buffer, offset, &type); // use type to store the length
+    offset = parse(buffer, offset, &id, &type);
+    if (id != PONGSNIP_COUNT || type != PROTOTYPE_VARIANT)
+    {
+        (*value) = -1;
+        return offset;
+    }
+    else
+    {
+        int tmpOffset;
+        tmpOffset = parse_number(buffer,offset, value);
+        return tmpOffset;
+    }
 }
 
 /*
@@ -263,6 +264,63 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
     
     return offset;
 }
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] pointer to memory area of color
+ * @return the new offset
+ */
+int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t **meta, int *length_meta)
+{
+    int id, type, length;
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != SNIP_REQUESTSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    
+    offset = parse_number(buffer, offset, &length); // Read length of req_snip
+    
+     // Read Color
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != REQUESTSNIP_COLOR || type != PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, &length);
+        *color = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        memcpy(*color, buffer+offset, (long) length);
+        (*color)[length] = 0x00; // string ende
+        offset += length;
+    }
+    else
+    {
+        return -1;
+    }
+    
+    // Read SeqID
+    
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != REQUESTSNIP_SEQID || type != PROTOTYPE_VARIANT)
+        return -1;
+    offset = parse_number(buffer, offset, seqId); // Read value of SeqId
+    
+    // Read Metadata
+    
+    offset = parse(buffer, offset, &id, &type);  // Read Color
+    if (id != REQUESTSNIP_META || type != PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, length_meta);
+        *meta = (uint8_t*) malloc((long) length_meta);
+        memcpy(*meta, buffer+offset, (long) length_meta);
+        offset += *length_meta;
+    }
+    else
+    {
+        return -1;
+    }
+
+    return offset;
+}
+
 
 /*
  * @param[in] buffer
