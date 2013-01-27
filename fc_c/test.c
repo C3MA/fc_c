@@ -22,6 +22,13 @@ void ReadFile(char *name)
     int value;
     int type;
     int offset = 0; // start from the beginning of the stream
+    char *color;
+    int seqId;
+    uint8_t *meta;
+    int meta_length;
+    int frames_per_second, width, heigth;
+    char *generator_name;
+    char *generator_version;
     
 	//Open file
 	file = fopen(name, "rb");
@@ -49,25 +56,37 @@ void ReadFile(char *name)
 	//Read file contents into buffer
 	fread(buffer, fileLen, 1, file);
 	fclose(file);
+
+    // Add test code here!
+    
     offset = parse(buffer, offset, &id, &type);
-    if (type != 0 || id != 1)
-    {
-        printf("Wrong protobuf file\n");
-        return; // wrong protobuf file
-    }
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+        printf("Not a snip");
     offset = parse_number(buffer, offset, &value);
-    switch (value) {
-        case 1: /* PING */
-        {
-            printf("Start PING at offset %d\n", offset);
-            offset = recv_ping(buffer, offset, &value);
-            printf("Found a value %d\n", value);
-            break;
-        }
-        default:
-            break;
+    if (value != SNIPTYPE_REQUEST) {
+        printf("Not a Request");
     }
     
+    offset = recv_request(buffer, offset, &color, &seqId, &meta, &meta_length);
+    if (offset == -1) {
+        printf("recv_request Faild!");
+    } else {
+        printf("Parse Request, Color: %s, seqId: %d\n",color,seqId);
+    }
+    
+    
+    offset = parse_metadata(meta,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
+   
+    if (offset == -1) {
+        printf("parse Metadata Faild!");
+    } else {
+        printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
+    }
+    
+    free(meta);
+    free(color);
+    free(generator_name);
+    free(generator_version);
 	free(buffer);
 }
 

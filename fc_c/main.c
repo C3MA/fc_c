@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include "fc.h"
+#include "test.h"
 
 int network(int argc, char *argv[])
 {
@@ -92,8 +93,9 @@ int network(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     
+    char datei[] = "/tmp/a/request";
     
-    
+    ReadFile(datei);
     //return network(argc,argv);
     
     return 0;

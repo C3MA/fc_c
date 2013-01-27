@@ -299,7 +299,7 @@ int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *heigh
     
     // Read generator_name
     offset = parse(meta, offset, &id, &type);
-    if (id != BINARYSEQUENCEMETADATA_GENERATORNAME || type != PROTOTYPE_LENGTHD)
+    if (id == BINARYSEQUENCEMETADATA_GENERATORNAME && type == PROTOTYPE_LENGTHD)
     {
         offset = parse_number(meta, offset, &length);
         *generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -314,7 +314,7 @@ int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *heigh
     
     // Read generator_version
     offset = parse(meta, offset, &id, &type);
-    if (id != BINARYSEQUENCEMETADATA_GENERATORVERSION || type != PROTOTYPE_LENGTHD)
+    if (id == BINARYSEQUENCEMETADATA_GENERATORVERSION && type == PROTOTYPE_LENGTHD)
     {
         offset = parse_number(meta, offset, &length);
         *generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -351,7 +351,7 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t 
      // Read Color
     
     offset = parse(buffer, offset, &id, &type);
-    if (id != REQUESTSNIP_COLOR || type != PROTOTYPE_LENGTHD)
+    if (id == REQUESTSNIP_COLOR && type == PROTOTYPE_LENGTHD)
     {
         offset = parse_number(buffer, offset, &length);
         *color = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -374,11 +374,11 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t 
     // Read Metadata
     
     offset = parse(buffer, offset, &id, &type);  // Read Color
-    if (id != REQUESTSNIP_META || type != PROTOTYPE_LENGTHD)
+    if (id == REQUESTSNIP_META && type == PROTOTYPE_LENGTHD)
     {
         offset = parse_number(buffer, offset, meta_length);
-        *meta = (uint8_t*) malloc((long) meta_length);
-        memcpy(*meta, buffer+offset, (long) meta_length);
+        *meta = (uint8_t*) malloc((long) *meta_length);
+        memcpy(*meta, buffer+offset, (long) *meta_length);
         offset += *meta_length;
     }
     else
