@@ -266,9 +266,21 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
 }
 
 /*
+ 
+ */
+
+int parse_metadata(){
+    
+    
+}
+
+/*
  * @param[in] buffer
  * @param[in] offset
- * @param[out] pointer to memory area of color
+ * @param[out] color, pointer to memory area of color [YOU have to FREE this Memory later!1!]
+ * @param[out] seqId
+ * @param[out] meta, pointer of memory area of Metadata [YOU have to FREE this Memory later!1!]
+ * @param[out] length_meta, length of the Metadata
  * @return the new offset
  */
 int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t **meta, int *length_meta)
