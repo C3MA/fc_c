@@ -269,7 +269,8 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
  
  */
 
-int parse_metadata(){
+int parse_metadata(uint8_t *meta, int meta_length, )
+{
     
     
 }
@@ -280,10 +281,10 @@ int parse_metadata(){
  * @param[out] color, pointer to memory area of color [YOU have to FREE this Memory later!1!]
  * @param[out] seqId
  * @param[out] meta, pointer of memory area of Metadata [YOU have to FREE this Memory later!1!]
- * @param[out] length_meta, length of the Metadata
+ * @param[out] meta_length, length of the Metadata
  * @return the new offset
  */
-int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t **meta, int *length_meta)
+int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t **meta, int *meta_length)
 {
     int id, type, length;
     offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
@@ -320,10 +321,10 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t 
     offset = parse(buffer, offset, &id, &type);  // Read Color
     if (id != REQUESTSNIP_META || type != PROTOTYPE_LENGTHD)
     {
-        offset = parse_number(buffer, offset, length_meta);
-        *meta = (uint8_t*) malloc((long) length_meta);
-        memcpy(*meta, buffer+offset, (long) length_meta);
-        offset += *length_meta;
+        offset = parse_number(buffer, offset, meta_length);
+        *meta = (uint8_t*) malloc((long) meta_length);
+        memcpy(*meta, buffer+offset, (long) meta_length);
+        offset += *meta_length;
     }
     else
     {
