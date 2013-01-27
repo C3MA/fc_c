@@ -267,14 +267,14 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
 
 /*
  
- */
+ 
 
 int parse_metadata(uint8_t *meta, int meta_length, )
 {
     
     
 }
-
+*/
 /*
  * @param[in] buffer
  * @param[in] offset
