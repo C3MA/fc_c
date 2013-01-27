@@ -403,6 +403,7 @@ int send_start(uint8_t *buffer, int offset)
     return offset;
 }
 
+
 /*
  * @param[in|out] buffer
  * @param[in] offset
@@ -465,6 +466,37 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
     offset = add_lengthd(buffer, offset, FRAMESNIP_FRAME, frame, (long)length_frame);
     
     return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] color, pointer to memory area of color [YOU have to FREE this Memory later!1!]
+ * @param[out] seqId
+ * @param[out] meta, pointer of memory area of Metadata [YOU have to FREE this Memory later!1!]
+ * @param[out] meta_length, length of the Metadata
+ * @return the new offset
+ */
+
+//TODO Aktuelle Baustelle, bisher nur Copy and Paste! und Varnamen angepasst
+int recv_frame(uint8_t *buffer, int offset, uint8_t **frame, int *frame_length)
+{
+    int id, type, length;
+    
+    // Read Metadata
+    
+    offset = parse(buffer, offset, &id, &type);  // Read Color
+    if (id == REQUESTSNIP_META && type == PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, frame_length);
+        *frame = (uint8_t*) malloc((long) *frame_length);
+        memcpy(*frame, buffer+offset, (long) *frame_length);
+        offset += *frame_length;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 /*
