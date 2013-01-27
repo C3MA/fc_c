@@ -266,15 +266,70 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
 }
 
 /*
- 
- 
-
-int parse_metadata(uint8_t *meta, int meta_length, )
+ * @param[in] meta
+ * @param[out] frames per second (fps)
+ * @param[out] width
+ * @param[out] height
+ * @param[out] generator name, pointer to memory area of generator name [YOU have to FREE this Memory later!1!]
+ * @param[out] generator version, pointer of memory area of generator version [YOU have to FREE this Memory later!1!]
+ * @return amount of parsed bytes
+ */
+int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *height, char **generator_name, char **generator_version)
 {
+    int id, type, length;
+    int offset = 0;
     
+    // Read fps
+    offset = parse(meta, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != BINARYSEQUENCEMETADATA_FRAMESPERSECOND || type != PROTOTYPE_VARIANT)
+        return -1;
+    offset = parse_number(meta, offset, frames_per_second); // Read value of fps
     
+    // Read width
+    offset = parse(meta, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != BINARYSEQUENCEMETADATA_WIDTH || type != PROTOTYPE_VARIANT)
+        return -1;
+    offset = parse_number(meta, offset, width); // Read value of width
+    
+    // Read height
+    offset = parse(meta, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != BINARYSEQUENCEMETADATA_HEIGHT || type != PROTOTYPE_VARIANT)
+        return -1;
+    offset = parse_number(meta, offset, height); // Read value of heigth
+    
+    // Read generator_name
+    offset = parse(meta, offset, &id, &type);
+    if (id != BINARYSEQUENCEMETADATA_GENERATORNAME || type != PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(meta, offset, &length);
+        *generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        memcpy(*generator_name, meta+offset, (long) length);
+        (*generator_name)[length] = 0x00; // string ende
+        offset += length;
+    }
+    else
+    {
+        return -1;
+    }
+    
+    // Read generator_version
+    offset = parse(meta, offset, &id, &type);
+    if (id != BINARYSEQUENCEMETADATA_GENERATORVERSION || type != PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(meta, offset, &length);
+        *generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        memcpy(*generator_version, meta+offset, (long) length);
+        (*generator_version)[length] = 0x00; // string ende
+        offset += length;
+    }
+    else
+    {
+        return -1;
+    }
+    
+    return offset;
 }
-*/
+
 /*
  * @param[in] buffer
  * @param[in] offset
