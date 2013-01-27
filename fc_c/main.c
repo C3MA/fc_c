@@ -15,7 +15,7 @@
 #include <arpa/inet.h>
 #include "fc.h"
 
-int main(int argc, char *argv[])
+int network(int argc, char *argv[])
 {
     int sockfd = 0;
     long n = 0;
@@ -27,14 +27,6 @@ int main(int argc, char *argv[])
     int counter;
     int type=-1;
     int length = 0;
-    
-    //test
-    char genn[] = "Hallo";
-    char genv[] = "99.1";
-    int frame_offset , offset_first;
-    uint8_t frame[1024];
-    
-    /*
     if(argc != 2)
     {
         printf("\n Usage: %s <ip of server> \n",argv[0]);
@@ -67,67 +59,6 @@ int main(int argc, char *argv[])
     
     offset = send_ping(buffer, 0, 42);
     add_header(buffer, output, offset);
-    */
-    /* DEBUG FUNCTION */
-    
-    offset = 0;
-    
-    offset = send_eos(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_start(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_abort(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_timeout(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_ack(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_nack(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    printf("New offset is %d\n", offset);
-    
-    for (int i=0; i< (offset + 10); i++) {
-        printf("%.2X ", buffer[i]);
-    }
-    printf("\n");
-
-    /*
     write(sockfd, output, offset+HEADER_LENGTH);
     
     do {
@@ -154,6 +85,16 @@ int main(int argc, char *argv[])
             printf("Unknown type: %d",type);
             break;
     }
-    */
+    return 0;
+}
+
+
+int main(int argc, char *argv[])
+{
+    
+    
+    
+    //return network(argc,argv);
+    
     return 0;
 }
