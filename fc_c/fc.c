@@ -401,6 +401,23 @@ int send_start(uint8_t *buffer, int offset)
     return offset;
 }
 
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int recv_start(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_STARTSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
+    return offset;
+}
+
 
 /*
  * @param[in|out] buffer
@@ -573,10 +590,44 @@ int send_ack(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
+// TODO: TEST
+int recv_ack(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_ACKSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
 int send_nack(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_NACK);
     offset = add_lengthd_empty(buffer, offset, SNIP_NACKSNIP);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int recv_nack(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_NACKSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
     return offset;
 }
 
@@ -597,6 +648,23 @@ int send_timeout(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
+// TODO: TEST
+int recv_timeout(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_TIMEOUTSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
 int send_abort(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_ABORT);
@@ -609,9 +677,43 @@ int send_abort(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
+// TODO: TEST
+int recv_abort(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_ABORTSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
 int send_eos(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_EOS);
     offset = add_lengthd_empty(buffer, offset, SNIP_EOSSNIP);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+// TODO: TEST
+int recv_eos(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_EOSSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
     return offset;
 }
