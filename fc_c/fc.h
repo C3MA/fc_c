@@ -99,7 +99,9 @@ int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *heigh
 int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t **meta, int *meta_length);
 int send_start(uint8_t *buffer, int offset);
 int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, int x, int y);
+int frame_parse_pixel(uint8_t *frame, int offset, int *red, int *green, int *blue, int *x, int *y);
 int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame);
+int recv_frame(uint8_t *buffer, int offset, uint8_t **frame, int *frame_length);
 int send_ack(uint8_t *buffer, int offset);
 int send_nack(uint8_t *buffer, int offset);
 int send_timeout(uint8_t *buffer, int offset);
