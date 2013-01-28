@@ -9,6 +9,9 @@
 #ifndef fc_c_test_h
 #define fc_c_test_h
 
+#include <stdint.h>
+
+int test_recv(uint8_t *buffer, int offset);
 void test_print();
 void ReadFile(char *name);
 

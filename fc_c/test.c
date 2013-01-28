@@ -8,21 +8,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include "test.h"
 #include "fc.h"
 #include "proto.h"
 
-void ReadFile(char *name)
+int test_recv(uint8_t *buffer, int offset)
 {
-	FILE *file;
-	uint8_t *buffer;
-	unsigned long fileLen;
-    int id;
-    int value;
-    int type;
-    int offset = 0; // start from the beginning of the stream
-
+    int id, type, value;
+    
     char *color;
     int seqId;
     int meta_offset;
@@ -30,6 +23,116 @@ void ReadFile(char *name)
     int frames_per_second, width, heigth;
     char *generator_name;
     char *generator_version;
+    
+    int frame_offset;
+    int frame_offset_start;
+    int frame_length;
+    int red;
+    int green;
+    int blue;
+    int x;
+    int y;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+        printf("Not a snip\n");
+    offset = parse_number(buffer, offset, &value);
+    
+    switch (value) {
+        case SNIPTYPE_PING:
+            offset = recv_ping(buffer, offset, &value);
+            printf("Recive Ping, with count: %d\n", value);
+            break;
+            
+        case SNIPTYPE_PONG:
+            offset = recv_pong(buffer, offset, &value);
+            printf("Recive Pong, with count: %d\n", value);
+            break;
+            
+        case SNIPTYPE_ERROR:
+            printf("Not implementet yet :-/\n");
+            return -1;
+            break;
+            
+        case SNIPTYPE_REQUEST:
+            offset = recv_request(buffer, offset, &color, &seqId, &meta_offset, &meta_length);
+            if (offset == -1) {
+                printf("recv_request Faild!\n");
+            } else {
+                printf("Parse Request, Color: %s, seqId: %d\n",color,seqId);
+            }
+            offset = parse_metadata(buffer,meta_offset,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
+            if (offset == -1) {
+                printf("parse Metadata Faild!\n");
+            } else {
+                printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
+            }
+            free(color);
+            free(generator_name);
+            free(generator_version);
+            break;
+            
+        case SNIPTYPE_START:
+            printf("Recive Start\n");
+            offset = recv_start(buffer, offset);
+            break;
+            
+        case SNIPTYPE_FRAME:
+            offset = recv_frame(buffer, offset, &frame_offset, &frame_length);
+            if (offset == -1) {
+                printf("recv_frame Faild!\n");
+            } else {
+                printf("Parse Frame, frame_length: %d\n",frame_length);
+            }
+            frame_offset_start = frame_offset;
+            do {
+                frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
+                if (offset == -1) {
+                    printf("parse Pixel faild\n");
+                } else {
+                    printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
+                }
+            } while (frame_offset < (frame_offset_start+frame_length));
+            break;
+            
+        case SNIPTYPE_ACK:
+            printf("Recive ACK\n");
+            offset = recv_ack(buffer, offset);
+            break;
+            
+        case SNIPTYPE_NACK:
+            printf("Recive NACK\n");
+            offset = recv_nack(buffer, offset);
+            break;
+            
+        case SNIPTYPE_TIMEOUT:
+            printf("Recive Timeout\n");
+            offset = recv_timeout(buffer, offset);
+            break;
+            
+        case SNIPTYPE_ABORT:
+            printf("Recive Abort\n");
+            offset = recv_abort(buffer, offset);
+            break;
+            
+        case SNIPTYPE_EOS:
+            printf("Recive EOS\n");
+            offset = recv_eos(buffer, offset);
+            break;
+        default:
+            printf("SNIP_TYPE unbekannt\n");
+            return -1;
+    }
+    return offset;
+}
+
+void ReadFile(char *name)
+{
+	FILE *file;
+	uint8_t *buffer;
+	unsigned long fileLen;
+    int offset = 0; // start from the beginning of the stream
+
     
 	//Open file
 	file = fopen(name, "rb");
@@ -59,150 +162,28 @@ void ReadFile(char *name)
 	fclose(file);
 
     // Add test code here!
-    /*
-     int frame_offset;
-     int frame_length;
-     int red;
-     int green;
-     int blue;
-     int x;
-     int y;
-     
-    offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
-        printf("Not a snip");
-    offset = parse_number(buffer, offset, &value);
-    
-    
-    if (value != SNIPTYPE_FRAME) {
-        printf("Not a Frame");
-    }
-    
-    offset = recv_frame(buffer, offset, &frame_offset, &frame_length);
-    if (offset == -1) {
-        printf("recv_frame Faild!");
-    } else {
-        printf("Parse Frame, frame_length: %d\n",frame_length);
-    }
-    
-    frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
-    if (offset == -1) {
-        printf("parse Pixel faild");
-    } else {
-        printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
-    }
-    
-    frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
-    if (offset == -1) {
-        printf("parse Pixel faild");
-    } else {
-        printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
-    }
-    
-    frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
-    if (offset == -1) {
-        printf("parse Pixel faild");
-    } else {
-        printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
-    }
-    */
-
-
-     
-     
-    offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
-        printf("Not a snip");
-    offset = parse_number(buffer, offset, &value);
-    
-    
-    if (value != SNIPTYPE_REQUEST) {
-        printf("Not a Request");
-    }
-    
-    offset = recv_request(buffer, offset, &color, &seqId, &meta_offset, &meta_length);
-    if (offset == -1) {
-        printf("recv_request Faild!");
-    } else {
-        printf("Parse Request, Color: %s, seqId: %d\n",color,seqId);
-    }
-    
-    
-    offset = parse_metadata(buffer,meta_offset,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
-   
-    if (offset == -1) {
-        printf("parse Metadata Faild!");
-    } else {
-        printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
-    }
-     
-    free(color);
-    free(generator_name);
-    free(generator_version);
-
+       
+    offset = test_recv(buffer, offset);
+    printf("Offset = %d \n",offset);
 	free(buffer);
 }
 
 void test_print()
 {
     //test
+    /*
     char genn[] = "Hallo";
     char genv[] = "99.1";
     int frame_offset , offset_first;
     uint8_t frame[1024];
+     */
     int offset;
     uint8_t buffer[2048];
     
     offset = 0;
     
     offset = send_eos(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_start(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_abort(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_timeout(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_ack(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
-    offset = send_nack(buffer, offset);
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    buffer[offset] = 0xFF;
-    offset++;
-    
+        
     printf("New offset is %d\n", offset);
     
     for (int i=0; i< (offset + 10); i++) {
