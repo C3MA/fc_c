@@ -13,7 +13,7 @@
 
 
 int parse(uint8_t *buffer, int offset, int* pId, int* pType);
-uint8_t serialize(int id, int type);
+int serialize(uint8_t *buffer, int offset, int id, int type);
 int parse_number(uint8_t *buffer, int offset, int *value);
 int serialize_number(uint8_t *buffer, int offset, int value);
 

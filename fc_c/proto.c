@@ -21,16 +21,19 @@ int parse(uint8_t *buffer, int offset, int* pId, int* pType)
 }
 
 /*
+ * @param[in] buffer
+ * @param[in] offset
  * @param[in] id
  * @param[in] type
  * @return combined byte with both values
  */
-uint8_t serialize(int id, int type)
+int serialize(uint8_t *buffer, int offset, int id, int type)
 {
-    uint8_t out;
+    int out;
     out = type & 0x7;
     out = out | (id << 3);
-    return out;
+    offset = serialize_number(buffer, offset, out);
+    return offset;
 }
 
 /*
@@ -58,6 +61,7 @@ int parse_number(uint8_t *buffer, int offset, int *value)
  * @param[out] value that will be written
  * @return the new offset
  */
+// TODO was passiert bei value 0?
 int serialize_number(uint8_t *buffer, int offset, int value)
 {
     do {

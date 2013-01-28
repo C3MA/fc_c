@@ -86,16 +86,33 @@
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput);
 int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length);
 int add_variant(uint8_t *buffer, int offset, int proto_id ,int value);
+int add_type(uint8_t *buffer, int offset, int typ);
 int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long length);
 int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id);
-int add_type(uint8_t *buffer, int offset, int typ);
-int recv_ping(uint8_t *buffer, int offset, int *value);
 int send_ping(uint8_t *buffer, int offset, int counter);
-int recv_pong(uint8_t *buffer, int offset, int *value);
+int recv_ping(uint8_t *buffer, int offset, int *value);
 int send_pong(uint8_t *buffer, int offset, int counter);
+int recv_pong(uint8_t *buffer, int offset, int *value);
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int offset_meta);
-int create_metadata(uint8_t *buffer, int offset, uint32_t frames_per_second, uint32_t width, uint32_t heigtht, char *generator_name, char *generator_version);
+int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int width, int heigtht, char *generator_name, char *generator_version);
+int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *width, int *height, char **generator_name, char **generator_version);
+int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *meta_offset, int *meta_length);
 int send_start(uint8_t *buffer, int offset);
+int recv_start(uint8_t *buffer, int offset);
+int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, int x, int y);
+int frame_parse_pixel(uint8_t *frame, int offset, int *red, int *green, int *blue, int *x, int *y);
+int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame);
+int recv_frame(uint8_t *buffer, int offset, int *frame_offset, int *frame_length);
+int send_ack(uint8_t *buffer, int offset);
+int recv_ack(uint8_t *buffer, int offset);
+int send_nack(uint8_t *buffer, int offset);
+int recv_nack(uint8_t *buffer, int offset);
+int send_timeout(uint8_t *buffer, int offset);
+int recv_timeout(uint8_t *buffer, int offset);
+int send_abort(uint8_t *buffer, int offset);
+int recv_abort(uint8_t *buffer, int offset);
+int send_eos(uint8_t *buffer, int offset);
+int recv_eos(uint8_t *buffer, int offset);
 
 
 #endif
