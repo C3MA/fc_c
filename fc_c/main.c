@@ -93,9 +93,9 @@ int network(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     
-    char datei[] = "/tmp/a/frame_big";
-    
-    ReadFile(datei);
+    //char datei[] = "/tmp/a/frame_big";
+    self_test();
+    //ReadFile(datei);
     //return network(argc,argv);
     
     return 0;

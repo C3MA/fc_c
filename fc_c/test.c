@@ -192,3 +192,18 @@ void test_print()
     printf("\n");
 
 }
+
+void self_test()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_eos(buffer, offset);
+    printf("send_eos, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    }
+}

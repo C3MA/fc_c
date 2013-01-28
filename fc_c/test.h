@@ -14,5 +14,6 @@
 int test_recv(uint8_t *buffer, int offset);
 void test_print();
 void ReadFile(char *name);
+void self_test();
 
 #endif
