@@ -11,18 +11,19 @@
 /** Message are only print in debugmode */
 #ifdef DEBUG
 #include <stdio.h>
-#define PRINT(message) printf((message));
+#define PRINT(message) printf(message)
 #else
-#define PRINT(message)	;
+#define PRINT(message) 
 #endif
 
 /** check if the offset correct, and the function above did not fail */
 #define	CHECK_OFFSET_1(offset) if ((offset) == -1) { return; }
 #define	CHECK_OFFSET_2(offset,returnvalue) if ((offset) == -1) { return (returnvalue); }
 #define	CHECK_OFFSET_3(offset,returnvalue,message) if ((offset) == -1) { PRINT((message)); return (returnvalue); }
-#define CHECK_OFFSET_X(A,B,C,...) C
+#define CHECK_OFFSET_X(A,B,C,LAST,...) LAST
 /* the value to return is optional, here the correct version from above is choosen */
 #define CHECK_OFFSET_CHOOSER(...) CHECK_OFFSET_X(__VA_ARGS__,\
+											CHECK_OFFSET_3,\
 											CHECK_OFFSET_2,\
 											CHECK_OFFSET_1,\
 										)

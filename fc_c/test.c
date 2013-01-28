@@ -206,8 +206,9 @@ void self_test()
     offset_meta = create_metadata(meta, 0, 23, 43, 44, gname, gversion);
     offset = send_request(buffer, offset, color, 19, meta, offset_meta-1);
     printf("send, offset: %d \n",offset);
-    CHECK_OFFSET(offset, 1);
+    CHECK_OFFSET(offset, 1, "We failed on sending a request\n");
         
     offset = test_recv(buffer, offset);
 	printf("Offset: %d \n",offset);
+	CHECK_OFFSET(offset, 1, "We failed on receiving\n");
 }
