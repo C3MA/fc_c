@@ -274,7 +274,6 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
  * @param[out] generator version, pointer of memory area of generator version [YOU have to FREE this Memory later!1!]
  * @return amount of parsed bytes
  */
-// TODO: TEST
 int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *width, int *height, char **generator_name, char **generator_version)
 {
     int id, type, length;
@@ -339,7 +338,6 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
  * @param[out] meta_length, length of the Metadata
  * @return the new offset
  */
-// TODO: TEST
 int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *meta_offset, int *meta_length)
 {
     int id, type, length;

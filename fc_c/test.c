@@ -23,13 +23,13 @@ void ReadFile(char *name)
     int type;
     int offset = 0; // start from the beginning of the stream
 
-    int frame_offset;
-    int frame_length;
-    int red;
-    int green;
-    int blue;
-    int x;
-    int y;
+    char *color;
+    int seqId;
+    int meta_offset;
+    int meta_length;
+    int frames_per_second, width, heigth;
+    char *generator_name;
+    char *generator_version;
     
 	//Open file
 	file = fopen(name, "rb");
@@ -59,7 +59,15 @@ void ReadFile(char *name)
 	fclose(file);
 
     // Add test code here!
-    
+    /*
+     int frame_offset;
+     int frame_length;
+     int red;
+     int green;
+     int blue;
+     int x;
+     int y;
+     
     offset = parse(buffer, offset, &id, &type);
     if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
         printf("Not a snip");
@@ -97,15 +105,9 @@ void ReadFile(char *name)
     } else {
         printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
     }
-    
-    /*
-     char *color;
-     int seqId;
-     uint8_t *meta;
-     int meta_length;
-     int frames_per_second, width, heigth;
-     char *generator_name;
-     char *generator_version;
+    */
+
+
      
      
     offset = parse(buffer, offset, &id, &type);
@@ -118,7 +120,7 @@ void ReadFile(char *name)
         printf("Not a Request");
     }
     
-    offset = recv_request(buffer, offset, &color, &seqId, &meta, &meta_length);
+    offset = recv_request(buffer, offset, &color, &seqId, &meta_offset, &meta_length);
     if (offset == -1) {
         printf("recv_request Faild!");
     } else {
@@ -126,7 +128,7 @@ void ReadFile(char *name)
     }
     
     
-    offset = parse_metadata(meta,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
+    offset = parse_metadata(buffer,meta_offset,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
    
     if (offset == -1) {
         printf("parse Metadata Faild!");
@@ -134,11 +136,10 @@ void ReadFile(char *name)
         printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
     }
      
-     free(color);
-     free(generator_name);
-     free(generator_version);
-     free(meta);
-    */
+    free(color);
+    free(generator_name);
+    free(generator_version);
+
 	free(buffer);
 }
 
