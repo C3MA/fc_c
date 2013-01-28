@@ -22,13 +22,15 @@ void ReadFile(char *name)
     int value;
     int type;
     int offset = 0; // start from the beginning of the stream
-    char *color;
-    int seqId;
-    uint8_t *meta;
-    int meta_length;
-    int frames_per_second, width, heigth;
-    char *generator_name;
-    char *generator_version;
+
+    uint8_t *frame;
+    int frame_length;
+    int red;
+    int green;
+    int blue;
+    int x;
+    int y;
+    int frame_offset;
     
 	//Open file
 	file = fopen(name, "rb");
@@ -63,6 +65,48 @@ void ReadFile(char *name)
     if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
         printf("Not a snip");
     offset = parse_number(buffer, offset, &value);
+    
+    
+    if (value != SNIPTYPE_FRAME) {
+        printf("Not a Frame");
+    }
+    
+    offset = recv_frame(buffer, offset, &frame, &frame_length);
+    if (offset == -1) {
+        printf("recv_frame Faild!");
+    } else {
+        printf("Parse Frame, frame_length: %d\n",frame_length);
+    }
+    
+    frame_offset = frame_parse_pixel(frame, 0, &red, &green, &blue, &x, &y);
+    if (offset == -1) {
+        printf("parse Pixel faild");
+    } else {
+        printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
+    }
+    
+    frame_offset = frame_parse_pixel(frame, frame_offset, &red, &green, &blue, &x, &y);
+    if (offset == -1) {
+        printf("parse Pixel faild");
+    } else {
+        printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
+    }
+    /*
+     char *color;
+     int seqId;
+     uint8_t *meta;
+     int meta_length;
+     int frames_per_second, width, heigth;
+     char *generator_name;
+     char *generator_version;
+     
+     
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+        printf("Not a snip");
+    offset = parse_number(buffer, offset, &value);
+    
+    
     if (value != SNIPTYPE_REQUEST) {
         printf("Not a Request");
     }
@@ -82,11 +126,13 @@ void ReadFile(char *name)
     } else {
         printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
     }
-    
-    free(meta);
-    free(color);
-    free(generator_name);
-    free(generator_version);
+     
+     free(color);
+     free(generator_name);
+     free(generator_version);
+     free(meta);
+    */
+    free(frame);
 	free(buffer);
 }
 

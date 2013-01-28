@@ -450,7 +450,6 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
  * @param[out] y
  * @return the new offset
  */
-// TODO: TEST
 int frame_parse_pixel(uint8_t *frame, int offset, int *red, int *green, int *blue, int *x, int *y)
 {
     int id, type, length;
@@ -529,7 +528,6 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
  * @param[out] frame_length, length of the Framedata
  * @return the new offset
  */
-// TODO: TEST
 int recv_frame(uint8_t *buffer, int offset, uint8_t **frame, int *frame_length)
 {
     int id, type, length;
