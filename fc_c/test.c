@@ -196,14 +196,22 @@ void test_print()
 void self_test()
 {
     uint8_t buffer[1024];
+    uint8_t meta[1024];
     int offset = 0;
+    int offset_meta;
+    char gname[] = "Bach";
+    char gversion[] = "999.9";
+    char color[] = "schwarz";
     
-    offset = send_eos(buffer, offset);
-    printf("send_eos, offset: %d \n",offset);
+    offset_meta = create_metadata(meta, 0, 23, 43, 44, gname, gversion);
+    offset = send_request(buffer, offset, color, 19, meta, offset_meta-1);
+    printf("send, offset: %d \n",offset);
     if (offset != -1) {
         offset = 0;
         
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
     }
 }

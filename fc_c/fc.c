@@ -228,9 +228,11 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
-// TODO: TEST
+// TODO: rewrite ^^, add variant with length
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int length_meta)
 {
+    offset = add_type(buffer, offset, SNIPTYPE_REQUEST);
+    
     offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, strlen(color));
     
     offset = add_variant(buffer, offset, REQUESTSNIP_SEQID, seqId);
@@ -393,7 +395,6 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int send_start(uint8_t *buffer, int offset)
 {
     offset = add_type(buffer, offset, SNIPTYPE_START);
@@ -406,7 +407,6 @@ int send_start(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int recv_start(uint8_t *buffer, int offset)
 {
     int id, type, length;
@@ -590,7 +590,6 @@ int send_ack(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int recv_ack(uint8_t *buffer, int offset)
 {
     int id, type, length;
@@ -619,7 +618,6 @@ int send_nack(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int recv_nack(uint8_t *buffer, int offset)
 {
     int id, type, length;
@@ -648,7 +646,6 @@ int send_timeout(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int recv_timeout(uint8_t *buffer, int offset)
 {
     int id, type, length;
@@ -677,7 +674,6 @@ int send_abort(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int recv_abort(uint8_t *buffer, int offset)
 {
     int id, type, length;
@@ -706,7 +702,6 @@ int send_eos(uint8_t *buffer, int offset)
  * @param[in] offset
  * @return the new offset
  */
-// TODO: TEST
 int recv_eos(uint8_t *buffer, int offset)
 {
     int id, type, length;
