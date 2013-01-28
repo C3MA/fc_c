@@ -23,14 +23,13 @@ void ReadFile(char *name)
     int type;
     int offset = 0; // start from the beginning of the stream
 
-    uint8_t *frame;
+    int frame_offset;
     int frame_length;
     int red;
     int green;
     int blue;
     int x;
     int y;
-    int frame_offset;
     
 	//Open file
 	file = fopen(name, "rb");
@@ -71,26 +70,34 @@ void ReadFile(char *name)
         printf("Not a Frame");
     }
     
-    offset = recv_frame(buffer, offset, &frame, &frame_length);
+    offset = recv_frame(buffer, offset, &frame_offset, &frame_length);
     if (offset == -1) {
         printf("recv_frame Faild!");
     } else {
         printf("Parse Frame, frame_length: %d\n",frame_length);
     }
     
-    frame_offset = frame_parse_pixel(frame, 0, &red, &green, &blue, &x, &y);
+    frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
     if (offset == -1) {
         printf("parse Pixel faild");
     } else {
         printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
     }
     
-    frame_offset = frame_parse_pixel(frame, frame_offset, &red, &green, &blue, &x, &y);
+    frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
     if (offset == -1) {
         printf("parse Pixel faild");
     } else {
         printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
     }
+    
+    frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
+    if (offset == -1) {
+        printf("parse Pixel faild");
+    } else {
+        printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
+    }
+    
     /*
      char *color;
      int seqId;
@@ -132,7 +139,6 @@ void ReadFile(char *name)
      free(generator_version);
      free(meta);
     */
-    free(frame);
 	free(buffer);
 }
 

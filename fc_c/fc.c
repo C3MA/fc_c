@@ -274,36 +274,36 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
  * @param[out] generator version, pointer of memory area of generator version [YOU have to FREE this Memory later!1!]
  * @return amount of parsed bytes
  */
-int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *height, char **generator_name, char **generator_version)
+// TODO: TEST
+int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *width, int *height, char **generator_name, char **generator_version)
 {
     int id, type, length;
-    int offset = 0;
     
     // Read fps
-    offset = parse(meta, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != BINARYSEQUENCEMETADATA_FRAMESPERSECOND || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(meta, offset, frames_per_second); // Read value of fps
+    offset = parse_number(buffer, offset, frames_per_second); // Read value of fps
     
     // Read width
-    offset = parse(meta, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != BINARYSEQUENCEMETADATA_WIDTH || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(meta, offset, width); // Read value of width
+    offset = parse_number(buffer, offset, width); // Read value of width
     
     // Read height
-    offset = parse(meta, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != BINARYSEQUENCEMETADATA_HEIGHT || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(meta, offset, height); // Read value of heigth
+    offset = parse_number(buffer, offset, height); // Read value of heigth
     
     // Read generator_name
-    offset = parse(meta, offset, &id, &type);
+    offset = parse(buffer, offset, &id, &type);
     if (id == BINARYSEQUENCEMETADATA_GENERATORNAME && type == PROTOTYPE_LENGTHD)
     {
-        offset = parse_number(meta, offset, &length);
+        offset = parse_number(buffer, offset, &length);
         *generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
-        memcpy(*generator_name, meta+offset, (long) length);
+        memcpy(*generator_name, buffer+offset, (long) length);
         (*generator_name)[length] = 0x00; // string ende
         offset += length;
     }
@@ -313,12 +313,12 @@ int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *heigh
     }
     
     // Read generator_version
-    offset = parse(meta, offset, &id, &type);
+    offset = parse(buffer, offset, &id, &type);
     if (id == BINARYSEQUENCEMETADATA_GENERATORVERSION && type == PROTOTYPE_LENGTHD)
     {
-        offset = parse_number(meta, offset, &length);
+        offset = parse_number(buffer, offset, &length);
         *generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
-        memcpy(*generator_version, meta+offset, (long) length);
+        memcpy(*generator_version, buffer+offset, (long) length);
         (*generator_version)[length] = 0x00; // string ende
         offset += length;
     }
@@ -335,11 +335,12 @@ int parse_metadata(uint8_t *meta, int *frames_per_second, int *width, int *heigh
  * @param[in] offset
  * @param[out] color, pointer to memory area of color [YOU have to FREE this Memory later!1!]
  * @param[out] seqId
- * @param[out] meta, pointer of memory area of Metadata [YOU have to FREE this Memory later!1!]
+ * @param[out] offset of the metadata
  * @param[out] meta_length, length of the Metadata
  * @return the new offset
  */
-int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t **meta, int *meta_length)
+// TODO: TEST
+int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *meta_offset, int *meta_length)
 {
     int id, type, length;
     offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
@@ -377,9 +378,8 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, uint8_t 
     if (id == REQUESTSNIP_META && type == PROTOTYPE_LENGTHD)
     {
         offset = parse_number(buffer, offset, meta_length);
-        *meta = (uint8_t*) malloc((long) *meta_length);
-        memcpy(*meta, buffer+offset, (long) *meta_length);
-        offset += *meta_length;
+        (*meta_offset) = offset;
+        offset += (*meta_length);
     }
     else
     {
@@ -441,7 +441,7 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
 
 
 /*
- * @param[in] frame
+ * @param[in] buffer
  * @param[in] offset
  * @param[out] red
  * @param[out] green
@@ -450,44 +450,44 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
  * @param[out] y
  * @return the new offset
  */
-int frame_parse_pixel(uint8_t *frame, int offset, int *red, int *green, int *blue, int *x, int *y)
+int frame_parse_pixel(uint8_t *buffer, int offset, int *red, int *green, int *blue, int *x, int *y)
 {
     int id, type, length;
     
-    offset = parse(frame, offset, &id, &type);
+    offset = parse(buffer, offset, &id, &type);
     if (id != BINARYFRAME_PIXEL || type != PROTOTYPE_LENGTHD)
         return -1;
-    offset = parse_number(frame, offset, &length);
+    offset = parse_number(buffer, offset, &length);
     
     // Read red
-    offset = parse(frame, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != RGBVALUE_RED || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(frame, offset, red); // Read value of red
+    offset = parse_number(buffer, offset, red); // Read value of red
     
     // Read green
-    offset = parse(frame, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != RGBVALUE_GREEN || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(frame, offset, green); // Read value of green
+    offset = parse_number(buffer, offset, green); // Read value of green
     
     // Read blue
-    offset = parse(frame, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != RGBVALUE_BLUE || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(frame, offset, blue); // Read value of blue
+    offset = parse_number(buffer, offset, blue); // Read value of blue
     
     // Read x
-    offset = parse(frame, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != RGBVALUE_X || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(frame, offset, x); // Read value of x
+    offset = parse_number(buffer, offset, x); // Read value of x
     
     // Read y
-    offset = parse(frame, offset, &id, &type); // Read first byte and check if Right snip
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
     if (id != RGBVALUE_Y || type != PROTOTYPE_VARIANT)
         return -1;
-    offset = parse_number(frame, offset, y); // Read value of y
+    offset = parse_number(buffer, offset, y); // Read value of y
     
     return offset;
 }
@@ -524,11 +524,11 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
 /*
  * @param[in] buffer
  * @param[in] offset
- * @param[out] frame, pointer of memory area of Framedata (pixel) [YOU have to FREE this Memory later!1!]
+ * @param[out] offset of frame
  * @param[out] frame_length, length of the Framedata
  * @return the new offset
  */
-int recv_frame(uint8_t *buffer, int offset, uint8_t **frame, int *frame_length)
+int recv_frame(uint8_t *buffer, int offset, int *frame_offset, int *frame_length)
 {
     int id, type, length;
     
@@ -547,9 +547,8 @@ int recv_frame(uint8_t *buffer, int offset, uint8_t **frame, int *frame_length)
     if (id == FRAMESNIP_FRAME && type == PROTOTYPE_LENGTHD)
     {
         offset = parse_number(buffer, offset, frame_length);
-        *frame = (uint8_t*) malloc((long) *frame_length);
-        memcpy(*frame, buffer+offset, (long) *frame_length);
-        offset += *frame_length;
+        (*frame_offset) = offset;
+        offset += (*frame_length);
     }
     else
     {

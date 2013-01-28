@@ -93,7 +93,7 @@ int network(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     
-    char datei[] = "/tmp/a/frame";
+    char datei[] = "/tmp/a/frame_big";
     
     ReadFile(datei);
     //return network(argc,argv);
