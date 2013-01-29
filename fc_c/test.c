@@ -249,3 +249,29 @@ void self_test_pong(int counter)
         printf("Fehler beim Senden!");
     }
 }
+
+void self_test_frame()
+{
+    uint8_t buffer[1024];
+    uint8_t frame[1024];
+    int offset = 0;
+    int offset_frame = 0;
+    
+    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+        
+    send_frame(buffer, offset, frame, (long)offset_frame);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
