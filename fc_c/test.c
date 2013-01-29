@@ -88,7 +88,6 @@ int test_recv(uint8_t *buffer, int offset)
             offset = recv_request(buffer, offset, &color, &seqId, &meta_offset, &meta_length);
             if (offset == -1) {
                 printf("recv_request Faild!\n");
-                return -1;
             } else {
                 printf("Parse Request, Color: %s, seqId: %d\n",color,seqId);
             }
@@ -117,7 +116,6 @@ int test_recv(uint8_t *buffer, int offset)
             offset = recv_frame(buffer, offset, &frame_offset, &frame_length);
             if (offset == -1) {
                 printf("recv_frame Faild!\n");
-                return -1;
             } else {
                 printf("Parse Frame, frame_length: %d\n",frame_length);
             }
@@ -178,8 +176,10 @@ int test_recv(uint8_t *buffer, int offset)
             break;
         default:
             printf("SNIP_TYPE unbekannt\n");
-            return -1;
             break;
+    }
+    if (offset == -1){
+        //send error
     }
     return offset;
 }
