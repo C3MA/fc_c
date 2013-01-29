@@ -257,14 +257,116 @@ void self_test_frame()
     int offset = 0;
     int offset_frame = 0;
     
-    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
-    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
-    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
-    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
-    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
-    offset_frame = frame_add_pixel(buffer, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
         
-    send_frame(buffer, offset, frame, (long)offset_frame);
+    offset = send_frame(buffer, offset, frame, (long)offset_frame);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_start()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_start(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_ack()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_ack(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_nack()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_nack(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_timeout()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_timeout(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_abort()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_abort(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_eos()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_eos(buffer, offset);
     printf("send, offset: %d \n",offset);
     if (offset != -1) {
         offset = 0;
