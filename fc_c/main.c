@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 {
     
     //char datei[] = "/tmp/a/frame_big";
-    self_test();
+    self_test_frame();
     //ReadFile(datei);
     //return network(argc,argv);
     
