@@ -55,6 +55,10 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
  */
 int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_VARIANT);
     offset = serialize_number(buffer, offset, value);
     return offset;
@@ -67,7 +71,7 @@ int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
 int variant_length(int proto_id ,int value)
 {
     int n = 0;
-    
+
     //Check if proto_id serialized more than one Byte is
     if (proto_id >> 7 != 0) {
         n += 1;
@@ -88,6 +92,10 @@ int variant_length(int proto_id ,int value)
  */
 int add_type(uint8_t *buffer, int offset, int typ)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = add_variant(buffer, offset, SNIP_TYPE, typ);
     return offset;
 }
@@ -103,6 +111,10 @@ int add_type(uint8_t *buffer, int offset, int typ)
  */
 int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long length)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
     offset = serialize_number(buffer, offset, (int) length);
     memcpy(buffer+offset, data, length);
@@ -118,6 +130,10 @@ int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long l
  */
 int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
     buffer[offset] = 0x00;
     offset++;

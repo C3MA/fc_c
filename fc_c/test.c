@@ -42,16 +42,24 @@ int test_recv(uint8_t *buffer, int offset)
         return -1;
     }
     offset = parse_number(buffer, offset, &value);
-    
+        
     switch (value) {
         case SNIPTYPE_PING:
             offset = recv_ping(buffer, offset, &value);
-            printf("Recive Ping, with count: %d\n", value);
+            if (offset == -1) {
+                printf("recv_ping Faild!\n");
+            } else {
+                printf("Recive Ping, with count: %d\n", value);
+            }
             break;
             
         case SNIPTYPE_PONG:
             offset = recv_pong(buffer, offset, &value);
-            printf("Recive Pong, with count: %d\n", value);
+            if (offset == -1) {
+                printf("recv_pong Faild!\n");
+            } else {
+                printf("Recive Pong, with count: %d\n", value);
+            }
             break;
             
         case SNIPTYPE_ERROR:
@@ -70,6 +78,7 @@ int test_recv(uint8_t *buffer, int offset)
                     default:
                         printf("Errorcode: Unbekannt\n");
                         break;
+                free(descr);
                 }
             }
             return -1;
@@ -96,8 +105,12 @@ int test_recv(uint8_t *buffer, int offset)
             break;
             
         case SNIPTYPE_START:
-            printf("Recive Start\n");
             offset = recv_start(buffer, offset);
+            if (offset == -1) {
+                printf("recv_start Faild!\n");
+            } else {
+                printf("Recive Start\n");
+            }
             break;
             
         case SNIPTYPE_FRAME:
@@ -120,32 +133,53 @@ int test_recv(uint8_t *buffer, int offset)
             break;
             
         case SNIPTYPE_ACK:
-            printf("Recive ACK\n");
             offset = recv_ack(buffer, offset);
+            if (offset == -1) {
+                printf("recv_error Faild!\n");
+            } else {
+                printf("Recive ACK\n"); 
+            }
             break;
             
         case SNIPTYPE_NACK:
-            printf("Recive NACK\n");
             offset = recv_nack(buffer, offset);
+            if (offset == -1) {
+                printf("recv_nack Faild!\n");
+            } else {
+                printf("Recive NACK\n");
+            }
             break;
             
         case SNIPTYPE_TIMEOUT:
-            printf("Recive Timeout\n");
             offset = recv_timeout(buffer, offset);
+            if (offset == -1) {
+                printf("recv_timeout Faild!\n");
+            } else {
+                printf("Recive Timeout\n");
+            }
             break;
             
         case SNIPTYPE_ABORT:
-            printf("Recive Abort\n");
             offset = recv_abort(buffer, offset);
+            if (offset == -1) {
+                printf("recv_abort Faild!\n");
+            } else {
+                printf("Recive Abort\n");
+            }
             break;
             
         case SNIPTYPE_EOS:
-            printf("Recive EOS\n");
             offset = recv_eos(buffer, offset);
+            if (offset == -1) {
+                printf("recv_eos Faild!\n");
+            } else {
+                printf("Recive EOS\n");
+            }
             break;
         default:
             printf("SNIP_TYPE unbekannt\n");
             return -1;
+            break;
     }
     return offset;
 }
@@ -253,7 +287,7 @@ void self_test_ping(int counter)
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -270,7 +304,7 @@ void self_test_pong(int counter)
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -296,7 +330,7 @@ void self_test_frame()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -313,7 +347,7 @@ void self_test_start()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -330,7 +364,7 @@ void self_test_ack()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -347,7 +381,7 @@ void self_test_nack()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -364,7 +398,7 @@ void self_test_timeout()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -381,7 +415,7 @@ void self_test_abort()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -398,7 +432,7 @@ void self_test_eos()
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
 
@@ -416,6 +450,6 @@ void self_test_error(int errorcode)
         offset = test_recv(buffer, offset);
         printf("Offset: %d \n",offset);
     } else {
-        printf("Fehler beim Senden!");
+        printf("Fehler beim Senden!\n");
     }
 }
