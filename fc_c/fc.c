@@ -123,7 +123,7 @@ int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long l
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] proto_id
  * @return the new offset
@@ -135,13 +135,15 @@ int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
         return -1;
     }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
-    buffer[offset] = 0x00;
-    offset++;
+    if (offset != -1) {
+        buffer[offset] = 0x00;
+        offset++;
+    }
     return offset;
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[out] value the counter, to write
  * @return the new offset
@@ -193,7 +195,7 @@ int recv_ping(uint8_t *buffer, int offset, int *value)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] value the counter, to write
  * @return the new offset
@@ -245,7 +247,7 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] color, string with color
  * @param[in] seqId, ID of the Sequence
@@ -271,7 +273,7 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] frames_per_second
  * @param[in] width
@@ -418,7 +420,7 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
 
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -447,7 +449,7 @@ int recv_start(uint8_t *buffer, int offset)
 
 
 /*
- * @param[in|out] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] red
  * @param[in] green
@@ -531,7 +533,7 @@ int frame_parse_pixel(uint8_t *buffer, int offset, int *red, int *green, int *bl
 }
 
 /*
- * @param[in|out] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] frames buffer with frame
  * @param[in] length_frames length of buffer
@@ -595,7 +597,7 @@ int recv_frame(uint8_t *buffer, int offset, int *frame_offset, int *frame_length
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -623,7 +625,7 @@ int recv_ack(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -651,7 +653,7 @@ int recv_nack(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -679,7 +681,7 @@ int recv_timeout(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -707,7 +709,7 @@ int recv_abort(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -735,7 +737,7 @@ int recv_eos(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[in|out] buffer
  * @param[in] offset
  * @param[in] errorcode
  * @param[in] descr, string with error Description
