@@ -531,8 +531,6 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
     lenght_frame_length = serialize_number(length_frame_serialized, 0, (int)length_frame);
     
     offset = serialize(buffer, offset, SNIP_FRAMESNIP, PROTOTYPE_LENGTHD);
-    buffer[offset] = 0x01;
-    offset++;
     /*
      * Add header for Frames, with two lenght values. Calculate first with length + length of next header :-/
      */
