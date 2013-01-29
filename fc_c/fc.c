@@ -61,6 +61,26 @@ int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
 }
 
 /*
+ * @param[in] value
+ * @return number of Bytes for Value
+ */
+int variant_length(int proto_id ,int value)
+{
+    int n = 0;
+    
+    //Check if proto_id serialized more than one Byte is
+    if (proto_id >> 7 != 0) {
+        n += 1;
+    }
+    // calculate the numer of bytes for the Value
+    do {
+        value >>= 7;
+        n++;
+    } while (value != 0);
+    return n;
+}
+
+/*
  * @param[in] buffer
  * @param[in] offset
  * @param[in] typ of the snip
@@ -228,12 +248,17 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
-// TODO: rewrite ^^, add variant with length
+// TODO: rewrite ^^, add lenghthd with length
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int length_meta)
-{
+{    
+    long color_length = strlen(color);
     offset = add_type(buffer, offset, SNIPTYPE_REQUEST);
     
-    offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, strlen(color));
+    offset = serialize(buffer, offset, SNIP_REQUESTSNIP, PROTOTYPE_LENGTHD);
+    // calculate length of SNIP_Requestsnip
+    offset = serialize_number(buffer, offset, length_meta+(int)color_length+variant_length(REQUESTSNIP_SEQID, seqId));
+    
+    offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, color_length);
     
     offset = add_variant(buffer, offset, REQUESTSNIP_SEQID, seqId);
     

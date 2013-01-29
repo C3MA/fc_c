@@ -86,6 +86,7 @@
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput);
 int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length);
 int add_variant(uint8_t *buffer, int offset, int proto_id ,int value);
+int variant_length(int proto_id ,int value);
 int add_type(uint8_t *buffer, int offset, int typ);
 int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long length);
 int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id);

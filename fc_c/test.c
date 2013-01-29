@@ -203,8 +203,8 @@ void self_test()
     char gversion[] = "999.9";
     char color[] = "schwarz";
     
-    offset_meta = create_metadata(meta, 0, 23, 43, 44, gname, gversion);
-    offset = send_request(buffer, offset, color, 19, meta, offset_meta-1);
+    offset_meta = create_metadata(meta, 0, 23, 42, 44, gname, gversion);
+    offset = send_request(buffer, offset, color, 19, meta, offset_meta);
     printf("send, offset: %d \n",offset);
     if (offset != -1) {
         offset = 0;
