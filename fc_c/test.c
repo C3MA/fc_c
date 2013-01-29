@@ -193,7 +193,7 @@ void test_print()
 
 }
 
-void self_test()
+void self_test_request()
 {
     uint8_t buffer[1024];
     uint8_t meta[1024];
@@ -205,6 +205,40 @@ void self_test()
     
     offset_meta = create_metadata(meta, 0, 23, 42, 44, gname, gversion);
     offset = send_request(buffer, offset, color, 19, meta, offset_meta);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_ping(int counter)
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_ping(buffer, offset, counter);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_pong(int counter)
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_pong(buffer, offset, counter);
     printf("send, offset: %d \n",offset);
     if (offset != -1) {
         offset = 0;
