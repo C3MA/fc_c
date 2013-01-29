@@ -717,3 +717,69 @@ int recv_eos(uint8_t *buffer, int offset)
     offset = parse_number(buffer, offset, &length);
     return offset;
 }
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[in] errorcode
+ * @param[in] descr, string with error Description
+ * @return the new offset
+ */
+int send_error(uint8_t *buffer, int offset, int errorcode , char *descr)
+{
+    long descr_length = strlen(descr);
+    offset = add_type(buffer, offset, SNIPTYPE_ERROR);
+    
+    offset = serialize(buffer, offset, SNIP_ERRORSNIP, PROTOTYPE_LENGTHD);
+    // calculate length of SNIP_ERRORCODE
+    offset = serialize_number(buffer, offset, (int)descr_length+variant_length(ERRORSNIP_ERRORCODE, errorcode));
+    
+    offset = add_variant(buffer, offset, ERRORSNIP_ERRORCODE, errorcode);
+    
+    offset = add_lengthd(buffer, offset, ERRORSNIP_DESCRIPTION, (uint8_t*) descr, descr_length);
+    
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] errorcode
+ * @param[out] descr, string with error Description , pointer to memory area of color [YOU have to FREE this Memory later!1!]
+ * @return the new offset
+ */
+int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr)
+{
+    int id, type, length;
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != SNIP_ERRORSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    
+    offset = parse_number(buffer, offset, &length); // Read length of req_snip
+    
+    // Read Errorcode
+    
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != ERRORSNIP_ERRORCODE || type != PROTOTYPE_VARIANT)
+        return -1;
+    offset = parse_number(buffer, offset, errorcode); // Read value of SeqId
+
+    
+    // Read Error Description
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id == ERRORSNIP_DESCRIPTION && type == PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, &length);
+        *descr = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        memcpy(*descr, buffer+offset, (long) length);
+        (*descr)[length] = 0x00; // string end
+        offset += length;
+    }
+    else
+    {
+        return -1;
+    }
+    
+    return offset;
+}

@@ -114,6 +114,8 @@ int send_abort(uint8_t *buffer, int offset);
 int recv_abort(uint8_t *buffer, int offset);
 int send_eos(uint8_t *buffer, int offset);
 int recv_eos(uint8_t *buffer, int offset);
+int send_error(uint8_t *buffer, int offset, int errorcode , char *descr);
+int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr);
 
 
 #endif
