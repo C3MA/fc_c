@@ -215,7 +215,7 @@ void self_test_request()
         printf("Fehler beim Senden!");
     }
 }
-
+    
 void self_test_ping(int counter)
 {
     uint8_t buffer[1024];
