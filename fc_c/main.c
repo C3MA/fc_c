@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
     //self_test_timeout();
     //self_test_abort();
     //self_test_eos();
+    //self_test_error(ERRORCODETYPE_OK);
     //ReadFile(datei);
     //return network(argc,argv);
     

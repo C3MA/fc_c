@@ -33,6 +33,9 @@ int test_recv(uint8_t *buffer, int offset)
     int x;
     int y;
     
+    int errorcode;
+    char *descr;
+    
     offset = parse(buffer, offset, &id, &type);
     if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
         printf("Not a snip\n");
@@ -50,7 +53,23 @@ int test_recv(uint8_t *buffer, int offset)
             break;
             
         case SNIPTYPE_ERROR:
-            printf("Not implementet yet :-/\n");
+            offset = recv_error(buffer, offset, &errorcode, &descr);
+            if (offset == -1) {
+                printf("recv_error Faild!\n");
+            } else {
+                printf("Error errorcode: %d, description: %s \n",errorcode,descr);
+                switch (errorcode) {
+                    case ERRORCODETYPE_OK:
+                        printf("Errorcode: OK\n");
+                        break;
+                    case ERRORCODETYPE_DECODING_ERROR:
+                        printf("Errorcode: Decoding Error\n");
+                        break;
+                    default:
+                        printf("Errorcode: Unbekannt\n");
+                        break;
+                }
+            }
             return -1;
             break;
             
@@ -367,6 +386,24 @@ void self_test_eos()
     int offset = 0;
     
     offset = send_eos(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
+    }
+}
+
+void self_test_error(int errorcode)
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    char descr[] = "Gut";
+    
+    offset = send_error(buffer, offset, errorcode, descr);
     printf("send, offset: %d \n",offset);
     if (offset != -1) {
         offset = 0;

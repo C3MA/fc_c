@@ -24,5 +24,5 @@ void self_test_nack();
 void self_test_timeout();
 void self_test_abort();
 void self_test_eos();
-
+void self_test_error();
 #endif
