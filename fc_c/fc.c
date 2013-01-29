@@ -131,25 +131,19 @@ int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
  * @return the new offset
  */
 int send_ping(uint8_t *buffer, int offset, int counter)
-{
-    int offset4length;
-    
+{    
     offset = add_type(buffer, offset, SNIPTYPE_PING);
     
     /*
      * Write the header for Ping structure
      */
     offset = serialize(buffer, offset, SNIP_PINGSNIP, PROTOTYPE_LENGTHD);
-    // offset +1 : here the length must be caluculated
-    offset4length = offset;
-    offset++;
+    offset = serialize_number(buffer, offset, variant_length(PINGSNIP_COUNT, counter));
     
     /*
      * store the value into the buffer
      */
     offset = add_variant(buffer, offset, PINGSNIP_COUNT, counter);
-    //TODO: check if serialize_number?
-    buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
 }
@@ -189,25 +183,19 @@ int recv_ping(uint8_t *buffer, int offset, int *value)
  * @return the new offset
  */
 int send_pong(uint8_t *buffer, int offset, int counter)
-{
-    int offset4length;
-    
+{    
     offset = add_type(buffer, offset, SNIPTYPE_PONG);
     
     /*
      * Write the header for Ping structure
      */
     offset = serialize(buffer, offset, SNIP_PONGSNIP, PROTOTYPE_LENGTHD);
-    // offset +1 : here the length must be caluculated
-    offset4length = offset;
-    offset++;
+    offset = serialize_number(buffer, offset, variant_length(PONGSNIP_COUNT, counter));
     
     /*
      * store the value into the buffer
      */
     offset = add_variant(buffer, offset, PONGSNIP_COUNT, counter);
-    //TODO: check if serialize_number?
-    buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
 }
@@ -248,7 +236,6 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
-// TODO: rewrite ^^, add lenghthd with length
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int length_meta)
 {    
     long color_length = strlen(color);
@@ -277,7 +264,6 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
  * @param[in] generator_version 
  * @return the new offset
  */
-// TODO: TEST
 int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int width, int heigtht, char *generator_name, char *generator_version)
 {    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
@@ -455,17 +441,15 @@ int recv_start(uint8_t *buffer, int offset)
  * @return the new offset
  */
 int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, int x, int y)
-{
-    int offset4length;
-    
+{    
+    int lenght_pixel;
     /*
      * Write the header for pixel structure
      */
     offset = serialize(buffer, offset, BINARYFRAME_PIXEL, PROTOTYPE_LENGTHD);
-    // offset +1 : here the length must be caluculated
-    offset4length = offset;
-    offset++;
-    
+    lenght_pixel = variant_length(RGBVALUE_RED, red) + variant_length(RGBVALUE_GREEN, green) + variant_length(RGBVALUE_BLUE, blue) + variant_length(RGBVALUE_X, x) + variant_length(RGBVALUE_Y, y);
+    offset = serialize_number(buffer, offset, lenght_pixel);
+
     /*
      * store the value into the buffer
      */
@@ -474,8 +458,6 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
     offset = add_variant(buffer, offset, RGBVALUE_BLUE, blue);
     offset = add_variant(buffer, offset, RGBVALUE_X, x);
     offset = add_variant(buffer, offset, RGBVALUE_Y, y);
-    //TODO: check if serialize_number?
-    buffer[offset4length] = offset - offset4length - 1;
     return offset;
 }
 
