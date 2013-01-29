@@ -37,8 +37,10 @@ int test_recv(uint8_t *buffer, int offset)
     char *descr;
     
     offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT){
         printf("Not a snip\n");
+        return -1;
+    }
     offset = parse_number(buffer, offset, &value);
     
     switch (value) {
@@ -77,12 +79,14 @@ int test_recv(uint8_t *buffer, int offset)
             offset = recv_request(buffer, offset, &color, &seqId, &meta_offset, &meta_length);
             if (offset == -1) {
                 printf("recv_request Faild!\n");
+                return -1;
             } else {
                 printf("Parse Request, Color: %s, seqId: %d\n",color,seqId);
             }
             offset = parse_metadata(buffer,meta_offset,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
             if (offset == -1) {
                 printf("parse Metadata Faild!\n");
+                return -1;
             } else {
                 printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
             }
@@ -100,6 +104,7 @@ int test_recv(uint8_t *buffer, int offset)
             offset = recv_frame(buffer, offset, &frame_offset, &frame_length);
             if (offset == -1) {
                 printf("recv_frame Faild!\n");
+                return -1;
             } else {
                 printf("Parse Frame, frame_length: %d\n",frame_length);
             }
