@@ -25,4 +25,6 @@ void self_test_timeout();
 void self_test_abort();
 void self_test_eos();
 void self_test_error();
+void self_test_sequence();
+
 #endif

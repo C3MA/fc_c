@@ -81,7 +81,6 @@ int test_recv(uint8_t *buffer, int offset)
                 free(descr);
                 }
             }
-            return -1;
             break;
             
         case SNIPTYPE_REQUEST:
@@ -451,5 +450,70 @@ void self_test_error(int errorcode)
         printf("Offset: %d \n",offset);
     } else {
         printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_sequence()
+{
+    uint8_t buffer[1024];
+    uint8_t frame[1024];
+    int offset = 0;
+    
+    uint8_t meta[1024];
+    char gname[] = "Bach";
+    char gversion[] = "999.9";
+    
+    int meta_offset;
+    int meta_length;
+    int frames_per_second, width, heigth;
+    char *generator_name;
+    char *generator_version;
+    
+    int frame_offset = 0;
+    int frame_offset_start;
+    int frame_length;
+    int red;
+    int green;
+    int blue;
+    int x;
+    int y;
+    
+    meta_offset = create_metadata(meta, 0, 23, 42, 44, gname, gversion);
+    
+    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
+    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
+    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
+    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
+    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
+    frame_offset = frame_add_pixel(frame, frame_offset, 255, 255, 255, 1024, 1024);
+    
+    offset = create_sequence(buffer, offset, meta, (long) meta_offset, frame, (long) frame_offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = parse_sequence(buffer, offset, &meta_offset, &meta_length, &frame_offset, &frame_length);
+        meta_offset = parse_metadata(buffer, meta_offset, &frames_per_second, &width, &heigth, &generator_name, &generator_version);
+        if (offset == -1) {
+            printf("parse Metadata Faild!\n");
+        } else {
+            printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
+        }
+        free(generator_name);
+        free(generator_version);
+        
+        frame_offset_start = frame_offset;
+        do {
+            frame_offset = frame_parse_pixel(buffer,frame_offset, &red, &green, &blue, &x, &y);
+            if (offset == -1) {
+                printf("parse Pixel faild\n");
+            } else {
+                printf("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d\n",red,green,blue,x,y);
+            }
+        } while (frame_offset < (frame_offset_start+frame_length));
+
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Create Error!\n");
     }
 }
