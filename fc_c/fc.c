@@ -853,3 +853,83 @@ int parse_sequence(uint8_t *buffer, int offset, int *meta_offset, int *length_me
     }
     return offset;
 }
+
+/*
+ * @param[out] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+int send_inforequest(uint8_t *buffer, int offset)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_INFOREQUEST);
+    offset = add_lengthd_empty(buffer, offset, SNIP_INFOREQUEST);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @return the new offset
+ */
+int recv_inforequest(uint8_t *buffer, int offset)
+{
+    int id, type, length;
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_INFOREQUEST || type != PROTOTYPE_LENGTHD)
+        return -1;
+    offset = parse_number(buffer, offset, &length);
+    return offset;
+}
+
+/*
+ * @param[out] buffer
+ * @param[in] offset
+ * @param[in] meta, buffer with Binarysequenzemetadta
+ * @return the new offset
+ */
+int send_infoanswer(uint8_t *buffer, int offset, uint8_t *meta, int length_meta)
+{
+    offset = add_type(buffer, offset, SNIPTYPE_INFOANSWER);
+    
+    offset = serialize(buffer, offset, SNIP_INFOANSWERSNIP, PROTOTYPE_LENGTHD);
+    // calculate length of SNIP_Requestsnip
+    offset = serialize_number(buffer, offset, length_meta);
+    
+    offset = add_lengthd(buffer, offset, REQUESTSNIP_META, meta, length_meta);
+    
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] offset of the metadata
+ * @param[out] meta_length, length of the Metadata
+ * @return the new offset
+ */
+int recv_infoanswer(uint8_t *buffer, int offset, int *meta_offset, int *meta_length)
+{
+    int id, type, length;
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != SNIP_INFOANSWERSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    
+    offset = parse_number(buffer, offset, &length); // Read length of req_snip
+    
+    // Read Metadata
+    
+    offset = parse(buffer, offset, &id, &type);  // Read Color
+    if (id == INFOANSWERSNIP_META && type == PROTOTYPE_LENGTHD && offset > -1)
+    {
+        offset = parse_number(buffer, offset, meta_length);
+        (*meta_offset) = offset;
+        offset += (*meta_length);
+    }
+    else
+    {
+        return -1;
+    }
+    
+    return offset;
+}

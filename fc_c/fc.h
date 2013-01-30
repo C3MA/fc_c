@@ -45,6 +45,8 @@
 #define SNIPTYPE_TIMEOUT 9
 #define SNIPTYPE_ABORT 10
 #define SNIPTYPE_EOS 11
+#define SNIPTYPE_INFOREQUEST 12
+#define SNIPTYPE_INFOANSWER 13
 
 #define SNIP_PINGSNIP   11
 #define PINGSNIP_COUNT 1
@@ -78,6 +80,11 @@
 #define SNIP_ABORTSNIP 20
 
 #define SNIP_EOSSNIP 21
+
+#define SNIP_INFOREQUEST 22
+
+#define SNIP_INFOANSWERSNIP 23
+#define INFOANSWERSNIP_META 1
 
 #define HEADER_LENGTH 10
 
@@ -118,6 +125,8 @@ int send_error(uint8_t *buffer, int offset, int errorcode , char *descr);
 int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr);
 int create_sequence(uint8_t *buffer, int offset, uint8_t *meta, long length_meta, uint8_t *frame, long length_frame);
 int parse_sequence(uint8_t *buffer, int offset, int *meta_offset, int *length_meta, int *frame_offset, int *length_frame);
+int send_infoanswer(uint8_t *buffer, int offset, uint8_t *meta, int length_meta);
+int recv_infoanswer(uint8_t *buffer, int offset, int *meta_offset, int *meta_length);
 
 
 #endif
