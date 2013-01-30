@@ -173,6 +173,34 @@ int test_recv(uint8_t *buffer, int offset)
                 printf("Recive EOS\n");
             }
             break;
+        
+        case SNIPTYPE_INFOREQUEST:
+            offset = recv_inforequest(buffer, offset);
+            if (offset == -1) {
+                printf("recv_inforeq Faild!\n");
+            } else {
+                printf("Recive InfoRequest\n");
+            }
+            break;
+            
+        case SNIPTYPE_INFOANSWER:
+            offset = recv_infoanswer(buffer, offset, &meta_offset, &meta_length);
+            if (offset == -1) {
+                printf("recv_infoanswer Faild!\n");
+            } else {
+                printf("Parse InfoAnswer\n");
+            }
+            offset = parse_metadata(buffer,meta_offset,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
+            if (offset == -1) {
+                printf("parse Metadata Faild!\n");
+                return -1;
+            } else {
+                printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
+            }
+            free(generator_name);
+            free(generator_version);
+            break;
+            
         default:
             printf("SNIP_TYPE unbekannt\n");
             break;
@@ -515,5 +543,45 @@ void self_test_sequence()
         printf("Offset: %d \n",offset);
     } else {
         printf("Create Error!\n");
+    }
+}
+
+void self_test_inforequest()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_inforequest(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_infoanswer()
+{
+    uint8_t buffer[1024];
+    uint8_t meta[1024];
+    int offset = 0;
+    int offset_meta;
+    char gname[] = "Bach";
+    char gversion[] = "999.9";
+
+    
+    offset_meta = create_metadata(meta, 0, 23, 42, 44, gname, gversion);
+    offset = send_infoanswer(buffer, offset, meta, offset_meta);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!");
     }
 }

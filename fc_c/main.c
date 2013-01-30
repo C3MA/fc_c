@@ -105,7 +105,9 @@ int main(int argc, char *argv[])
     //self_test_abort();
     //self_test_eos();
     //self_test_error(ERRORCODETYPE_OK);
-    self_test_sequence();
+    //self_test_sequence();
+    self_test_inforequest();
+    self_test_infoanswer();
     //ReadFile(datei);
     //return network(argc,argv);
     

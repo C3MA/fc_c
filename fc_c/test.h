@@ -26,5 +26,7 @@ void self_test_abort();
 void self_test_eos();
 void self_test_error();
 void self_test_sequence();
+void self_test_inforequest();
+void self_test_infoanswer();
 
 #endif
