@@ -15,13 +15,15 @@
  */
 int parse(uint8_t *buffer, int offset, int* pId, int* pType)
 {
+    int in;
+    offset = parse_number(buffer, offset, &in);
     // Error
     if (offset == -1) {
         return -1;
     }
-    *pType = (buffer[offset] & 0x7);
-    *pId = buffer[offset]>>3;
-    return offset+1;
+    *pType = (in & 0x7);
+    *pId = in>>3;
+    return offset;
 }
 
 /*

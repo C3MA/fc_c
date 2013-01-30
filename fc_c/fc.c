@@ -574,12 +574,7 @@ int recv_frame(uint8_t *buffer, int offset, int *frame_offset, int *frame_length
     if (id != SNIP_FRAMESNIP || type != PROTOTYPE_LENGTHD)
         return -1;
     
-    offset = parse_number(buffer, offset, &length); // Strange thing in Protobuf, length = 1, value is length of next part ...
-    if (length != 1) {
-        return -1;
-    }
     offset = parse_number(buffer, offset, &length);
-    // Read Frames
     
     offset = parse(buffer, offset, &id, &type);
     if (id == FRAMESNIP_FRAME && type == PROTOTYPE_LENGTHD)
@@ -799,5 +794,62 @@ int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr)
         return -1;
     }
     
+    return offset;
+}
+
+/*
+ * @param[out] buffer
+ * @param[in] offset
+ * @param[in] meta
+ * @param[in] length_meta
+ * @param[in] frame
+ * @param[in] length_frame
+ * @return the new offset
+ */
+int create_sequence(uint8_t *buffer, int offset, uint8_t *meta, long length_meta, uint8_t *frame, long length_frame)
+{
+    offset = add_lengthd(buffer, offset, BINARYSEQUENCE_METADATA, meta, length_meta);
+    offset = add_lengthd(buffer, offset, BINARYSEQUENCE_FRAME, frame, length_frame);
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] offset of metadata
+ * @param[out] length of metadata
+ * @param[out] offset of frame
+ * @param[out] length of frame
+ * @return the new offset
+ */
+int parse_sequence(uint8_t *buffer, int offset, int *meta_offset, int *length_meta, int *frame_offset, int *length_frame)
+{
+    int id, type;
+    // Read Frames
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id == BINARYSEQUENCE_METADATA && type == PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, length_meta);
+        (*meta_offset) = offset;
+        offset += (*length_meta);
+    }
+    else
+    {
+        return -1;
+    }
+    // Read Frames
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, length_frame);
+        (*frame_offset) = offset;
+        offset += (*length_frame);
+    }
+    else
+    {
+        return -1;
+    }
     return offset;
 }

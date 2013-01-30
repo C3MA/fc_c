@@ -94,9 +94,9 @@ int main(int argc, char *argv[])
 {
     
     //char datei[] = "/tmp/a/frame_big";
-    //self_test_request();
-    //self_test_ping(9999999);
-    //self_test_pong(5);
+    self_test_request();
+    self_test_ping(9999999);
+    self_test_pong(5);
     self_test_frame();
     self_test_start();
     self_test_ack();
