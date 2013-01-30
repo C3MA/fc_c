@@ -329,7 +329,7 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     
     // Read generator_name
     offset = parse(buffer, offset, &id, &type);
-    if (id == BINARYSEQUENCEMETADATA_GENERATORNAME && type == PROTOTYPE_LENGTHD)
+    if (id == BINARYSEQUENCEMETADATA_GENERATORNAME && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
         *generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -344,7 +344,7 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     
     // Read generator_version
     offset = parse(buffer, offset, &id, &type);
-    if (id == BINARYSEQUENCEMETADATA_GENERATORVERSION && type == PROTOTYPE_LENGTHD)
+    if (id == BINARYSEQUENCEMETADATA_GENERATORVERSION && type == PROTOTYPE_LENGTHD  && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
         *generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -381,7 +381,7 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
      // Read Color
     
     offset = parse(buffer, offset, &id, &type);
-    if (id == REQUESTSNIP_COLOR && type == PROTOTYPE_LENGTHD)
+    if (id == REQUESTSNIP_COLOR && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
         *color = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -404,7 +404,7 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
     // Read Metadata
     
     offset = parse(buffer, offset, &id, &type);  // Read Color
-    if (id == REQUESTSNIP_META && type == PROTOTYPE_LENGTHD)
+    if (id == REQUESTSNIP_META && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, meta_length);
         (*meta_offset) = offset;
@@ -781,7 +781,7 @@ int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr)
     // Read Error Description
     
     offset = parse(buffer, offset, &id, &type);
-    if (id == ERRORSNIP_DESCRIPTION && type == PROTOTYPE_LENGTHD)
+    if (id == ERRORSNIP_DESCRIPTION && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
         *descr = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
@@ -828,7 +828,7 @@ int parse_sequence(uint8_t *buffer, int offset, int *meta_offset, int *length_me
     // Read Frames
     
     offset = parse(buffer, offset, &id, &type);
-    if (id == BINARYSEQUENCE_METADATA && type == PROTOTYPE_LENGTHD)
+    if (id == BINARYSEQUENCE_METADATA && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, length_meta);
         (*meta_offset) = offset;
@@ -841,7 +841,7 @@ int parse_sequence(uint8_t *buffer, int offset, int *meta_offset, int *length_me
     // Read Frames
     
     offset = parse(buffer, offset, &id, &type);
-    if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD)
+    if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, length_frame);
         (*frame_offset) = offset;
