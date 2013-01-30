@@ -125,6 +125,8 @@ int send_error(uint8_t *buffer, int offset, int errorcode , char *descr);
 int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr);
 int create_sequence(uint8_t *buffer, int offset, uint8_t *meta, long length_meta, uint8_t *frame, long length_frame);
 int parse_sequence(uint8_t *buffer, int offset, int *meta_offset, int *length_meta, int *frame_offset, int *length_frame);
+int send_inforequest(uint8_t *buffer, int offset);
+int recv_inforequest(uint8_t *buffer, int offset);
 int send_infoanswer(uint8_t *buffer, int offset, uint8_t *meta, int length_meta);
 int recv_infoanswer(uint8_t *buffer, int offset, int *meta_offset, int *meta_length);
 
