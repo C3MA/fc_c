@@ -33,24 +33,54 @@ int test_recv(uint8_t *buffer, int offset)
     int x;
     int y;
     
-    offset = parse(buffer, offset, &id, &type);
-    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
-        printf("Not a snip\n");
-    offset = parse_number(buffer, offset, &value);
+    int errorcode;
+    char *descr;
     
+    offset = parse(buffer, offset, &id, &type);
+    if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT){
+        printf("Not a snip\n");
+        return -1;
+    }
+    offset = parse_number(buffer, offset, &value);
+        
     switch (value) {
         case SNIPTYPE_PING:
             offset = recv_ping(buffer, offset, &value);
-            printf("Recive Ping, with count: %d\n", value);
+            if (offset == -1) {
+                printf("recv_ping Faild!\n");
+            } else {
+                printf("Recive Ping, with count: %d\n", value);
+            }
             break;
             
         case SNIPTYPE_PONG:
             offset = recv_pong(buffer, offset, &value);
-            printf("Recive Pong, with count: %d\n", value);
+            if (offset == -1) {
+                printf("recv_pong Faild!\n");
+            } else {
+                printf("Recive Pong, with count: %d\n", value);
+            }
             break;
             
         case SNIPTYPE_ERROR:
-            printf("Not implementet yet :-/\n");
+            offset = recv_error(buffer, offset, &errorcode, &descr);
+            if (offset == -1) {
+                printf("recv_error Faild!\n");
+            } else {
+                printf("Error errorcode: %d, description: %s \n",errorcode,descr);
+                switch (errorcode) {
+                    case ERRORCODETYPE_OK:
+                        printf("Errorcode: OK\n");
+                        break;
+                    case ERRORCODETYPE_DECODING_ERROR:
+                        printf("Errorcode: Decoding Error\n");
+                        break;
+                    default:
+                        printf("Errorcode: Unbekannt\n");
+                        break;
+                free(descr);
+                }
+            }
             return -1;
             break;
             
@@ -58,12 +88,14 @@ int test_recv(uint8_t *buffer, int offset)
             offset = recv_request(buffer, offset, &color, &seqId, &meta_offset, &meta_length);
             if (offset == -1) {
                 printf("recv_request Faild!\n");
+                return -1;
             } else {
                 printf("Parse Request, Color: %s, seqId: %d\n",color,seqId);
             }
             offset = parse_metadata(buffer,meta_offset,&frames_per_second, &width, &heigth, &generator_name, &generator_version);
             if (offset == -1) {
                 printf("parse Metadata Faild!\n");
+                return -1;
             } else {
                 printf("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",frames_per_second,width,heigth,generator_name,generator_version);
             }
@@ -73,14 +105,19 @@ int test_recv(uint8_t *buffer, int offset)
             break;
             
         case SNIPTYPE_START:
-            printf("Recive Start\n");
             offset = recv_start(buffer, offset);
+            if (offset == -1) {
+                printf("recv_start Faild!\n");
+            } else {
+                printf("Recive Start\n");
+            }
             break;
             
         case SNIPTYPE_FRAME:
             offset = recv_frame(buffer, offset, &frame_offset, &frame_length);
             if (offset == -1) {
                 printf("recv_frame Faild!\n");
+                return -1;
             } else {
                 printf("Parse Frame, frame_length: %d\n",frame_length);
             }
@@ -96,32 +133,53 @@ int test_recv(uint8_t *buffer, int offset)
             break;
             
         case SNIPTYPE_ACK:
-            printf("Recive ACK\n");
             offset = recv_ack(buffer, offset);
+            if (offset == -1) {
+                printf("recv_error Faild!\n");
+            } else {
+                printf("Recive ACK\n"); 
+            }
             break;
             
         case SNIPTYPE_NACK:
-            printf("Recive NACK\n");
             offset = recv_nack(buffer, offset);
+            if (offset == -1) {
+                printf("recv_nack Faild!\n");
+            } else {
+                printf("Recive NACK\n");
+            }
             break;
             
         case SNIPTYPE_TIMEOUT:
-            printf("Recive Timeout\n");
             offset = recv_timeout(buffer, offset);
+            if (offset == -1) {
+                printf("recv_timeout Faild!\n");
+            } else {
+                printf("Recive Timeout\n");
+            }
             break;
             
         case SNIPTYPE_ABORT:
-            printf("Recive Abort\n");
             offset = recv_abort(buffer, offset);
+            if (offset == -1) {
+                printf("recv_abort Faild!\n");
+            } else {
+                printf("Recive Abort\n");
+            }
             break;
             
         case SNIPTYPE_EOS:
-            printf("Recive EOS\n");
             offset = recv_eos(buffer, offset);
+            if (offset == -1) {
+                printf("recv_eos Faild!\n");
+            } else {
+                printf("Recive EOS\n");
+            }
             break;
         default:
             printf("SNIP_TYPE unbekannt\n");
             return -1;
+            break;
     }
     return offset;
 }
@@ -193,7 +251,7 @@ void test_print()
 
 }
 
-void self_test()
+void self_test_request()
 {
     uint8_t buffer[1024];
     uint8_t meta[1024];
@@ -203,12 +261,192 @@ void self_test()
     char gversion[] = "999.9";
     char color[] = "schwarz";
     
-    offset_meta = create_metadata(meta, 0, 23, 43, 44, gname, gversion);
-    offset = send_request(buffer, offset, color, 19, meta, offset_meta-1);
+    offset_meta = create_metadata(meta, 0, 23, 42, 44, gname, gversion);
+    offset = send_request(buffer, offset, color, 19, meta, offset_meta);
     printf("send, offset: %d \n",offset);
     CHECK_OFFSET(offset, 1, "We failed on sending a request\n");
         
     offset = test_recv(buffer, offset);
 	printf("Offset: %d \n",offset);
 	CHECK_OFFSET(offset, 1, "We failed on receiving\n");
+}
+    
+void self_test_ping(int counter)
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_ping(buffer, offset, counter);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_pong(int counter)
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_pong(buffer, offset, counter);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_frame()
+{
+    uint8_t buffer[1024];
+    uint8_t frame[1024];
+    int offset = 0;
+    int offset_frame = 0;
+    
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+    offset_frame = frame_add_pixel(frame, offset_frame, 255, 255, 255, 1024, 1024);
+        
+    offset = send_frame(buffer, offset, frame, (long)offset_frame);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_start()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_start(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_ack()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_ack(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_nack()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_nack(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_timeout()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_timeout(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_abort()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_abort(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_eos()
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    
+    offset = send_eos(buffer, offset);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
+}
+
+void self_test_error(int errorcode)
+{
+    uint8_t buffer[1024];
+    int offset = 0;
+    char descr[] = "Gut";
+    
+    offset = send_error(buffer, offset, errorcode, descr);
+    printf("send, offset: %d \n",offset);
+    if (offset != -1) {
+        offset = 0;
+        
+        offset = test_recv(buffer, offset);
+        printf("Offset: %d \n",offset);
+    } else {
+        printf("Fehler beim Senden!\n");
+    }
 }

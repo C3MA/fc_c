@@ -15,6 +15,10 @@
  */
 int parse(uint8_t *buffer, int offset, int* pId, int* pType)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     *pType = (buffer[offset] & 0x7);
     *pId = buffer[offset]>>3;
     return offset+1;
@@ -30,6 +34,10 @@ int parse(uint8_t *buffer, int offset, int* pId, int* pType)
 int serialize(uint8_t *buffer, int offset, int id, int type)
 {
     int out;
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     out = type & 0x7;
     out = out | (id << 3);
     offset = serialize_number(buffer, offset, out);
@@ -44,6 +52,10 @@ int serialize(uint8_t *buffer, int offset, int id, int type)
  */
 int parse_number(uint8_t *buffer, int offset, int *value)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     int count = -1;
     *value=0;
     // check if the first bit is set (so the following byte must be read)
@@ -64,6 +76,10 @@ int parse_number(uint8_t *buffer, int offset, int *value)
 // TODO was passiert bei value 0?
 int serialize_number(uint8_t *buffer, int offset, int value)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     do {
         buffer[offset] = value & 0x7F;
         value = value>>7;

@@ -55,9 +55,33 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
  */
 int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_VARIANT);
     offset = serialize_number(buffer, offset, value);
     return offset;
+}
+
+/*
+ * @param[in] value
+ * @return number of Bytes for Value
+ */
+int variant_length(int proto_id ,int value)
+{
+    int n = 0;
+
+    //Check if proto_id serialized more than one Byte is
+    if (proto_id >> 7 != 0) {
+        n += 1;
+    }
+    // calculate the numer of bytes for the Value
+    do {
+        value >>= 7;
+        n++;
+    } while (value != 0);
+    return n;
 }
 
 /*
@@ -68,6 +92,10 @@ int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
  */
 int add_type(uint8_t *buffer, int offset, int typ)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = add_variant(buffer, offset, SNIP_TYPE, typ);
     return offset;
 }
@@ -83,6 +111,10 @@ int add_type(uint8_t *buffer, int offset, int typ)
  */
 int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long length)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
     offset = serialize_number(buffer, offset, (int) length);
     memcpy(buffer+offset, data, length);
@@ -91,45 +123,45 @@ int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long l
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] proto_id
  * @return the new offset
  */
 int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
 {
+    // Error
+    if (offset == -1) {
+        return -1;
+    }
     offset = serialize(buffer, offset, proto_id, PROTOTYPE_LENGTHD);
-    buffer[offset] = 0x00;
-    offset++;
+    if (offset != -1) {
+        buffer[offset] = 0x00;
+        offset++;
+    }
     return offset;
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[out] value the counter, to write
  * @return the new offset
  */
 int send_ping(uint8_t *buffer, int offset, int counter)
-{
-    int offset4length;
-    
+{    
     offset = add_type(buffer, offset, SNIPTYPE_PING);
     
     /*
      * Write the header for Ping structure
      */
     offset = serialize(buffer, offset, SNIP_PINGSNIP, PROTOTYPE_LENGTHD);
-    // offset +1 : here the length must be caluculated
-    offset4length = offset;
-    offset++;
+    offset = serialize_number(buffer, offset, variant_length(PINGSNIP_COUNT, counter));
     
     /*
      * store the value into the buffer
      */
     offset = add_variant(buffer, offset, PINGSNIP_COUNT, counter);
-    //TODO: check if serialize_number?
-    buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
 }
@@ -163,31 +195,25 @@ int recv_ping(uint8_t *buffer, int offset, int *value)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] value the counter, to write
  * @return the new offset
  */
 int send_pong(uint8_t *buffer, int offset, int counter)
-{
-    int offset4length;
-    
+{    
     offset = add_type(buffer, offset, SNIPTYPE_PONG);
     
     /*
      * Write the header for Ping structure
      */
     offset = serialize(buffer, offset, SNIP_PONGSNIP, PROTOTYPE_LENGTHD);
-    // offset +1 : here the length must be caluculated
-    offset4length = offset;
-    offset++;
+    offset = serialize_number(buffer, offset, variant_length(PONGSNIP_COUNT, counter));
     
     /*
      * store the value into the buffer
      */
     offset = add_variant(buffer, offset, PONGSNIP_COUNT, counter);
-    //TODO: check if serialize_number?
-    buffer[offset4length] = offset - offset4length - 1;
     
     return offset;
 }
@@ -221,19 +247,23 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] color, string with color
  * @param[in] seqId, ID of the Sequence
  * @param[in] meta, buffer with Binarysequenzemetadta
  * @return the new offset
  */
-// TODO: rewrite ^^, add variant with length
 int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *meta, int length_meta)
-{
+{    
+    long color_length = strlen(color);
     offset = add_type(buffer, offset, SNIPTYPE_REQUEST);
     
-    offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, strlen(color));
+    offset = serialize(buffer, offset, SNIP_REQUESTSNIP, PROTOTYPE_LENGTHD);
+    // calculate length of SNIP_Requestsnip
+    offset = serialize_number(buffer, offset, length_meta+(int)color_length+variant_length(REQUESTSNIP_SEQID, seqId));
+    
+    offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, color_length);
     
     offset = add_variant(buffer, offset, REQUESTSNIP_SEQID, seqId);
     
@@ -243,7 +273,7 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] frames_per_second
  * @param[in] width
@@ -252,7 +282,6 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
  * @param[in] generator_version 
  * @return the new offset
  */
-// TODO: TEST
 int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int width, int heigtht, char *generator_name, char *generator_version)
 {    
     offset = add_variant(buffer, offset, BINARYSEQUENCEMETADATA_FRAMESPERSECOND, frames_per_second);
@@ -391,7 +420,7 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
 
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -420,7 +449,7 @@ int recv_start(uint8_t *buffer, int offset)
 
 
 /*
- * @param[in|out] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] red
  * @param[in] green
@@ -430,17 +459,15 @@ int recv_start(uint8_t *buffer, int offset)
  * @return the new offset
  */
 int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, int x, int y)
-{
-    int offset4length;
-    
+{    
+    int lenght_pixel;
     /*
      * Write the header for pixel structure
      */
     offset = serialize(buffer, offset, BINARYFRAME_PIXEL, PROTOTYPE_LENGTHD);
-    // offset +1 : here the length must be caluculated
-    offset4length = offset;
-    offset++;
-    
+    lenght_pixel = variant_length(RGBVALUE_RED, red) + variant_length(RGBVALUE_GREEN, green) + variant_length(RGBVALUE_BLUE, blue) + variant_length(RGBVALUE_X, x) + variant_length(RGBVALUE_Y, y);
+    offset = serialize_number(buffer, offset, lenght_pixel);
+
     /*
      * store the value into the buffer
      */
@@ -449,8 +476,6 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
     offset = add_variant(buffer, offset, RGBVALUE_BLUE, blue);
     offset = add_variant(buffer, offset, RGBVALUE_X, x);
     offset = add_variant(buffer, offset, RGBVALUE_Y, y);
-    //TODO: check if serialize_number?
-    buffer[offset4length] = offset - offset4length - 1;
     return offset;
 }
 
@@ -508,7 +533,7 @@ int frame_parse_pixel(uint8_t *buffer, int offset, int *red, int *green, int *bl
 }
 
 /*
- * @param[in|out] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @param[in] frames buffer with frame
  * @param[in] length_frames length of buffer
@@ -524,8 +549,6 @@ int send_frame(uint8_t *buffer, int offset, uint8_t *frame, long length_frame)
     lenght_frame_length = serialize_number(length_frame_serialized, 0, (int)length_frame);
     
     offset = serialize(buffer, offset, SNIP_FRAMESNIP, PROTOTYPE_LENGTHD);
-    buffer[offset] = 0x01;
-    offset++;
     /*
      * Add header for Frames, with two lenght values. Calculate first with length + length of next header :-/
      */
@@ -574,7 +597,7 @@ int recv_frame(uint8_t *buffer, int offset, int *frame_offset, int *frame_length
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -602,7 +625,7 @@ int recv_ack(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -630,7 +653,7 @@ int recv_nack(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -658,7 +681,7 @@ int recv_timeout(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -686,7 +709,7 @@ int recv_abort(uint8_t *buffer, int offset)
 }
 
 /*
- * @param[in] buffer
+ * @param[out] buffer
  * @param[in] offset
  * @return the new offset
  */
@@ -710,5 +733,71 @@ int recv_eos(uint8_t *buffer, int offset)
     if (id != SNIP_EOSSNIP || type != PROTOTYPE_LENGTHD)
         return -1;
     offset = parse_number(buffer, offset, &length);
+    return offset;
+}
+
+/*
+ * @param[in|out] buffer
+ * @param[in] offset
+ * @param[in] errorcode
+ * @param[in] descr, string with error Description
+ * @return the new offset
+ */
+int send_error(uint8_t *buffer, int offset, int errorcode , char *descr)
+{
+    long descr_length = strlen(descr);
+    offset = add_type(buffer, offset, SNIPTYPE_ERROR);
+    
+    offset = serialize(buffer, offset, SNIP_ERRORSNIP, PROTOTYPE_LENGTHD);
+    // calculate length of SNIP_ERRORCODE
+    offset = serialize_number(buffer, offset, (int)descr_length+variant_length(ERRORSNIP_ERRORCODE, errorcode));
+    
+    offset = add_variant(buffer, offset, ERRORSNIP_ERRORCODE, errorcode);
+    
+    offset = add_lengthd(buffer, offset, ERRORSNIP_DESCRIPTION, (uint8_t*) descr, descr_length);
+    
+    return offset;
+}
+
+/*
+ * @param[in] buffer
+ * @param[in] offset
+ * @param[out] errorcode
+ * @param[out] descr, string with error Description , pointer to memory area of color [YOU have to FREE this Memory later!1!]
+ * @return the new offset
+ */
+int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr)
+{
+    int id, type, length;
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != SNIP_ERRORSNIP || type != PROTOTYPE_LENGTHD)
+        return -1;
+    
+    offset = parse_number(buffer, offset, &length); // Read length of req_snip
+    
+    // Read Errorcode
+    
+    offset = parse(buffer, offset, &id, &type); // Read first byte and check if Right snip
+    if (id != ERRORSNIP_ERRORCODE || type != PROTOTYPE_VARIANT)
+        return -1;
+    offset = parse_number(buffer, offset, errorcode); // Read value of SeqId
+
+    
+    // Read Error Description
+    
+    offset = parse(buffer, offset, &id, &type);
+    if (id == ERRORSNIP_DESCRIPTION && type == PROTOTYPE_LENGTHD)
+    {
+        offset = parse_number(buffer, offset, &length);
+        *descr = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        memcpy(*descr, buffer+offset, (long) length);
+        (*descr)[length] = 0x00; // string end
+        offset += length;
+    }
+    else
+    {
+        return -1;
+    }
+    
     return offset;
 }
