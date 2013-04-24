@@ -40,6 +40,8 @@ typedef struct FCCLIENT fcclient_t;
 
 /*
  * creation of a new connection
+ * allocating new memory.
+ * YOU have to free this memory after using!
  */
 extern fcclient_t* fclient_new();
 
