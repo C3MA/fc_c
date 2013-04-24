@@ -23,8 +23,8 @@ extern "C" {
  *  @var FCCLIENT::connected 
  *  Member 'connected' status if the wall expect us to send something
  *
- *  @var FCCLIENT::socket 
- *  Member 'socket' the socket, that is used
+ *  @var FCCLIENT::sockfd 
+ *  Member 'sockfd' the socket, that is used
  */
 struct FCCLIENT {
 	int width;
@@ -33,7 +33,7 @@ struct FCCLIENT {
 	
 	int connected;
 	
-	int socket;
+	int sockfd;
 };
 
 typedef struct FCCLIENT fcclient_t;
@@ -43,7 +43,7 @@ typedef struct FCCLIENT fcclient_t;
  * allocating new memory.
  * YOU have to free this memory after using!
  */
-extern fcclient_t* fclient_new();
+extern fcclient_t* fcclient_new();
 
 /*
  * open a connection to the specific host
