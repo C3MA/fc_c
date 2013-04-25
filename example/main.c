@@ -92,7 +92,6 @@ int network(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    
     //char datei[] = "/tmp/a/frame_big";
     //self_test_request();
     //self_test_ping(9999999);
@@ -106,10 +105,10 @@ int main(int argc, char *argv[])
     //self_test_eos();
     //self_test_error(ERRORCODETYPE_OK);
     //self_test_sequence();
-    self_test_inforequest();
-    self_test_infoanswer();
+    //self_test_inforequest();
+    //self_test_infoanswer();
     //ReadFile(datei);
-    //return network(argc,argv);
+    return network(argc,argv);
     
     return 0;
 }

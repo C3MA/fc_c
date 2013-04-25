@@ -19,6 +19,10 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+
+
+#define BUFFERSIZE 2048
 
 /*
  * creation of a new connection
@@ -35,6 +39,12 @@ extern fcclient_t* fcclient_new()
 extern int fcclient_open(fcclient_t* fc, char* host)
 {
 	struct sockaddr_in serv_addr;
+	
+	uint8_t buffer[BUFFERSIZE];
+    uint8_t output[BUFFERSIZE];
+    int offset = 0;
+	
+	/* Open a connection to the wall */
 	if (fc == NULL)
 		return -1;
 	
@@ -61,5 +71,16 @@ extern int fcclient_open(fcclient_t* fc, char* host)
         return -4;
     }
 	
+	
+	/* With the opened connection, ask the WALL for its resolution */
+	    
+    offset = send_inforequest(buffer, offset);
+    printf("send, offset: %d \n",offset);
+	
+	add_header(buffer, output, offset);
+	write(fc->sockfd, output, offset+HEADER_LENGTH);
+		
 	return 1; /* everything was done successful */
 }
+
+
