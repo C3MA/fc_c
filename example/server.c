@@ -29,7 +29,9 @@ int main(int argc, char *argv[])
 	
     int sockfd = 0;
     long n = 0;
-    char recvBuff[1024];
+	
+	size_t size = 2048;
+    char recvBuff[size];
     uint8_t buffer[2048];
     uint8_t output[2048];
     int offset;
@@ -37,7 +39,9 @@ int main(int argc, char *argv[])
     int length = 0;
     
 	struct sockaddr_in srcAddress;
-    int connFd = -1;
+	
+	struct sockaddr_in  srcAddr;
+	socklen_t           sockLen = sizeof(srcAddr);
 	
     memset(recvBuff, '0',sizeof(recvBuff));
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -45,17 +49,29 @@ int main(int argc, char *argv[])
         printf("\n Error : Could not create socket \n");
         return 1;
     }
-    
-	memset((char *)&srcAddress, 0, sizeof(srcAddress));
 	
+	memset((char *)&srcAddress, 0, sizeof(srcAddress));
     srcAddress.sin_family       = AF_INET;
-    srcAddress.sin_addr.s_addr  = vos_htonl(0);
-    srcAddress.sin_port         = vos_htons(NETWORK_PORT);
+    srcAddress.sin_addr.s_addr  = htonl(0);
+    srcAddress.sin_port         = htons(NETWORK_PORT);
+    n = accept(sockfd, (struct sockaddr *) &srcAddress, &sockLen);
+	if (n < 0 )
+	{
+		printf("Could not listen for network connections [%ld]\n", n);
+		return 2;
+	}
 	
     do {
-		connFd = accept(sockfd, (struct sockaddr *) &srcAddress, &sockLen);
+		n = recvfrom(sockfd,
+                           (void *) recvBuff,
+                           size,
+                           0,
+                           (struct sockaddr *) &srcAddr,
+                           &sockLen);
+		/* next try if nothing was received */
+		if (n == -1)
+			continue;
 		
-        n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
         if (n < HEADER_LENGTH) {
             printf("\n Error : Network read error\n");
             return 1;
