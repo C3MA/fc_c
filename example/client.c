@@ -26,6 +26,18 @@ int main(int argc, char *argv[])
 	success = fcclient_open(client, argv[1]);
 	printf("Connection returned %d\n", success);
 	
+	if (!success) {
+		printf("Cannot connect to wall\n");
+		return 1;
+	}
+	
+	do {
+		/* call this function until we were successfull in receiving something */
+		success = fcclient_processNetwork(client);
+		/*FIXME update the function using "select()" with an timeout */
+		
+	} while (success);
+	
 	printf("Reached the end of the client, good bye\n");
 	return 0;
 }

@@ -23,12 +23,8 @@
 
 
 #define BUFFERSIZE 2048
+#define RECV_BUFFERSIZE 1024
 
-/*
- * creation of a new connection
- * allocating new memory.
- * YOU have to free this memory after using!
- */
 extern fcclient_t* fcclient_new()
 {
 	fcclient_t* tmp = malloc(sizeof(fcclient_t));
@@ -75,7 +71,7 @@ extern int fcclient_open(fcclient_t* fc, char* host)
 	/* With the opened connection, ask the WALL for its resolution */
 	    
     offset = send_inforequest(buffer, offset);
-    printf("send, offset: %d \n",offset);
+    /*FIXME debug code: printf("send, offset: %d \n",offset);*/
 	
 	add_header(buffer, output, offset);
 	write(fc->sockfd, output, offset+HEADER_LENGTH);
@@ -84,3 +80,69 @@ extern int fcclient_open(fcclient_t* fc, char* host)
 }
 
 
+extern int fcclient_processNetwork(fcclient_t* fc)
+{
+	int n;
+	int offset = 0;
+	int type = -1;
+	int length = 0;
+	uint8_t recvBuff[RECV_BUFFERSIZE];
+	
+	int counter;
+	
+    int meta_offset;
+    int meta_length;
+	char *generator_name;
+    char *generator_version;
+	
+	n = read(fc->sockfd, recvBuff, sizeof(recvBuff)-1);
+	if (n < HEADER_LENGTH) {
+		/* Error : Network read error */
+		return -1;
+	}
+	offset = get_header((uint8_t*)recvBuff, 0, &type, &length);
+	if (offset == -1) {
+		/* Error : Could not analyze header*/
+		return -2;
+	}
+	printf("typ: %d laenge: %d\n",type,length); /*FIXME remove debug code later */
+	
+	
+	switch (type) {
+        case SNIPTYPE_PONG:
+            recv_pong((uint8_t*)recvBuff, offset, &counter);
+            printf("Pong Counter: %d\n",counter);
+            break;
+		case SNIPTYPE_INFOANSWER:
+			offset = recv_infoanswer(recvBuff, offset, &meta_offset, &meta_length);
+            if (offset == -1) {
+                printf("recv_infoanswer Faild!\n");
+            } else {
+                printf("Parse InfoAnswer\n");
+            }
+            offset = parse_metadata(recvBuff,meta_offset,&(fc->fps), &(fc->width), &(fc->height), &generator_name, &generator_version);
+            if (offset == -1) {
+                printf("parse Metadata Faild!\n");
+                return -1;
+            } else {
+                printf("Walls definition, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",fc->fps,fc->width,fc->height,generator_name,generator_version);
+            }
+            free(generator_name);
+            free(generator_version);
+            break;
+			
+		case SNIPTYPE_ACK:
+            offset = recv_ack(recvBuff, offset);
+            if (offset == -1) {
+                printf("recv_error Faild!\n");
+            } else {
+                printf("Recive ACK\n"); 
+            }
+            break;			
+			
+        default:
+            printf("Unknown type: %d",type);
+            return -5;
+    }
+	return 1;
+}
