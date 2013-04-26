@@ -15,6 +15,7 @@
 int main(int argc, char *argv[])
 {
 	int success, success2;
+	int x, y, x1, y1;
 	fcclient_t * client = fcclient_new();
 	
 	if (argc < 2)
@@ -44,7 +45,6 @@ int main(int argc, char *argv[])
 	printf("Start: %d\n", success2);
 	
 	uint8_t frame[client->width * client->height * 20]; 
-	int x, y;
 	x = 0;
 	y = 0;
 	
@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 		}
 		
 		if (client->connected) {
-			for (int x1=0; x1 < client->width; x1++) {
-				for (int y1=0; y1 < client->height; y1++) {
+			for (x1=0; x1 < client->width; x1++) {
+				for (y1=0; y1 < client->height; y1++) {
 					if (x1 == x && y1 == y)
 					{
 						fcclient_addPixel(client, frame, 0, 0, 255, x1, y1);
