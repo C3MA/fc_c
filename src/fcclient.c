@@ -112,7 +112,7 @@ extern int fcclient_processNetwork(fcclient_t* fc)
 		/* Error : Could not analyze header*/
 		return -2;
 	}
-	printf("typ: %d laenge: %d\n",type,length); /*FIXME remove debug code later */
+	//printf("typ: %d laenge: %d\n",type,length); /*FIXME remove debug code later */
 	
 	
 	switch (type) {
@@ -150,7 +150,9 @@ extern int fcclient_processNetwork(fcclient_t* fc)
 			/* the wall wants us to send something */
 			fc->connected = 1;
 			break;
-			
+		case SNIPTYPE_TIMEOUT:
+				printf("!!! Timeout !!!\n");
+				break;			
 		case SNIPTYPE_ERROR:
             offset = recv_error(recvBuff, offset, &errorcode, &descr);
             if (offset == -1) {

@@ -8,6 +8,7 @@
  */
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "fcclient.h"
 
@@ -62,13 +63,19 @@ int main(int argc, char *argv[])
 	/* add the listener to the master set */
 	FD_SET(client->sockfd, &rfds);
 	printf("============= Sending Frame =============\n");
+	
+	time_t timer;
+	char buffer[25];
+	struct tm* tm_info;
+	
 	while (1) {
 		/* call this function until we were successfull in receiving something */
 		
-		if( select(1, &rfds, NULL, NULL, &tv) != -1 )	
+		//if( select(1, &rfds, NULL, NULL, &tv) != -1 )	
+		if (!client->connected)
 		{
 			success = fcclient_processNetwork(client);
-			printf("Received data [%d]\n", success);
+			printf("\t\tReceived data [%d]\n", success);
 		}
 		
 		if (client->connected) {
@@ -86,10 +93,17 @@ int main(int argc, char *argv[])
 				}
 			}
 			
+			
 			/* Now we need to send some nice frames to the wall */
 			fcclient_sendFrame(client, frame);
 			x += 1;
 			y += 1;
+			
+			time(&timer);
+			tm_info = localtime(&timer);
+			
+			strftime(buffer, 25, "%Y:%m:%d%H:%M:%S", tm_info);
+			printf("%s send a frame.\n", buffer);
 		}
 		
 		if (x > client->width && y > client->height)
@@ -99,7 +113,7 @@ int main(int argc, char *argv[])
 		}
 		
 		/*FIXME update the function using "select()" with an timeout */
-//		usleep(20);
+		usleep(50000);
 	}
 		
 	
