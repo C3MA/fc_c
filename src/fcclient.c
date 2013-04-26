@@ -24,7 +24,7 @@
 
 #define BUFFERSIZE 2048
 #define RECV_BUFFERSIZE 1024
-#define CLIENT_NAME "cclient"
+#define CLIENT_NAME "fc_c"
 #define CLIENT_VERSION "0.9"
 #define SEQUENCID 2342
 
@@ -188,12 +188,16 @@ extern int fcclient_start(fcclient_t* fc)
 	
 	uint8_t meta[1024];
     int offset_meta;
-    char name[] = CLIENT_NAME;
-    char version[] = CLIENT_VERSION;
-    char color[] = "black";
+    char gen_name[] = "Test";
+    char gen_version[] = "0.0";
+    char color[] = "rot";
     
-    offset_meta = create_metadata(meta, 0, fc->fps, fc->width, fc->height, name, version);
-    offset = send_request(buffer, offset, color, SEQUENCID, meta, offset_meta);
+	fc->fps = 24;
+	fc->width = 1;
+	fc->height = 1;
+	
+    offset_meta = create_metadata(meta, 0, fc->fps, fc->width, fc->height, gen_name, gen_version);
+    offset = send_request(buffer, offset, color, 1, meta, offset_meta);
 	
 	add_header(buffer, output, offset);
 	write(fc->sockfd, output, offset+HEADER_LENGTH);

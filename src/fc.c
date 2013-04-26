@@ -261,7 +261,10 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
     
     offset = serialize(buffer, offset, SNIP_REQUESTSNIP, PROTOTYPE_LENGTHD);
     // calculate length of SNIP_Requestsnip
-    offset = serialize_number(buffer, offset, length_meta+(int)color_length+variant_length(REQUESTSNIP_SEQID, seqId));
+	int size = variant_length(REQUESTSNIP_META, length_meta) + length_meta + 1 /* The byte for the header */;
+	size += variant_length(REQUESTSNIP_COLOR, (int)color_length) + color_length + 1 /* The byte for the header */;
+	size += variant_length(REQUESTSNIP_SEQID, seqId) + 1 /* The byte for the header */;
+    offset = serialize_number(buffer, offset, size);
     
     offset = add_lengthd(buffer, offset, REQUESTSNIP_COLOR, (uint8_t*) color, color_length);
     
