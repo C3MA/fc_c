@@ -123,7 +123,7 @@ extern int fcclient_processNetwork(fcclient_t* fc)
             offset = parse_metadata(recvBuff,meta_offset,&(fc->fps), &(fc->width), &(fc->height), &generator_name, &generator_version);
             if (offset == -1) {
                 printf("parse Metadata Faild!\n");
-                return -1;
+                return -3;
             } else {
                 printf("Walls definition, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",fc->fps,fc->width,fc->height,generator_name,generator_version);
             }
