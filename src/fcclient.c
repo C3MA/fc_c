@@ -99,6 +99,9 @@ extern int fcclient_processNetwork(fcclient_t* fc)
 	char *generator_name;
     char *generator_version;
 	
+	int errorcode;
+	char *descr;
+	
 	n = read(fc->sockfd, recvBuff, sizeof(recvBuff)-1);
 	if (n < HEADER_LENGTH) {
 		/* Error : Network read error */
@@ -143,7 +146,26 @@ extern int fcclient_processNetwork(fcclient_t* fc)
                 printf("Recive ACK\n"); 
             }
             break;			
-			
+		case SNIPTYPE_ERROR:
+            offset = recv_error(recvBuff, offset, &errorcode, &descr);
+            if (offset == -1) {
+                printf("recv_error Faild!\n");
+            } else {
+                printf("Error errorcode: %d, description: %s \n",errorcode,descr);
+                switch (errorcode) {
+                    case ERRORCODETYPE_OK:
+                        printf("Errorcode: OK\n");
+                        break;
+                    case ERRORCODETYPE_DECODING_ERROR:
+                        printf("Errorcode: Decoding Error\n");
+                        break;
+                    default:
+                        printf("Errorcode: Unbekannt\n");
+                        break;
+                }
+				free(descr);
+            }
+            break;
         default:
             printf("Unknown type: %d\n",type);
             return -5;
