@@ -145,7 +145,12 @@ extern int fcclient_processNetwork(fcclient_t* fc)
             } else {
                 printf("Recive ACK\n"); 
             }
-            break;			
+            break;
+		case SNIPTYPE_START:
+			/* the wall wants us to send something */
+			fc->connected = 1;
+			break;
+			
 		case SNIPTYPE_ERROR:
             offset = recv_error(recvBuff, offset, &errorcode, &descr);
             if (offset == -1) {
