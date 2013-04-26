@@ -13,7 +13,7 @@
 
 int main(int argc, char *argv[])
 {
-	int success;
+	int success, success2;
 	fcclient_t * client = fcclient_new();
 	
 	if (argc < 2)
@@ -35,6 +35,15 @@ int main(int argc, char *argv[])
 		/* call this function until we were successfull in receiving something */
 		success = fcclient_processNetwork(client);
 		/*FIXME update the function using "select()" with an timeout */
+		printf("Network: %d\n", success);
+		
+		
+		success2 = fcclient_start(client);
+		printf("Start: %d\n", success2);
+		
+		if (client->connected) {
+				printf("Connected :-)\n");
+		}
 		
 	} while (success);
 	

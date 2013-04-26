@@ -60,6 +60,14 @@ extern int fcclient_open(fcclient_t* fc, char* host);
  * @return success (> 0)
  */
 extern int fcclient_processNetwork(fcclient_t* fc);
+
+/*
+ * Start the sending of new frames to the wall
+ * @param[in|out] fc actual using client
+ * @return success (> 0)
+ */
+extern int fcclient_start(fcclient_t* fc);
+	
 	
 /*
  * process the network functionality

@@ -24,6 +24,10 @@
 
 #define BUFFERSIZE 2048
 #define RECV_BUFFERSIZE 1024
+#define CLIENT_NAME "cclient"
+#define CLIENT_VERSION "0.9"
+#define SEQUENCID 2342
+
 
 extern fcclient_t* fcclient_new()
 {
@@ -141,8 +145,35 @@ extern int fcclient_processNetwork(fcclient_t* fc)
             break;			
 			
         default:
-            printf("Unknown type: %d",type);
+            printf("Unknown type: %d\n",type);
             return -5;
     }
+	return 1;
+}
+
+
+extern int fcclient_start(fcclient_t* fc)
+{
+	/* check that the resolution of the wall is set */
+	if (fc->width == 0 && fc->height == 0 && fc->fps == 0)
+		return -1;
+	
+	
+	uint8_t buffer[BUFFERSIZE];
+    uint8_t output[BUFFERSIZE];
+	int offset = 0;
+	
+	
+	uint8_t meta[1024];
+    int offset_meta;
+    char name[] = CLIENT_NAME;
+    char version[] = CLIENT_VERSION;
+    char color[] = "black";
+    
+    offset_meta = create_metadata(meta, 0, fc->fps, fc->width, fc->height, name, version);
+    offset = send_request(buffer, offset, color, SEQUENCID, meta, offset_meta);
+	
+	add_header(buffer, output, offset);
+	write(fc->sockfd, output, offset+HEADER_LENGTH);
 	return 1;
 }
