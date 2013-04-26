@@ -468,7 +468,7 @@ int frame_add_pixel(uint8_t *buffer, int offset, int red, int green, int blue, i
      * Write the header for pixel structure
      */
     offset = serialize(buffer, offset, BINARYFRAME_PIXEL, PROTOTYPE_LENGTHD);
-    lenght_pixel = variant_length(RGBVALUE_RED, red) + variant_length(RGBVALUE_GREEN, green) + variant_length(RGBVALUE_BLUE, blue) + variant_length(RGBVALUE_X, x) + variant_length(RGBVALUE_Y, y);
+    lenght_pixel = variant_length(RGBVALUE_RED, red) + 1 + variant_length(RGBVALUE_GREEN, green) + 1 + variant_length(RGBVALUE_BLUE, blue) + 1 + variant_length(RGBVALUE_X, x) + 1 + variant_length(RGBVALUE_Y, y) + 1;
     offset = serialize_number(buffer, offset, lenght_pixel);
 
     /*

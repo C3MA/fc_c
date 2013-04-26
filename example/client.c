@@ -42,26 +42,64 @@ int main(int argc, char *argv[])
 	success2 = fcclient_start(client);
 	printf("Start: %d\n", success2);
 	
-	uint8_t frame[client->width * client->height * 10]; 
+	uint8_t frame[client->width * client->height * 20]; 
 	int x, y;
 	x = 0;
 	y = 0;
 	
+	/* master file descriptor list */
+	fd_set rfds;
+	
+	/* clear the master and temp sets */
+	FD_ZERO(&rfds);
+	FD_SET(0, &rfds);
+	
+	struct timeval tv;
+	/* Wait up to five seconds. */
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+	
+	/* add the listener to the master set */
+	FD_SET(client->sockfd, &rfds);
+	printf("============= Sending Frame =============\n");
 	while (1) {
 		/* call this function until we were successfull in receiving something */
-		success = fcclient_processNetwork(client);
+		
+		if( select(1, &rfds, NULL, NULL, &tv) != -1 )	
+		{
+			success = fcclient_processNetwork(client);
+			printf("Received data [%d]\n", success);
+		}
+		
 		if (client->connected) {
-			printf("Connected :-)\n");
-			
-			fcclient_addPixel(client, frame, 0, 0, 255, x, y);
+			for (int x1=0; x1 < client->width; x1++) {
+				for (int y1=0; y1 < client->height; y1++) {
+					if (x1 == x && y1 == y)
+					{
+						fcclient_addPixel(client, frame, 0, 0, 255, x1, y1);
+					}
+					else
+					{
+						fcclient_addPixel(client, frame, 0, 0, 0, x1, y1);
+					}
+
+				}
+			}
 			
 			/* Now we need to send some nice frames to the wall */
 			fcclient_sendFrame(client, frame);
-			sleep(1);
 			x += 1;
 			y += 1;
 		}
+		
+		if (x > client->width && y > client->height)
+		{
+			x = 0;
+			y = 0;
+		}
+		
 		/*FIXME update the function using "select()" with an timeout */
+//		usleep(20);
 	}
 		
 	

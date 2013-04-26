@@ -221,8 +221,8 @@ extern int fcclient_sendFrame(fcclient_t* fc, uint8_t* frame)
 	if (!fc->connected)
 		return -1;
 	
-	uint8_t buffer[BUFFERSIZE];
-	uint8_t output[BUFFERSIZE];
+	uint8_t buffer[fc->width * fc->height * 20];
+	uint8_t output[fc->width * fc->height * 20];
     int offset = 0;
 	
 	offset = send_frame(buffer, offset, frame, fc->frame_offset);
