@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		/* call this function until we were successfull in receiving something */
 		
+		/* FIXME read from the network */
 		//if( select(1, &rfds, NULL, NULL, &tv) != -1 )	
 		if (!client->connected)
 		{
