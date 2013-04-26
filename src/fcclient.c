@@ -193,18 +193,42 @@ extern int fcclient_start(fcclient_t* fc)
 	
 	uint8_t meta[1024];
     int offset_meta;
-    char gen_name[] = "Test";
-    char gen_version[] = "0.0";
-    char color[] = "rot";
+    char gen_name[] = CLIENT_NAME;
+    char gen_version[] = CLIENT_VERSION;
+    char color[] = "black";
     
-	fc->fps = 24;
-	fc->width = 1;
-	fc->height = 1;
-	
     offset_meta = create_metadata(meta, 0, fc->fps, fc->width, fc->height, gen_name, gen_version);
     offset = send_request(buffer, offset, color, 1, meta, offset_meta);
 	
 	add_header(buffer, output, offset);
 	write(fc->sockfd, output, offset+HEADER_LENGTH);
+	return 1;
+}
+
+extern int fcclient_addPixel(fcclient_t* fc, uint8_t* frame, int red, int green, int blue, int x, int y)
+{
+	if (!fc->connected)
+		return -1;
+	
+	fc->frame_offset = frame_add_pixel(frame, fc->frame_offset, red, green, blue, x, y);
+	
+	return 1;
+}
+
+
+extern int fcclient_sendFrame(fcclient_t* fc, uint8_t* frame)
+{
+	if (!fc->connected)
+		return -1;
+	
+	uint8_t buffer[BUFFERSIZE];
+	uint8_t output[BUFFERSIZE];
+    int offset = 0;
+	
+	offset = send_frame(buffer, offset, frame, fc->frame_offset);
+	add_header(buffer, output, offset);
+	write(fc->sockfd, output, offset+HEADER_LENGTH);
+	fc->frame_offset = 0;
+	
 	return 1;
 }

@@ -7,7 +7,7 @@
  *
  */
 #include <stdio.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 #include "fcclient.h"
 
@@ -42,13 +42,25 @@ int main(int argc, char *argv[])
 	success2 = fcclient_start(client);
 	printf("Start: %d\n", success2);
 	
+	uint8_t frame[client->width * client->height * 10]; 
+	int x, y;
+	x = 0;
+	y = 0;
+	
 	while (1) {
 		/* call this function until we were successfull in receiving something */
 		success = fcclient_processNetwork(client);
 		if (client->connected) {
-				printf("Connected :-)\n");
+			printf("Connected :-)\n");
+			
+			fcclient_addPixel(client, frame, 0, 0, 255, x, y);
+			
+			/* Now we need to send some nice frames to the wall */
+			fcclient_sendFrame(client, frame);
+			sleep(1);
+			x += 1;
+			y += 1;
 		}
-		success = fcclient_processNetwork(client);
 		/*FIXME update the function using "select()" with an timeout */
 	}
 		

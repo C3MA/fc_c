@@ -7,6 +7,8 @@
  *
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
 #endif
@@ -34,6 +36,8 @@ struct FCCLIENT {
 	int connected;
 	
 	int sockfd;
+	
+	int frame_offset;
 };
 
 typedef struct FCCLIENT fcclient_t;
@@ -68,14 +72,22 @@ extern int fcclient_processNetwork(fcclient_t* fc);
  */
 extern int fcclient_start(fcclient_t* fc);
 	
+/*
+ * Add another pixel to the frame, that is send
+ * @param[in|out] fc actual using client
+ * @return success (> 0)
+ */	
+extern int fcclient_addPixel(fcclient_t* fc, uint8_t* frame, int red, int green, int blue, int x, int y);
 	
 /*
  * process the network functionality
  * This function has to be called cyclically to process incoming answers from the wall
+ * 
+ * reseting the offset buffer after the send complete
  * @param[in|out] fc actual using client
  * @return success (> 0)
  */
-extern int fcclient_sendFrame(fcclient_t* fc, int* buffer);
+extern int fcclient_sendFrame(fcclient_t* fc, uint8_t* buffer);
 	
 	
 #if 0
