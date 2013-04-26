@@ -34,18 +34,24 @@ int main(int argc, char *argv[])
 	do {
 		/* call this function until we were successfull in receiving something */
 		success = fcclient_processNetwork(client);
-		/*FIXME update the function using "select()" with an timeout */
 		printf("Network: %d\n", success);
-		
-		
-		success2 = fcclient_start(client);
-		printf("Start: %d\n", success2);
-		
+		/*FIXME update the function using "select()" with an timeout */
+	} while (!success);
+	/* the server has answered */
+	
+	success2 = fcclient_start(client);
+	printf("Start: %d\n", success2);
+	
+	while (1) {
+		/* call this function until we were successfull in receiving something */
+		success = fcclient_processNetwork(client);
 		if (client->connected) {
 				printf("Connected :-)\n");
 		}
+		success = fcclient_processNetwork(client);
+		/*FIXME update the function using "select()" with an timeout */
+	}
 		
-	} while (success);
 	
 	printf("Reached the end of the client, good bye\n");
 	return 0;
