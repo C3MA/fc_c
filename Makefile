@@ -9,7 +9,7 @@ LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
 CFLAGS=-c -Wall
-LDFLAGS= -I $(BUILD)/include
+LDFLAGS= -I $(BUILD)/include -lm
 
 all: client
 

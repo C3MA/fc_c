@@ -48,20 +48,7 @@ int main(int argc, char *argv[])
 	x = 0;
 	y = 0;
 	
-	/* master file descriptor list */
-	fd_set rfds;
 	
-	/* clear the master and temp sets */
-	FD_ZERO(&rfds);
-	FD_SET(0, &rfds);
-	
-	struct timeval tv;
-	/* Wait up to five seconds. */
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-	
-	/* add the listener to the master set */
-	FD_SET(client->sockfd, &rfds);
 	printf("============= Sending Frame =============\n");
 	
 	time_t timer;
