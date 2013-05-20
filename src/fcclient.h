@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef FC_CLIENT_H
+#define FC_CLIENT_H
+
 #include <stdint.h>
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
@@ -104,4 +107,6 @@ extern int fcclient_sendFrame(fcclient_t* fc, uint8_t* buffer);
 	
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
+#endif
+
 #endif
