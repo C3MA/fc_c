@@ -19,6 +19,7 @@ extern "C" {
 	enum FCSEQ_RET { FCSEQ_RET_OK=1, 
 		FCSEQ_RET_IOERR,
 		FCSEQ_RET_EOF,
+		FCSEQ_RET_PARAMERR,
 		FCSEQ_RET_NOTIMPL /* not implementend atm */
 	};
 	typedef enum FCSEQ_RET fcseq_ret_t;

@@ -19,7 +19,7 @@ fcsequence_t* fcseq_load(char *filename)
 	uint8_t* memory;
 	
 	pFile = fopen (filename,"r");
-	if (pFile!=NULL)
+	if (pFile==NULL)
 	{
 		return NULL;
 	}
@@ -68,6 +68,23 @@ void fcseq_close(fcsequence_t* seq)
 
 fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length)
 {
+	if (seqio == NULL)
+	{
+		return FCSEQ_RET_PARAMERR;
+	}
+	
+	/* when no source was specified, guess the memory as origin */
+	if (seqio->type != FCSEQ_FILEDESCRIPTOR)
+	{
+		seqio->type = FCSEQ_MEMORY;
+	}
+	
+	/* initialize memory stucture */
+	seqio->bufferLength = length;
+	seqio->pBuffer = memory;
+	
+	/* load the header of the file */
+	
 	return FCSEQ_RET_NOTIMPL;
 }
 
