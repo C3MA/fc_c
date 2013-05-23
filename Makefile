@@ -4,22 +4,26 @@ RM = rm -f
 MKDIR= mkdir -p
 COPY=cp
 
-LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c
+LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c src/fcseq.c
+LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
 CFLAGS=-c -Wall
 LDFLAGS= -I $(BUILD)/include -lm
 
-all: client
+all: client parsefile
 
 mksystem:
 	$(MKDIR) $(BUILD)
 	
-client: libfcclient mksystem
-	$(CC) -o client example/client.c $(BUILD)/libfcclient.so $(LDFLAGS)
+client: libfc
+	$(CC) -o $@ example/client.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS)
 
-libfcclient: $(LIB_OBJECTS) mksystem
+parsefile: libfc
+	$(CC) -o $@ example/parsefile.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS) 
+
+$(LIB_NAME): $(LIB_OBJECTS) mksystem
 	$(CC) $(LIB_OBJECTS) $(LDFLAGS) -shared -o $(BUILD)/$@.so
 	$(MKDIR) $(BUILD)/include
 	$(COPY) src/*.h $(BUILD)/include/
@@ -30,3 +34,4 @@ libfcclient: $(LIB_OBJECTS) mksystem
 clean:
 	$(RM) src/*.o
 	$(RM) -r $(BUILD)
+	$(RM) client parsefile

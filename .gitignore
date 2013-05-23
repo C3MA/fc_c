@@ -32,6 +32,7 @@ profile
 # NB: slash on the end, so we only remove the FOLDER, not any files that were badly named "DerivedData"
  
 DerivedData/
+XCodeFC_C/
  
 # NB: slash on the end, so we only remove the FOLDER, not any files that were badly named "build"
  
@@ -118,3 +119,5 @@ xcuserdata
 
 # generated files by the Makefile
 *.o
+client
+parsefile

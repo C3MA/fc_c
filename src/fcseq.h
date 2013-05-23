@@ -10,6 +10,7 @@
 #define FC_SEQUENCE_PARSER_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
@@ -17,13 +18,16 @@ extern "C" {
 	
 	enum FCSEQ_RET { FCSEQ_RET_OK=1, 
 		FCSEQ_RET_IOERR,
-		FCSEQ_RET_EOF
+		FCSEQ_RET_EOF,
+		FCSEQ_RET_NOTIMPL /* not implementend atm */
 	};
 	typedef enum FCSEQ_RET fcseq_ret_t;
 	
 	
-	enum FCSEQ_TYPE { FCSEQ_FILEDESCRIPTOR=1, 
-		FCSEQ_MEMORY=2
+	enum FCSEQ_TYPE { 
+		FCSEQ_NONE = 0, 
+		FCSEQ_FILEDESCRIPTOR = 1, 
+		FCSEQ_MEMORY = 2
 	};
 	
 	typedef enum FCSEQ_TYPE fcseqtype_t;
@@ -45,8 +49,8 @@ extern "C" {
 		int height;
 		int fps;
 		
-		FILE fd;
-		uint8_t* buffer;
+		uint8_t* pBuffer;
+		uint32_t bufferLength;
 		fcseqtype_t type;
 	};
 	
@@ -59,9 +63,39 @@ extern "C" {
 	 * @param[in] filename the name of the file
 	 *
 	 * @return The new generated sequence.
-	 * YOU must FREE the memory yourself after usage!
+	 * YOU must FREE the memory after usage with 'fcseq_close' !
 	 */
-	fcsequence_t* load(char *filename);
+	fcsequence_t* fcseq_load(char *filename);
+	
+	
+	/**
+	 * Free all used memory, when a file was used as input
+	 * @param[in] seq
+	 */
+	void fcseq_close(fcsequence_t* seq);
+	
+	/**
+	 * Initialize a sequence and Parse meta information from a new sequence.
+	 *
+	 * @param[out] seqio to fill
+	 *
+	 * @param[in] memory with the sequence
+	 * @param[in] length of the available memory containing the sequence
+	 *
+	 * @return status
+	 */
+	fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length);
+	
+	/* Extract one frame from the sequence.
+	 *
+	 * @param[in] seqio the structure of the sequence that should be parsed
+	 * @param[out] rgb24 memory buffer, the files should be stored in.
+	 * The USER has to provide enough space for this memory buffer!
+	 *
+	 * @return status when reading the frame
+	 * - FCSEQ_RET_EOF (there are no more frames stored in the sequence file)
+	 */
+	fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24);
 	
 
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
