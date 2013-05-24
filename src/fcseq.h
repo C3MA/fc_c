@@ -57,6 +57,8 @@ extern "C" {
 	
 	typedef struct FCSEQ fcsequence_t;
 
+#ifndef FCSEQBUFFER_ONLY
+	
 	/**
 	 * Create a new sequence.
 	 * the given filename is opened and the meta information is extracted.
@@ -74,6 +76,8 @@ extern "C" {
 	 * @param[in] seq
 	 */
 	void fcseq_close(fcsequence_t* seq);
+	
+#endif
 	
 	/**
 	 * Initialize a sequence and Parse meta information from a new sequence.

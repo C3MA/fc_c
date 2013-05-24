@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef FCSEQBUFFER_ONLY
+
 fcsequence_t* fcseq_load(char *filename)
 {
 	/* check if the file exists */
@@ -65,6 +67,8 @@ void fcseq_close(fcsequence_t* seq)
 		free(seq);
 	}
 }
+
+#endif
 
 fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length)
 {
