@@ -24,5 +24,8 @@ int main(int argc, char** argv)
 		fprintf(stderr, "Unable to load sequnce (%s:%d)", __FILE__, __LINE__);
 	}
 	
+	
+	printf("=== Meta information ===\nfps: %d, width: %d, height: %d\n",seq->fps,seq->width,seq->height);		
+	
 	return 0;
 }

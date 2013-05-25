@@ -7,6 +7,8 @@
  */
 
 #include "fcseq.h"
+#include "fc.h"
+#include "proto.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -72,6 +74,10 @@ void fcseq_close(fcsequence_t* seq)
 
 fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length)
 {
+	uint32_t offset = 0;
+	
+	int id, type, size;
+	
 	if (seqio == NULL)
 	{
 		return FCSEQ_RET_PARAMERR;
@@ -88,8 +94,26 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
 	seqio->pBuffer = memory;
 	
 	/* load the header of the file */
+	seqio->actOffset = 0; 
 	
-	return FCSEQ_RET_NOTIMPL;
+	/* verification if the image is the expected */
+    offset = parse(seqio->pBuffer, seqio->actOffset, &id, &type);
+    if (id != BINARYSEQUENCE_METADATA || type != PROTOTYPE_LENGTHD)
+        return FCSEQ_RET_INVALID_DATA; /* on problems, leave the offset at the beginning */
+    
+    offset = parse_number(seqio->pBuffer, offset, &size); // Read length of req_snip
+	/* FIXME the read size can be compared with the available length (detect compromised files here) */
+	
+	offset = parse_metadata(seqio->pBuffer,offset,&(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
+	if (offset == -1) {
+		/* on problems, leave the offset at the beginning */
+		return FCSEQ_RET_INVALID_DATA;
+	}
+	
+	/* update the offset */
+	seqio->actOffset = offset;
+	
+	return FCSEQ_RET_OK;
 }
 
 fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)

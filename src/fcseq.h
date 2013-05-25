@@ -20,7 +20,8 @@ extern "C" {
 		FCSEQ_RET_IOERR,
 		FCSEQ_RET_EOF,
 		FCSEQ_RET_PARAMERR,
-		FCSEQ_RET_NOTIMPL /* not implementend atm */
+		FCSEQ_RET_NOTIMPL, /* not implementend atm */
+		FCSEQ_RET_INVALID_DATA
 	};
 	typedef enum FCSEQ_RET fcseq_ret_t;
 	
@@ -50,8 +51,9 @@ extern "C" {
 		int height;
 		int fps;
 		
-		uint8_t* pBuffer;
-		uint32_t bufferLength;
+		uint8_t*	pBuffer;
+		uint32_t	bufferLength;
+		uint32_t	actOffset;
 		fcseqtype_t type;
 	};
 	
