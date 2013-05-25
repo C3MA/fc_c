@@ -30,16 +30,17 @@ int main(int argc, char** argv)
 	uint8_t rgb24[seq->width * seq->height * 3];
 	
 	fcseq_ret_t ret;
+	int x, y, ypos;
 	
 	do {
 		/* parse */
 		ret = fcseq_nextFrame(seq, rgb24);
 		
 		printf("==============================\n");
-		for (int y=0; y < seq->height; y++)
+		for (y=0; y < seq->height; y++)
 		{
-			int ypos = y * seq->width * 3;
-			for(int x=0; x < seq->width; x++)
+			ypos = y * seq->width * 3;
+			for(x=0; x < seq->width; x++)
 			{
 				printf("%.2X", rgb24[(ypos+x*3) + 0]);
 				printf("%.2X", rgb24[(ypos+x*3) + 1]);
