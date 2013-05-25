@@ -74,7 +74,7 @@ void fcseq_close(fcsequence_t* seq)
 
 fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length)
 {
-	uint32_t offset = 0;
+	int offset = 0;
 	
 	int id, type, size;
 	
@@ -118,5 +118,41 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
 
 fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 {
-	return FCSEQ_RET_NOTIMPL;
+	int offset = seqio->actOffset;
+	int id, type;
+	int frame_offset, frame_length, frame_offset_start;
+	int red, green, blue;
+	int x,y;
+	
+	// Read Frames
+    
+    offset = parse(seqio->pBuffer, offset, &id, &type);
+	
+    if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
+    {
+        offset = parse_number(seqio->pBuffer, offset, &frame_length);
+        frame_offset = offset;
+    }
+    else
+    {
+        return FCSEQ_RET_INVALID_DATA;
+    }
+		
+	/* extract all stored pixel */
+	frame_offset_start = frame_offset;
+	do {
+		frame_offset = frame_parse_pixel(seqio->pBuffer,frame_offset, &red, &green, &blue, &x, &y);
+		if (offset == -1) {
+			printf("parse Pixel faild\n");
+			return FCSEQ_RET_NOTIMPL;
+		} else {
+			printf("Parse Pixel, red: %2x , green: %2x , blue: %2x x: %3d y: %3d\n",red,green,blue,x,y);
+		}
+	} while (frame_offset < (frame_offset_start+frame_length));
+	
+	
+	/* update the offset */
+	seqio->actOffset = offset;
+	
+	return FCSEQ_RET_OK;
 }
