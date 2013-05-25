@@ -155,7 +155,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 	
 	
 	/* update the offset */
-	seqio->actOffset = offset;
+	seqio->actOffset = frame_offset;
 	
 	return FCSEQ_RET_OK;
 }
