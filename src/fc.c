@@ -300,6 +300,9 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
 }
 
 /*
+ * The last both parameter are optional.
+ * If set to NULL these values are skipped, and no memory must be freed. (only the offset is incremented)
+ *
  * @param[in] meta
  * @param[out] frames per second (fps)
  * @param[out] width
@@ -335,9 +338,11 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     if (id == BINARYSEQUENCEMETADATA_GENERATORNAME && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
-        *generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
-        memcpy(*generator_name, buffer+offset, (long) length);
-        (*generator_name)[length] = 0x00; // string ende
+		if (generator_name != NULL) {
+			*generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+			memcpy(*generator_name, buffer+offset, (long) length);
+			(*generator_name)[length] = 0x00; // string ende
+		}
         offset += length;
     }
     else
@@ -350,9 +355,12 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     if (id == BINARYSEQUENCEMETADATA_GENERATORVERSION && type == PROTOTYPE_LENGTHD  && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
-        *generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
-        memcpy(*generator_version, buffer+offset, (long) length);
-        (*generator_version)[length] = 0x00; // string ende
+		if (generator_version != NULL)
+		{
+			*generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+			memcpy(*generator_version, buffer+offset, (long) length);
+			(*generator_version)[length] = 0x00; // string ende
+		}
         offset += length;
     }
     else
