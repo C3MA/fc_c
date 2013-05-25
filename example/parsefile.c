@@ -29,7 +29,21 @@ int main(int argc, char** argv)
 	/* use the extract resolution to define the necessary memory to extract one frame */
 	uint8_t rgb24[seq->width * seq->height * 3];
 	
-	fcseq_ret_t res = fcseq_nextFrame(seq, rgb24);
+	fcseq_ret_t ret = fcseq_nextFrame(seq, rgb24);
+	
+	if (ret != FCSEQ_RET_EOF) {
+		for (int y=0; y < seq->height; y++)
+		{
+			int ypos = y * seq->width * 3;
+			for(int x=0; x < seq->width; x++)
+			{
+				printf("%.2X", rgb24[(ypos+x*3) + 0]);
+				printf("%.2X", rgb24[(ypos+x*3) + 1]);
+				printf("%.2X", rgb24[(ypos+x*3) + 2]);
+			}
+			printf("\n");
+		}
+	}
 	
 	return 0;
 }

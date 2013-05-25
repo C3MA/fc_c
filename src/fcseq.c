@@ -122,12 +122,10 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 	int id, type;
 	int frame_offset, frame_length, frame_offset_start;
 	int red, green, blue;
-	int x,y;
+	int x,y, pos;
 	
-	// Read Frames
-    
-    offset = parse(seqio->pBuffer, offset, &id, &type);
-	
+	/****** Read frame header *******/
+    offset = parse(seqio->pBuffer, offset, &id, &type);	
     if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(seqio->pBuffer, offset, &frame_length);
@@ -135,18 +133,23 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
     }
     else
     {
-        return FCSEQ_RET_INVALID_DATA;
+		/* no header -> end of file */
+        return FCSEQ_RET_EOF;
     }
 		
-	/* extract all stored pixel */
+	/***** extract all stored pixel *****/
 	frame_offset_start = frame_offset;
 	do {
 		frame_offset = frame_parse_pixel(seqio->pBuffer,frame_offset, &red, &green, &blue, &x, &y);
 		if (offset == -1) {
-			printf("parse Pixel faild\n");
-			return FCSEQ_RET_NOTIMPL;
+			return FCSEQ_RET_INVALID_DATA;
 		} else {
-			printf("Parse Pixel, red: %2x , green: %2x , blue: %2x x: %3d y: %3d\n",red,green,blue,x,y);
+			/* printf("Parse Pixel, red: %2x , green: %2x , blue: %2x x: %3d y: %3d\n",red,green,blue,x,y); */
+			/* pick row             and colum (times three, ass each color needs one byte */
+			pos = y*(seqio->width*3) + (3*x);
+			rgb24[pos + 0] = red;
+			rgb24[pos + 1] = green;
+			rgb24[pos + 2] = blue;
 		}
 	} while (frame_offset < (frame_offset_start+frame_length));
 	
