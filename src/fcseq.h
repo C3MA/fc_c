@@ -13,8 +13,6 @@
 #include <stdio.h>
 
 
-#define	FCSEQ_TMPBUFFER_HEAD_SIZE	10	/* length of the internal buffer to read the length */
-
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
 #endif

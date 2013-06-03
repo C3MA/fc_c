@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 	
 	if (ret != FCSEQ_RET_OK)
 	{
+		fprintf(stderr, "Error code is %d\n", ret);
 		fprintf(stderr, "Unable to load sequnce (%s:%d)", __FILE__, __LINE__);
 		return 1;
 	}

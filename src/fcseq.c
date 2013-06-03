@@ -12,6 +12,9 @@
 #include <string.h>
 #include "hwal.h"
 
+
+#define FCSEQ_TMPBUFFER_HEAD_SIZE       6       /* length of the internal buffer to read the length */
+
 #ifndef FCSEQBUFFER_ONLY
 
 fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
@@ -37,12 +40,26 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	memset(seq, 0, sizeof(fcsequence_t));
 	seq->type = FCSEQ_FILEDESCRIPTOR;
 	
-	hwal_open(filename, "r");
+	seq->intern.file.filedescriptor = hwal_fopen(filename, "r");
+	
+	if ( seq->intern.file.filedescriptor == NULL )
+	{
+		return FCSEQ_RET_IOERR;	
+	}
 
 	/* Read the beginning of the file */
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
+	int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seq->intern.file.filedescriptor);
 
-	return FCSEQ_RET_OK;
+	fprintf(stderr, "Debug %d and returned length\n", FCSEQ_TMPBUFFER_HEAD_SIZE, read);
+	/* check that all requested data was read */
+	if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
+	{
+		/* when the header was not complete, where should be the user data? */
+		return FCSEQ_RET_INVALID_DATA;
+	}
+
+	return fcseq_loadMemory(seq, mem, FCSEQ_TMPBUFFER_HEAD_SIZE); 
 }
 
 void fcseq_close(fcsequence_t* seq)
@@ -58,7 +75,7 @@ void fcseq_close(fcsequence_t* seq)
 	 */
 	if (seq->type == FCSEQ_FILEDESCRIPTOR)
 	{
-		hwal_close(seq->intern.file.filedescriptor);
+		hwal_fclose(seq->intern.file.filedescriptor);
 	}
 }
 
@@ -79,24 +96,27 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
 	if (seqio->type != FCSEQ_FILEDESCRIPTOR)
 	{
 		seqio->type = FCSEQ_MEMORY;
+		/* initialize memory stucture */
+		seqio->intern.mem.bufferLength = length;
+		seqio->intern.mem.pBuffer = memory;
+		
+		/* load the header of the file */
+		seqio->intern.mem.actOffset = 0;
 	}
 	
-	/* initialize memory stucture */
-	seqio->intern.mem.bufferLength = length;
-	seqio->intern.mem.pBuffer = memory;
-	
-	/* load the header of the file */
-	seqio->intern.mem.actOffset = 0; 
 	
 	/* verification if the image is the expected */
-    offset = parse(seqio->intern.mem.pBuffer, seqio->intern.mem.actOffset, &id, &type);
+    offset = parse(memory, offset, &id, &type);
     if (id != BINARYSEQUENCE_METADATA || type != PROTOTYPE_LENGTHD)
         return FCSEQ_RET_INVALID_DATA; /* on problems, leave the offset at the beginning */
     
-    offset = parse_number(seqio->intern.mem.pBuffer, offset, &size); // Read length of req_snip
+    offset = parse_number(memory, offset, &size); // Read length of req_snip
+    if (seqio->type == FCSEQ_MEMORY )
+    {		
 	/* FIXME the read size can be compared with the available length (detect compromised files here) */
+    }
 	
-	offset = parse_metadata(seqio->intern.mem.pBuffer,offset,&(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
+    offset = parse_metadata(memory, offset,&(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
 	if (offset == -1) {
 		/* on problems, leave the offset at the beginning */
 		return FCSEQ_RET_INVALID_DATA;
