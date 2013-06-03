@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "../hwal.h"
 
-int* hwal_open(char **filename, char* type)
+int* hwal_open(char *filename, char* type)
 {
 	return fopen(filename, type);	
 }

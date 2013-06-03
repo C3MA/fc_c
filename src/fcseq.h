@@ -12,6 +12,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+
+#define	FCSEQ_TMPBUFFER_HEAD_SIZE	10	/* length of the internal buffer to read the length */
+
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
 #endif
@@ -34,6 +37,19 @@ extern "C" {
 	
 	typedef enum FCSEQ_TYPE fcseqtype_t;
 	
+
+	/* specific variables needed for working with the memory (used in the struct FCSEQ) */
+	struct FCSEQ_MEM {
+		uint8_t*	pBuffer;
+		uint32_t	bufferLength;
+		uint32_t	actOffset;
+	};
+
+	/* specific variables needed for files (used in the struct FCSEQ) */
+	struct FCSEQ_FILE {
+		int*	filedescriptor;
+	};
+
 	/** @struct FCSEQ Definition file to parse
 	 *  @brief This structure contains meta information of a sequence and the needed filepointer
 	 *  @var FCSEQ::width 
@@ -50,11 +66,11 @@ extern "C" {
 		int width;
 		int height;
 		int fps;
-		
-		uint8_t*	pBuffer;
-		uint32_t	bufferLength;
-		uint32_t	actOffset;
-		fcseqtype_t type;
+		union {
+			struct FCSEQ_MEM mem;
+			struct FCSEQ_FILE file;
+		} intern; /* working structure */	
+		fcseqtype_t 	type;
 	};
 	
 	typedef struct FCSEQ fcsequence_t;
@@ -66,15 +82,14 @@ extern "C" {
 	 * the given filename is opened and the meta information is extracted.
 	 *
 	 * @param[in] filename the name of the file
-	 *
-	 * @return The new generated sequence.
-	 * YOU must FREE the memory after usage with 'fcseq_close' !
+	 * @return status of the opening procedure
+	 * YOU must CLOSE the file after the usage with 'fcseq_close' !
 	 */
-	fcsequence_t* fcseq_load(char *filename);
+	fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq);
 	
 	
 	/**
-	 * Free all used memory, when a file was used as input
+	 * Close the file
 	 * @param[in] seq
 	 */
 	void fcseq_close(fcsequence_t* seq);

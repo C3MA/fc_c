@@ -29,7 +29,7 @@ extern "C" {
 	 * @param[in]	type	additional information like 'r' for read, 'w' for writing access and so on
 	 * @return unique number, for each opened file
 	 */
-	int* hwal_open(char **filename, char* type);
+	int* hwal_open(char *filename, char* type);
 	
 	/**
 	 * Read from the file into given buffer
