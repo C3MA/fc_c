@@ -4,7 +4,7 @@ RM = rm -f
 MKDIR= mkdir -p
 COPY=cp
 
-LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c src/fcseq.c
+LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c src/fcseq.c src/posix/hwal.c
 LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
@@ -33,5 +33,6 @@ $(LIB_NAME): $(LIB_OBJECTS) mksystem
 
 clean:
 	$(RM) src/*.o
+	$(RM) src/posix/*.o
 	$(RM) -r $(BUILD)
 	$(RM) client parsefile

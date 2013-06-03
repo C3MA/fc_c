@@ -29,7 +29,7 @@ extern "C" {
 	 * @param[in]	type	additional information like 'r' for read, 'w' for writing access and so on
 	 * @return unique number, for each opened file
 	 */
-	int hwal_open(char **filename, char type);
+	int* hwal_open(char **filename, char* type);
 	
 	/**
 	 * Read from the file into given buffer
@@ -39,14 +39,14 @@ extern "C" {
 	 * @param[in]	filedescriptor	unique number for each opened file (given from the hwal_open function)
 	 * @return amount of bytes that were actual read
 	 */
-	hwal_ret_t hwal_read(void* buffer, int length, int filedescriptor);
+	int hwal_read(void* buffer, int length, int* filedescriptor);
 	
 	
 	/**
 	 * Free all used memory, when a file was used as input
 	 * @param[in] filedescriptor	the unique number for each opened file
 	 */
-	void hwal_close(int filedescriptor);
+	void hwal_close(int* filedescriptor);
 
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
