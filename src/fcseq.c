@@ -186,7 +186,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		int restOfFirst = (FCSEQ_TMPBUFFER_HEAD_SIZE - offset);
 	
 		/* copy the already read information into a buffer */
-		memcpy(memFrame, mem, restOfFirst);
+		memcpy(memFrame, mem + offset, restOfFirst);
 		/* the further necessary bytes are read from the file now */
 		int readBytes = hwal_fread(memFrame+restOfFirst, frame_length - restOfFirst, 
 					seqio->intern.file.filedescriptor);
