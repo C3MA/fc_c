@@ -179,7 +179,6 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 			/* no header -> end of file */
 			return FCSEQ_RET_EOF;
 		}
-		fprintf(stderr, "Found a frame with %d bytes of content\n", frame_length);
 		
 		uint8_t memFrame[frame_length];
 		/* The already memory may not contain the complete meta information */

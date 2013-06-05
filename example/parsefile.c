@@ -53,12 +53,6 @@ int main(int argc, char** argv)
 		}
 		
 	} while (ret == FCSEQ_RET_OK);
-
-	if (ret != FCSEQ_RET_EOF)
-	{
-		/* display problem */
-		fprintf(stderr, "Some errors while extracting the frames [%d]\n", ret);
-	}
 	
 	/* clean people now tidy up */
 	fcseq_close(&seq);
