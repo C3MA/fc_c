@@ -45,7 +45,7 @@ extern "C" {
 
 	/* specific variables needed for files (used in the struct FCSEQ) */
 	struct FCSEQ_FILE {
-		int*	filedescriptor;
+		int	filedescriptor;
 	};
 
 	/** @struct FCSEQ Definition file to parse

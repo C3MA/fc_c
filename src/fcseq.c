@@ -21,8 +21,6 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 {
 	/* check if the file exists */
 	FILE * pFile;
-	int filesize;
-	uint8_t* memory;
 	
 	pFile = fopen (filename,"r");
 	if (pFile==NULL)
@@ -42,7 +40,7 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	
 	seq->intern.file.filedescriptor = hwal_fopen(filename, "r");
 	
-	if ( seq->intern.file.filedescriptor == NULL )
+	if ( seq->intern.file.filedescriptor == 0 )
 	{
 		return FCSEQ_RET_IOERR;	
 	}
@@ -51,7 +49,6 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 	int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seq->intern.file.filedescriptor);
 
-	fprintf(stderr, "Debug %d and returned length\n", FCSEQ_TMPBUFFER_HEAD_SIZE, read);
 	/* check that all requested data was read */
 	if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
 	{
@@ -103,28 +100,43 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
 		/* load the header of the file */
 		seqio->intern.mem.actOffset = 0;
 	}
-	
-	
+
 	/* verification if the image is the expected */
     offset = parse(memory, offset, &id, &type);
     if (id != BINARYSEQUENCE_METADATA || type != PROTOTYPE_LENGTHD)
         return FCSEQ_RET_INVALID_DATA; /* on problems, leave the offset at the beginning */
     
-    offset = parse_number(memory, offset, &size); // Read length of req_snip
-    if (seqio->type == FCSEQ_MEMORY )
-    {		
-	/* FIXME the read size can be compared with the available length (detect compromised files here) */
-    }
+    offset = parse_number(memory, offset, &size); // Read length of the header (containing meta information)
+    if (seqio->type == FCSEQ_FILEDESCRIPTOR)
+    {
+	/* The already memory may not contain the complete meta information */
+	int restOfFirst = (length - offset);
+	int additionalNeededMemSize = size - restOfFirst;
 	
-    offset = parse_metadata(memory, offset,&(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
-	if (offset == -1) {
-		/* on problems, leave the offset at the beginning */
-		return FCSEQ_RET_INVALID_DATA;
+	fprintf(stderr, "The expected length is %d [actual offset=%d, read buffer=%d -> %d]\n", size, offset, length, restOfFirst);
+	
+	uint8_t metabuffer[size];
+	memcpy(metabuffer, memory + offset, restOfFirst);
+	int readBytes = hwal_fread(metabuffer+restOfFirst, size - restOfFirst, seqio->intern.file.filedescriptor);
+	if ( readBytes != (size-restOfFirst) )
+	{
+		return FCSEQ_RET_IOERR;
+	}
+    	(void) parse_metadata(metabuffer, 0, &(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
+	
+    }
+    else
+    {
+    	offset = parse_metadata(memory, offset,&(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
+	if (offset == -1)
+	{
+           /* on problems, leave the offset at the beginning */
+	   return FCSEQ_RET_INVALID_DATA;
 	}
 	
 	/* update the offset */
 	seqio->intern.mem.actOffset = offset;
-	
+    }	
 	return FCSEQ_RET_OK;
 }
 
