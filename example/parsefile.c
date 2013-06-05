@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 			printf("\n");
 		}
 		
-	} while (ret != FCSEQ_RET_EOF);
+	} while (ret == FCSEQ_RET_OK);
 	
 	/* clean people now tidy up */
 	fcseq_close(&seq);
