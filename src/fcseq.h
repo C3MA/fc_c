@@ -20,7 +20,7 @@ extern "C" {
 	enum FCSEQ_RET { FCSEQ_RET_OK=1, 
 		FCSEQ_RET_IOERR,
 		FCSEQ_RET_EOF,
-		FCSEQ_RET_PARAMERR,
+		FCSEQ_RET_PARAMERR, /* invalid parameter were used (NULL pointer) */
 		FCSEQ_RET_NOTIMPL, /* not implementend atm */
 		FCSEQ_RET_INVALID_DATA
 	};

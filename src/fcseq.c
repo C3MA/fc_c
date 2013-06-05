@@ -15,6 +15,17 @@
 
 #define FCSEQ_TMPBUFFER_HEAD_SIZE       6       /* length of the internal buffer to read the length */
 
+
+/******************************************************************************
+* LOCAL FUNCTIONS
+******************************************************************************/
+
+fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length);
+
+/******************************************************************************
+* GLOBAL FUNCTIONS
+******************************************************************************/
+
 #ifndef FCSEQBUFFER_ONLY
 
 fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
@@ -111,15 +122,14 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
     {
 	/* The already memory may not contain the complete meta information */
 	int restOfFirst = (length - offset);
-	int additionalNeededMemSize = size - restOfFirst;
 	
-	fprintf(stderr, "The expected length is %d [actual offset=%d, read buffer=%d -> %d]\n", size, offset, length, restOfFirst);
-	
+	/* copy the already read information into a buffer */
 	uint8_t metabuffer[size];
 	memcpy(metabuffer, memory + offset, restOfFirst);
+	/* the further necessary bytes are read from the file now */
 	int readBytes = hwal_fread(metabuffer+restOfFirst, size - restOfFirst, seqio->intern.file.filedescriptor);
 	if ( readBytes != (size-restOfFirst) )
-	{
+	{	/* big problem! there were not enough bytes in the file */
 		return FCSEQ_RET_IOERR;
 	}
     	(void) parse_metadata(metabuffer, 0, &(seqio->fps), &(seqio->width), &(seqio->height), NULL, NULL);
@@ -142,44 +152,99 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
 
 fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 {
-	int offset = seqio->intern.mem.actOffset;
-	int id, type;
-	int frame_offset, frame_length, frame_offset_start;
+	int offset = 0;
+	int id, type, frame_length;
+
+	if (seqio->type == FCSEQ_FILEDESCRIPTOR) /* reading a frame from a file */
+	{
+		/* Read the beginning of the file */
+		uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
+		int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seqio->intern.file.filedescriptor);
+
+		/* check that all requested data was read */
+		if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
+		{
+			/* when the header was not complete, where should be the user data? */
+			return FCSEQ_RET_INVALID_DATA;
+		}
+
+		/****** Read frame header *******/
+		offset = parse(mem, offset, &id, &type);
+		if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
+		{
+			offset = parse_number(mem, offset, &frame_length);
+		}
+		else
+		{
+			/* no header -> end of file */
+			return FCSEQ_RET_EOF;
+		}
+		fprintf(stderr, "Found a frame with %d bytes of content\n", frame_length);
+		
+		uint8_t memFrame[frame_length];
+		/* The already memory may not contain the complete meta information */
+		int restOfFirst = (FCSEQ_TMPBUFFER_HEAD_SIZE - offset);
+	
+		/* copy the already read information into a buffer */
+		memcpy(memFrame, mem, restOfFirst);
+		/* the further necessary bytes are read from the file now */
+		int readBytes = hwal_fread(memFrame+restOfFirst, frame_length - restOfFirst, 
+					seqio->intern.file.filedescriptor);
+		if ( readBytes != (frame_length - restOfFirst) )
+		{	/* big problem! there were not enough bytes in the file */
+			return FCSEQ_RET_IOERR;
+		}	
+
+		return extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
+	}
+	else	/* when working directly in the memory of the complete structure */
+	{
+		offset = seqio->intern.mem.actOffset;
+
+		/****** Read frame header *******/
+		offset = parse(seqio->intern.mem.pBuffer, offset, &id, &type);	
+		if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
+		{
+			offset = parse_number(seqio->intern.mem.pBuffer, offset, &frame_length);
+		}
+		else
+		{
+			/* no header -> end of file */
+			return FCSEQ_RET_EOF;
+		}
+		return extractFrame(seqio->intern.mem.pBuffer, rgb24, seqio->width, offset, frame_length);
+	
+		/* update the offset */
+		seqio->intern.mem.actOffset = offset + frame_length;
+	}
+}
+
+
+fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length)
+{
+	int lastOffset = offset + length;
 	int red, green, blue;
 	int x,y, pos;
-	
-	/****** Read frame header *******/
-    offset = parse(seqio->intern.mem.pBuffer, offset, &id, &type);	
-    if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
-    {
-        offset = parse_number(seqio->intern.mem.pBuffer, offset, &frame_length);
-        frame_offset = offset;
-    }
-    else
-    {
-		/* no header -> end of file */
-        return FCSEQ_RET_EOF;
-    }
-		
+
+	if (memory == NULL || rgb24 == NULL || length == 0)
+	{
+		return FCSEQ_RET_PARAMERR;
+	}
+
 	/***** extract all stored pixel *****/
-	frame_offset_start = frame_offset;
 	do {
-		frame_offset = frame_parse_pixel(seqio->intern.mem.pBuffer,frame_offset, &red, &green, &blue, &x, &y);
+		offset = frame_parse_pixel(memory, offset, &red, &green, &blue, &x, &y);
 		if (offset == -1) {
 			return FCSEQ_RET_INVALID_DATA;
 		} else {
 			/* printf("Parse Pixel, red: %2x , green: %2x , blue: %2x x: %3d y: %3d\n",red,green,blue,x,y); */
 			/* pick row             and colum (times three, ass each color needs one byte */
-			pos = y*(seqio->width*3) + (3*x);
+			pos = y*(width*3) + (3*x);
 			rgb24[pos + 0] = red;
 			rgb24[pos + 1] = green;
 			rgb24[pos + 2] = blue;
 		}
-	} while (frame_offset < (frame_offset_start+frame_length));
-	
-	
-	/* update the offset */
-	seqio->intern.mem.actOffset = frame_offset;
+	} while (offset < lastOffset);
 	
 	return FCSEQ_RET_OK;
 }
