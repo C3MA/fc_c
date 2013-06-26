@@ -36,3 +36,6 @@ clean:
 	$(RM) src/posix/*.o
 	$(RM) -r $(BUILD)
 	$(RM) client parsefile
+
+docu:
+	cd doc ; doxygen fc_c_api ; cd ..
