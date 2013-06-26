@@ -20,21 +20,26 @@
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
 #endif
-	
-	enum FCSEQ_RET { FCSEQ_RET_OK=1, 
-		FCSEQ_RET_IOERR,
-		FCSEQ_RET_EOF,
-		FCSEQ_RET_PARAMERR, /* invalid parameter were used (NULL pointer) */
-		FCSEQ_RET_NOTIMPL, /* not implementend atm */
-		FCSEQ_RET_INVALID_DATA
+
+	/* @enum FCSEQ_RET
+	 * @brief Status code, that is used in this module
+	 */
+	enum FCSEQ_RET { FCSEQ_RET_OK=1, /**< Function did not detect any problems  */
+		FCSEQ_RET_IOERR, /**< Input/Output error */
+		FCSEQ_RET_EOF, /**< file end reached */
+		FCSEQ_RET_PARAMERR, /**< invalid parameter were used (NULL pointer) */
+		FCSEQ_RET_NOTIMPL, /**< not implementend atm */
+		FCSEQ_RET_INVALID_DATA /**< Found invalid data */
 	};
 	typedef enum FCSEQ_RET fcseq_ret_t;
 	
-	
+	/* @enum FCSEQ_TYPE
+	 * @brief Different source types
+	 */
 	enum FCSEQ_TYPE { 
-		FCSEQ_NONE = 0, 
-		FCSEQ_FILEDESCRIPTOR = 1, 
-		FCSEQ_MEMORY = 2
+		FCSEQ_NONE = 0, /**< No source was specified (after initialization) */
+		FCSEQ_FILEDESCRIPTOR = 1, /**< using a file as source */
+		FCSEQ_MEMORY = 2 /**< memory block as source */
 	};
 	
 	typedef enum FCSEQ_TYPE fcseqtype_t;

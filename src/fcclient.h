@@ -100,7 +100,7 @@ extern int fcclient_sendFrame(fcclient_t* fc, uint8_t* buffer);
 	
 	
 #if 0
-	/***TODO some parked interfaces, that would be probalby useful **/
+	/** TODO some parked interfaces, that would be probalby useful **/
 	
 	/**
 	 * entry point to prepare the cyclically sending of frames (all needed objects are allocated here)
