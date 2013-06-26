@@ -1,23 +1,32 @@
-//
-//  fc.h
-//  fc_c
-//
-//
+/* @file fc.h
+ * @brief This module abstracts the protobuf file
+ * @author Pcopfer
+ *
+ * @date 26.06.2013 – Doxygen documentation added
+ * @defgroup LowlevelFC
+ *
+ * This module gives an interface for parsing the 
+ * protobuf file used in the fullcircle project.
+ */
+
 
 #ifndef fc_c_fc_h
 #define fc_c_fc_h
 
+/** @addtogroup LowlevelFC */
+/*@{*/
+
 #include <stdint.h>
 
-// Defines based on sequence.proto from Fullcircle
-// BinarySequenceMetadata
+/* Defines based on sequence.proto from Fullcircle */
+/* @sa BinarySequenceMetadata */
 #define BINARYSEQUENCEMETADATA_FRAMESPERSECOND 1
 #define BINARYSEQUENCEMETADATA_WIDTH 2
 #define BINARYSEQUENCEMETADATA_HEIGHT 3
 #define BINARYSEQUENCEMETADATA_GENERATORNAME 4
 #define BINARYSEQUENCEMETADATA_GENERATORVERSION 5
 
-// RGBValue
+/* @sa RGBValue */
 #define RGBVALUE_RED 1
 #define RGBVALUE_GREEN 2
 #define RGBVALUE_BLUE 3
@@ -129,6 +138,6 @@ int send_inforequest(uint8_t *buffer, int offset);
 int recv_inforequest(uint8_t *buffer, int offset);
 int send_infoanswer(uint8_t *buffer, int offset, uint8_t *meta, int length_meta);
 int recv_infoanswer(uint8_t *buffer, int offset, int *meta_offset, int *meta_length);
-
+/*@}*/
 
 #endif

@@ -1,15 +1,14 @@
-/*
- *  fcseq.h
+/* @file fcseq.h
+ * @brief This module parses an sequence file
+ * @author Ollo
  *
- *  Created by ollo on 20.05.13.
- *  Copyright 2013 C3MA. All rights reserved.
+ * @date 20.05.2013 – Created
+ * @date 26.06.2013 – Doxygen documentation added
+ * @defgroup FullcircleAPI
  *
  */
-
-/*! @addtogroup fcseq
- *
- * @details This module parses an sequence file
- */
+/** @addtogroup FullcircleAPI */
+/*@{*/
 
 #ifndef FC_SEQUENCE_PARSER_H
 #define FC_SEQUENCE_PARSER_H
@@ -82,27 +81,27 @@ extern "C" {
 
 #ifndef FCSEQBUFFER_ONLY
 	
-	/* Create a new sequence.
-	 * @brief The given filename is opened and the meta information is extracted.
-	 * YOU must CLOSE the file after the usage with 'fcseq_close' !
-	 *
+	/* @brief Create a new sequence.
 	 * @param filename the name or path of the file to load
 	 * @param seq the header with some meta information
 	 * @return fcseq_ret_t status of the opening procedure
+	 * 
+	 * The given filename is opened and the meta information is extracted.
+	 * YOU must CLOSE the file after the usage with 'fcseq_close' !
+	 *
 	 */
 	fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq);
 	
 	
-	/**
-	 * Close the file
-	 * @param[in] seq
+	/* @brief Close the file
+	 * @param[in] seq the sequence file to be close
+	 * @return nothing, even on problems and errors
 	 */
 	void fcseq_close(fcsequence_t* seq);
 	
 #endif
 	
-	/* Initialize a sequence and Parse meta information from a new sequence.
-	 *
+	/* @brief Initialize a sequence and parse meta information from a new sequence.
 	 * @param[out] seqio to fill
 	 * @param[in] memory with the sequence
 	 * @param[in] length of the available memory containing the sequence
@@ -126,5 +125,5 @@ extern "C" {
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
 #endif
-
+/*@}*/
 #endif
