@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-/** @struct FCCLIENT Definition of a connection
+/** @struct FCCLIENT
  *  @brief This structure containing all attributes of a connection to the wall
  *  @var FCCLIENT::width 
  *  Member 'width' contains the width of the wall
@@ -27,9 +27,10 @@ extern "C" {
  *
  *  @var FCCLIENT::connected 
  *  Member 'connected' status if the wall expect us to send something
- *
  *  @var FCCLIENT::sockfd 
  *  Member 'sockfd' the socket, that is used
+ *  @var FCCLIENT::frame_offset 
+ *  Member 'sockfd' the actual position during parsing
  */
 struct FCCLIENT {
 	int width;
