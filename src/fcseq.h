@@ -4,10 +4,10 @@
  *
  * @date 20.05.2013 – Created
  * @date 26.06.2013 – Doxygen documentation added
- * @defgroup FullcircleAPI
+ * @defgroup FileParsing
  *
  */
-/** @addtogroup FullcircleAPI */
+/** @addtogroup FileParsing */
 /*@{*/
 
 #ifndef FC_SEQUENCE_PARSER_H

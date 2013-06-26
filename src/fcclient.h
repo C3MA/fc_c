@@ -1,9 +1,10 @@
-/*
- *  fcclient.h
- *  FC_C
+/* @file fcclient.h
+ * @brief This module parses an sequence file
+ * @author Ollo
  *
- *  Created by ollo on 24.04.13.
- *  Copyright 2013 C3MA. All rights reserved.
+ * @date 24.04.2013 – Created
+ * @date 26.06.2013 – Doxygen documentation added
+ * @defgroup Network
  *
  */
 
@@ -16,6 +17,10 @@
 extern "C" {
 #endif
 
+	
+/** @addtogroup Network */
+/*@{*/
+	
 /** @struct FCCLIENT
  *  @brief This structure containing all attributes of a connection to the wall
  *  @var FCCLIENT::width 
@@ -104,7 +109,7 @@ extern int fcclient_sendFrame(fcclient_t* fc, uint8_t* buffer);
 	extern int fcclient_generateFrame(fcclient_t* fc);
 	extern int fcclient_updatePixel(int red, int green, int blue, int x, int y);
 #endif
-	
+/*@}*/	
 	
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
