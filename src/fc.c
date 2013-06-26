@@ -1,8 +1,3 @@
-//
-//  fc.c
-//  fc_c
-//
-//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +5,7 @@
 #include "fc.h"
 #include <string.h>
 
-/*
+/**
  * @param[in] pInput buffer with the protobuf content
  * @param[out] pOutput the buffer to fill with input and the corresponding header
  * @param[in] the length of the input protobuf data
@@ -23,7 +18,7 @@ void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
     memcpy(pOutput+HEADER_LENGTH, pInput, lengthInput);
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @param[out] sniptyp of the snip
@@ -46,7 +41,7 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
     return offset;
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @param[in] proto_id of the variant
@@ -64,7 +59,7 @@ int add_variant(uint8_t *buffer, int offset, int proto_id ,int value)
     return offset;
 }
 
-/*
+/**
  * @param[in] value
  * @return number of Bytes for Value
  */
@@ -84,7 +79,7 @@ int variant_length(int proto_id ,int value)
     return n;
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @param[in] typ of the snip
@@ -101,7 +96,7 @@ int add_type(uint8_t *buffer, int offset, int typ)
 }
 
 
-/*
+/**
  * @param[in|out] buffer
  * @param[in] offset
  * @param[in] proto_id
@@ -122,7 +117,7 @@ int add_lengthd(uint8_t *buffer, int offset, int proto_id ,uint8_t *data, long l
     return offset;
 }
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @param[in] proto_id
@@ -142,7 +137,7 @@ int add_lengthd_empty(uint8_t *buffer, int offset, int proto_id)
     return offset;
 }
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @param[out] value the counter, to write
@@ -166,7 +161,7 @@ int send_ping(uint8_t *buffer, int offset, int counter)
     return offset;
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @param[out] value the counter, that was read
@@ -194,7 +189,7 @@ int recv_ping(uint8_t *buffer, int offset, int *value)
     }
 }
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @param[in] value the counter, to write
@@ -218,7 +213,7 @@ int send_pong(uint8_t *buffer, int offset, int counter)
     return offset;
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @param[out] value the counter, that was read
@@ -246,7 +241,7 @@ int recv_pong(uint8_t *buffer, int offset, int *value)
     }
 }
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @param[in] color, string with color
@@ -275,7 +270,7 @@ int send_request(uint8_t *buffer, int offset, char *color, int seqId, uint8_t *m
     return offset;
 }
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @param[in] frames_per_second
@@ -299,10 +294,7 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
     return offset;
 }
 
-/*
- * The last both parameter are optional.
- * If set to NULL these values are skipped, and no memory must be freed. (only the offset is incremented)
- *
+/**
  * @param[in] meta
  * @param[out] frames per second (fps)
  * @param[out] width
@@ -310,6 +302,9 @@ int create_metadata(uint8_t *buffer, int offset, int frames_per_second, int widt
  * @param[out] generator name, pointer to memory area of generator name [YOU have to FREE this Memory later!1!]
  * @param[out] generator version, pointer of memory area of generator version [YOU have to FREE this Memory later!1!]
  * @return amount of parsed bytes
+ *
+ * The last both parameter are optional.
+ * If set to NULL these values are skipped, and no memory must be freed. (only the offset is incremented)
  */
 int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *width, int *height, char **generator_name, char **generator_version)
 {
@@ -371,7 +366,7 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     return offset;
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @param[out] color, pointer to memory area of color [YOU have to FREE this Memory later!1!]
@@ -430,7 +425,7 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
 }
 
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @return the new offset
@@ -442,7 +437,7 @@ int send_start(uint8_t *buffer, int offset)
     return offset;
 }
 
-/*
+/**
  * @param[in] buffer
  * @param[in] offset
  * @return the new offset
@@ -459,7 +454,7 @@ int recv_start(uint8_t *buffer, int offset)
 }
 
 
-/*
+/**
  * @param[out] buffer
  * @param[in] offset
  * @param[in] red

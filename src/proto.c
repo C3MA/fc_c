@@ -7,13 +7,15 @@
 #include <math.h>
 
 /**
- * @param[in] buffer
- * @param[in] offset where to start in the buffer
- * @param[out] pId the found id at the position in the buffer
- * @param[out] pType the found type at the position in the buffer
- * @return the new offset
+ * @param[in] buffer	Memory to read
+ * @param[in] offset	where to start in the buffer
+ * @param[out] pId		the found id at the position in the buffer
+ * @param[out] pType	the found type at the position in the buffer
+ * @return the new offset or "-1" on problems
+ *
+ * Reads the ID and the type from the given memory at the specified offset.
  */
-int parse(uint8_t *buffer, int offset, int* pId, int* pType)
+extern int parse(uint8_t *buffer, int offset, int* pId, int* pType)
 {
     int in;
     offset = parse_number(buffer, offset, &in);
@@ -26,14 +28,16 @@ int parse(uint8_t *buffer, int offset, int* pId, int* pType)
     return offset;
 }
 
-/*
- * @param[in] buffer
- * @param[in] offset
- * @param[in] id
- * @param[in] type
- * @return combined byte with both values
+/**
+ * @param[in] buffer	the memory area to write into
+ * @param[in] offset	position in the memory were to write
+ * @param[in] id		that should be written
+ * @param[in] type		that should be written
+ * @return new position or "-1" on problems
+ * 
+ * Write an ID and the type (see both defines) into the memory
  */
-int serialize(uint8_t *buffer, int offset, int id, int type)
+extern int serialize(uint8_t *buffer, int offset, int id, int type)
 {
     int out;
     // Error
@@ -46,13 +50,15 @@ int serialize(uint8_t *buffer, int offset, int id, int type)
     return offset;
 }
 
-/*
- * @param[in] buffer
- * @param[in] offset
- * @param[out] value that was read
- * @return the new offset
+/**
+ * @param[in] buffer	memory containing the protobuf structure
+ * @param[in] offset	actual position on the buffer
+ * @param[out] value	number, that was read
+ * @return the new offset or "-1" on problems
+ *
+ * Reads an integer from the memory
  */
-int parse_number(uint8_t *buffer, int offset, int *value)
+extern int parse_number(uint8_t *buffer, int offset, int *value)
 {
     // Error
     if (offset == -1) {
@@ -69,14 +75,16 @@ int parse_number(uint8_t *buffer, int offset, int *value)
     return count+1+offset;
 }
 
-/*
- * @param[in] buffer
- * @param[in] offset
- * @param[out] value that will be written
- * @return the new offset
+/**
+ * @param[in] buffer	memory with space for the structure
+ * @param[in] offset	actual position, where the data was read
+ * @param[out] value	number, that will be written
+ * @return the new offset or "-1" on problems
+ *
+ * Writes a number into the memory
+ * @TODO was passiert bei value 0?
  */
-// TODO was passiert bei value 0?
-int serialize_number(uint8_t *buffer, int offset, int value)
+extern int serialize_number(uint8_t *buffer, int offset, int value)
 {
     // Error
     if (offset == -1) {

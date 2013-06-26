@@ -21,10 +21,10 @@
 #define PROTOTYPE_LENGTHD   2
 
 
-int parse(uint8_t *buffer, int offset, int* pId, int* pType);
-int serialize(uint8_t *buffer, int offset, int id, int type);
-int parse_number(uint8_t *buffer, int offset, int *value);
-int serialize_number(uint8_t *buffer, int offset, int value);
+extern int parse(uint8_t *buffer, int offset, int* pId, int* pType);
+extern int serialize(uint8_t *buffer, int offset, int id, int type);
+extern int parse_number(uint8_t *buffer, int offset, int *value);
+extern int serialize_number(uint8_t *buffer, int offset, int value);
 
 /*@}*/
 
