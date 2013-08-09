@@ -10,7 +10,8 @@ LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
 CFLAGS=-c -Wall
-LDFLAGS= -I $(BUILD)/include -lm
+LDFLAGS= -I $(BUILD)/include -lm -L ./$(BUILD) -lfc
+LDFLAGS_LIBRARY= -I $(BUILD)/include -lm
 
 all: client parsefile
 
@@ -24,7 +25,7 @@ parsefile: libfc
 	$(CC) -o $@ example/parsefile.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS) 
 
 $(LIB_NAME): $(LIB_OBJECTS) mksystem
-	$(CC) $(LIB_OBJECTS) $(LDFLAGS) -shared -o $(BUILD)/$@.so
+	$(CC) $(LIB_OBJECTS) $(LDFLAGS_LIBRARY) -shared -o $(BUILD)/$@.so
 	$(MKDIR) $(BUILD)/include
 	$(COPY) src/*.h $(BUILD)/include/
 
@@ -35,7 +36,10 @@ clean:
 	$(RM) src/*.o
 	$(RM) src/posix/*.o
 	$(RM) -r $(BUILD)
-	$(RM) client parsefile
+	$(RM) client parsefile cam
+
+cam: $(LIB_NAME)
+	gcc -o $@ example/cam.c $(BUILD)/$(LIB_NAME).so `pkg-config --cflags opencv` `pkg-config --libs opencv`  $(LDFLAGS)
 
 docu:
 	cd doc ; doxygen fc_c_api ; cd ..
