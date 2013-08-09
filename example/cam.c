@@ -20,6 +20,9 @@ int main(int argc, char *argv[])
 	IplImage* color_img;
 	IplImage* tiny_img;
 
+	CvCapture* cv_cap = cvCaptureFromCAM(0);
+	cvNamedWindow("Video",0); // create window
+	
 	int success, success2;
 	int x, y, x1, y1;
 	fcclient_t * client = fcclient_new();
@@ -55,9 +58,6 @@ int main(int argc, char *argv[])
 	
 	printf("============= Sending Frame =============\n");
 		
-
-	CvCapture* cv_cap = cvCaptureFromCAM(0);
-	cvNamedWindow("Video",0); // create window
 	for(;;) {
 		if (!client->connected)
 		{
@@ -80,18 +80,14 @@ int main(int argc, char *argv[])
 				}
 				/* Now we need to send some nice frames to the wall */
 				fcclient_sendFrame(client, frame);
-			
 			//printf("Width %d, height %d\n", tiny_img->width, tiny_img->height);
 			}
 		}
-		usleep(50000);
-#if 0
-		c = cvWaitKey(50); // wait 10 ms or for key stroke
+		c = cvWaitKey(50); // wait 50 ms or for key stroke
 		if(c == 27)
 		{
 			break; // if ESC, break and quit
 		}
-#endif
 	}
 	/* clean up */
 	cvReleaseCapture( &cv_cap );
