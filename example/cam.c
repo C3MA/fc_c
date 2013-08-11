@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 
 	CvCapture* cv_cap = cvCaptureFromCAM(0);
 	cvNamedWindow("Video",0); // create window
+	cvNamedWindow("Video-Input",0); // create window
 	
 	int success, success2;
 	int x, y, x1, y1;
@@ -104,7 +105,6 @@ int main(int argc, char *argv[])
 			if(color_img != 0)
 			{
 				tiny_img = img_resize(color_img, client->width, client->height);
-				cvShowImage("Video", tiny_img); // show frame
 				for (y1=0; y1 < tiny_img->height; y1++) {
 					for (x1=0; x1 < tiny_img->width; x1++) {
 				//		printf("%d x %d\n", x1, y1);
@@ -112,13 +112,21 @@ int main(int argc, char *argv[])
 						red = pixel.val[2];
 						green = pixel.val[1];
 						blue = pixel.val[0];
+
 						shrinkColorSpace(&red, &green, &blue);
+
 						fcclient_addPixel(client, frame, red, green, blue, x1, y1);
+						// update the image to display in the preview
+						pixel.val[2] = red;
+						pixel.val[1] = green;
+						pixel.val[0] = blue;
+						cvSet2D(tiny_img, y1, x1, pixel);
 					}
 				}
 				/* Now we need to send some nice frames to the wall */
 				fcclient_sendFrame(client, frame);
-			//printf("Width %d, height %d\n", tiny_img->width, tiny_img->height);
+				cvShowImage("Video", tiny_img); // show frame
+				cvShowImage("Video-Input", color_img); // show frame
 			}
 		}
 		c = cvWaitKey(50); // wait 50 ms or for key stroke
