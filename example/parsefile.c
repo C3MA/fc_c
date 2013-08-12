@@ -38,12 +38,7 @@ int main(int argc, char** argv)
 	do {
 		/* parse */
 		ret = fcseq_nextFrame(&seq, rgb24);
-		if (ret != FCSEQ_RET_OK)
-		{
-			fprintf(stderr, "Fatal ERROR could not load file.\n");
-			return 1;
-		}
-			
+					
 		printf("==============================\n");
 		for (y=0; y < seq.height; y++)
 		{
