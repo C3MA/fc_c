@@ -53,6 +53,7 @@ int main(int argc, char** argv)
 				printf("%.2X", rgb24[(ypos+x*3) + 0]);
 				printf("%.2X", rgb24[(ypos+x*3) + 1]);
 				printf("%.2X", rgb24[(ypos+x*3) + 2]);
+				printf("|");
 			}
 			printf("\n");
 		}
