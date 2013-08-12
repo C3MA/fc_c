@@ -35,9 +35,10 @@ int main(int argc, char** argv)
 	/* use the extract resolution to define the necessary memory to extract one frame */
 	uint8_t rgb24[seq.width * seq.height * 3];
 	
-	do {
-		/* parse */
-		ret = fcseq_nextFrame(&seq, rgb24);
+	/* parse */
+	ret = fcseq_nextFrame(&seq, rgb24);
+	
+	while (ret == FCSEQ_RET_OK) {
 					
 		printf("==============================\n");
 		for (y=0; y < seq.height; y++)
@@ -53,7 +54,9 @@ int main(int argc, char** argv)
 			printf("\n");
 		}
 		
-	} while (ret == FCSEQ_RET_OK);
+		/* parse */
+		ret = fcseq_nextFrame(&seq, rgb24);
+	}
 	
 	/* clean people now tidy up */
 	fcseq_close(&seq);
