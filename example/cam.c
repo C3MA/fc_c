@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
 	if (argc < 3)
 	{
-		printf("Usage %s <IP address of the wall> <gamma value>\n", argv[0]);
+		printf("Usage %s <IP address of the wall> <gamma value (between 1 and 100)>\n", argv[0]);
 		printf("Usage %s debug <gamma value>\t There is no connection to the wall done, only debugging the webcam.\n", argv[0]);
 		return 1;
 	}
@@ -83,7 +83,9 @@ int main(int argc, char *argv[])
 	test = cvGetCaptureProperty(cv_cap, CV_CAP_PROP_BRIGHTNESS);
 	printf("Brightness default is %lf\n", test);
 
-	test = atof(argv[2]);
+	printf("%s is %d\n", argv[2], atoi(argv[2]));
+	int plainval = atoi(argv[2]);
+	test = plainval / 100.0;
 	
 	int retProp = cvSetCaptureProperty(cv_cap, CV_CAP_PROP_BRIGHTNESS, test);
 	printf("Setting %lf  properties returned %d\n", test, retProp);
