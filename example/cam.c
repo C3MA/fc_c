@@ -44,7 +44,7 @@ IplImage* img_resize(IplImage* src_img, int new_width,int new_height)
 {
     IplImage* des_img;
     des_img=cvCreateImage(cvSize(new_width,new_height),src_img->depth,src_img->nChannels);
-    cvResize(src_img,des_img,CV_INTER_NN);
+    cvResize(src_img,des_img,CV_INTER_AREA);
     /* CV_INTER_LINEAR, CV_INTER_NN, CV_INTER_AREA, CV_INTER_CUBIC */
     return des_img;
 }
@@ -81,10 +81,9 @@ int main(int argc, char *argv[])
 	} 
 	
 	test = cvGetCaptureProperty(cv_cap, CV_CAP_PROP_BRIGHTNESS);
-	printf("Setting of brightness is %lf\n", test);
+	printf("Brightness default is %lf\n", test);
 
-	test = 0.1;
-	//test = atof(argv[2]);
+	test = atof(argv[2]);
 	
 	int retProp = cvSetCaptureProperty(cv_cap, CV_CAP_PROP_BRIGHTNESS, test);
 	printf("Setting %lf  properties returned %d\n", test, retProp);
