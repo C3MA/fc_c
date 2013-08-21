@@ -10,8 +10,8 @@ LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
 CFLAGS=-c -Wall
-LDFLAGS= -I $(BUILD)/include -lm -L ./$(BUILD) -lfc
-LDFLAGS_LIBRARY= -I $(BUILD)/include -lm
+LDFLAGS= -I $(BUILD)/include -lm -L./$(BUILD) -lfc
+LDFLAGS_LIBRARY= -I$(BUILD)/include -lm
 
 all: client parsefile
 
