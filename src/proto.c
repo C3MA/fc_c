@@ -4,7 +4,6 @@
 //
 
 #include "proto.h"
-#include <math.h>
 
 /**
  * @param[in] buffer	Memory to read
@@ -69,7 +68,7 @@ extern int parse_number(uint8_t *buffer, int offset, int *value)
     // check if the first bit is set (so the following byte must be read)
     do {
         count++;
-        (*value) += pow(2, 7*count) * (buffer[offset+count] & 0x7F);
+        (*value) += (1 << (7*count)) * (buffer[offset+count] & 0x7F);
     } while(buffer[offset+count] & 0x80);
     
     return count+1+offset;
