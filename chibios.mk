@@ -3,11 +3,11 @@
 
 FCPWD=$(APP_LIBS)/fc/src
 
-# List of all the ChibiOS/RT test files.
-TESTSRC = ${FCPWD}/fc.c \
+# Append  all the source files.
+LIBSRC += ${FCPWD}/fc.c \
 ${FCPWD}/proto.c \
 ${FCPWD}/fcseq.c \
 
-# Required include directories
-TESTINC = ${FCPWD}
+# Add required include directories
+LIBINC += ${FCPWD}
 
