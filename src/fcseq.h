@@ -13,10 +13,7 @@
 #ifndef FC_SEQUENCE_PARSER_H
 #define FC_SEQUENCE_PARSER_H
 
-#ifdef _CHIBIOS
 #include <stdint.h>
-#include <stdio.h>
-#endif
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {

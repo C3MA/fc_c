@@ -9,12 +9,11 @@
 #include "fcseq.h"
 #include "fc.h"
 #include "proto.h"
-#include <string.h>
 #include "hwal.h"
 
 
 #define FCSEQ_TMPBUFFER_HEAD_SIZE       6       /* length of the internal buffer to read the length */
-
+#define NULL 				0 	/* needed but was in removed <string.h> */
 
 /******************************************************************************
 * LOCAL FUNCTIONS
@@ -31,10 +30,10 @@ fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset,
 fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 {
 	/* check if the file exists */
-	FILE * pFile;
+	int pFile;
 	
-	pFile = fopen (filename,"r");
-	if (pFile==NULL)
+	pFile = hwal_fopen(filename,"r");
+	if (pFile == 0)
 	{
 		return FCSEQ_RET_IOERR;
 	}
@@ -46,7 +45,7 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	
 
 	/* clean the given a structure for the sequence */
-	memset(seq, 0, sizeof(fcsequence_t));
+	hwal_memset(seq, 0, sizeof(fcsequence_t));
 	seq->type = FCSEQ_FILEDESCRIPTOR;
 	
 	seq->intern.file.filedescriptor = hwal_fopen(filename, "r");
@@ -125,7 +124,7 @@ fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t leng
 	
 	/* copy the already read information into a buffer */
 	uint8_t metabuffer[size];
-	memcpy(metabuffer, memory + offset, restOfFirst);
+	hwal_memcpy(metabuffer, memory + offset, restOfFirst);
 	/* the further necessary bytes are read from the file now */
 	int readBytes = hwal_fread(metabuffer+restOfFirst, size - restOfFirst, seqio->intern.file.filedescriptor);
 	if ( readBytes != (size-restOfFirst) )
@@ -185,7 +184,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		int restOfFirst = (FCSEQ_TMPBUFFER_HEAD_SIZE - offset);
 	
 		/* copy the already read information into a buffer */
-		memcpy(memFrame, mem + offset, restOfFirst);
+		hwal_memcpy(memFrame, mem + offset, restOfFirst);
 		/* the further necessary bytes are read from the file now */
 		int readBytes = hwal_fread(memFrame+restOfFirst, frame_length - restOfFirst, 
 					seqio->intern.file.filedescriptor);
