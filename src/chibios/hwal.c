@@ -16,6 +16,7 @@
 #include "ch.h"
 
 #include "hwal.h"
+#include "customHwal.h"
 
 #include "ff.h"
 
@@ -96,4 +97,17 @@ extern int hwal_strlen(char* text)
 		i++;
 	}
 	return i;
+}
+
+extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
+{
+	
+}
+
+static BaseSequentialStream *gChp = NULL;
+
+extern void hwal_init(BaseSequentialStream *chp)
+{
+	gChp = chp;
+	chprintf(gChp, "Hardware Abstraction Layer INITIALIZED!\r\n");
 }

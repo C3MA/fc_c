@@ -52,8 +52,8 @@ extern "C" {
 	 * Fill the Memory with the given value.
 	 * 
 	 * @param[in|out]	buffer	to be filled
-	 * @param[int]	length	value that should be written into each item
-	 * @param[int]	length	amount of bytes that should be read
+	 * @param[in]	length	value that should be written into each item
+	 * @param[in]	length	amount of bytes that should be read
 	 */
 	extern void hwal_memset(void *buffer, int item, int length);
 	
@@ -63,17 +63,26 @@ extern "C" {
      * might overlap should use memmove(3) instead.
 	 * 
 	 * @param[out]	s1	to be filled
-	 * @param[int]	s2	memory area with the information to read
-	 * @param[int]	length	amount of bytes to be copied
+	 * @param[in]	s2	memory area with the information to read
+	 * @param[in]	length	amount of bytes to be copied
 	 */
 	extern void hwal_memcpy(const void *s1, const void* s2, int length);
 	
 	/**
 	 * Calculate the length of the given string
-	 * @param[int]	text	the length should be calculated from
+	 * @param[in]	text	the length should be calculated from
 	 * @return calculated length for the given text
 	 */
 	extern int hwal_strlen(char* text);
+	
+	/**
+	 * Interface for printing debugging messages IF DEBUG is enabled
+	 * @param[in]	codefile	the file, where the message comes frome
+	 * @param[in]	linenumber	the excat line of code of this code
+	 * @param[in]	text		to display
+	 */
+	extern void hwal_debug(char* codefile, int linenumber, char* text, ...);
+	
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
 #endif

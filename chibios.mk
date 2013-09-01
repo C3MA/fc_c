@@ -10,5 +10,6 @@ ${FCPWD}/fcseq.c \
 ${FCPWD}/chibios/hwal.c \
 
 # Add required include directories
-LIBINC += ${FCPWD}
+LIBINC += ${FCPWD} \
+	 $(FCPWD)/chibios
 
