@@ -326,11 +326,6 @@ extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
 
 extern void hwal_init(BaseSequentialStream *chp)
 {
-	int dummy;
 	gChp = chp;
 	chprintf(gChp, "Hardware Abstraction Layer INITIALIZED!\r\n");
-
-	dummy=2342;
-	hwal_debug(__FILE__, __LINE__, "Is this value: %d equal to 2342?", dummy);
-	hwal_debug(__FILE__, __LINE__, "FYI: address is %x", &dummy);
 }
