@@ -60,7 +60,7 @@ extern int hwal_fread(void* buffer, int length, int filedescriptor)
 	int br;
 	FRESULT status;
 	status = f_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
-	hwal_debug(__FILE__, __LINE__, "Read returned %d ", filedescriptor, status );
+	hwal_debug(__FILE__, __LINE__, "Read returned %d ", status );
 	if (status != FR_OK)
 	{
 		return 0; /* problems, return zero as problematic length */
