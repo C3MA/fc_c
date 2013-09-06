@@ -32,12 +32,6 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	/* check if the file exists */
 	int pFile;
 	
-	pFile = hwal_fopen(filename,"r");
-	if (pFile == 0)
-	{
-		return FCSEQ_RET_IOERR;
-	}
-	
 	if (seq == NULL)
 	{
 		return FCSEQ_RET_PARAMERR;
@@ -60,6 +54,7 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	/* Read the beginning of the file */
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 	int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seq->intern.file.filedescriptor);
+	hwal_debug(__FILE__, __LINE__, "FD%d returned %d bytes (asking for %d)", seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE);
 
 	/* check that all requested data was read */
 	if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
