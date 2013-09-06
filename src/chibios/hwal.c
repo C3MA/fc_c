@@ -30,7 +30,7 @@ static BaseSequentialStream *gChp = NULL;
 
 
 /* a small mapping table to abstract from the filedescriptors */
-FIL*	fd_mappingtable[MAXFILEDESCRIPTORS];
+FIL	fd_mappingtable[MAXFILEDESCRIPTORS];
 int	fdNextFreecount=1; /* do not use the number zero, as zero marks errors while opening */
 
 extern int hwal_fopen(char *filename, char* type)
@@ -46,19 +46,22 @@ extern int hwal_fopen(char *filename, char* type)
 	
 	/* human counting adapted to the array (therefore the -1) */
 	/*FIXME only allow reading for an easy handling */
-	if ( f_open( fd_mappingtable[usedMapIndex - 1], (TCHAR*) filename, FA_READ) != FR_OK)
+	if ( f_open( &(fd_mappingtable[usedMapIndex - 1]), (TCHAR*) filename, FA_READ) != FR_OK)
 	{
-		fd_mappingtable[usedMapIndex -1] = NULL;
+		fdNextFreecount--;
 		return 0; /* damn it did not work */
 	}
-	
+	hwal_debug(__FILE__, __LINE__, "Open file with index %d and descriptor %d", usedMapIndex, fd_mappingtable[usedMapIndex - 1]);
 	return usedMapIndex;
 }
 	
 extern int hwal_fread(void* buffer, int length, int filedescriptor)
 {
 	int br;
-	if (f_read( fd_mappingtable[filedescriptor -1], (TCHAR*) buffer, length,(UINT*) &br) != FR_OK)
+	FRESULT status;
+	status = f_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
+	hwal_debug(__FILE__, __LINE__, "Read returned %d ", filedescriptor, status );
+	if (status != FR_OK)
 	{
 		return 0; /* problems, return zero as problematic length */
 	}
@@ -71,7 +74,7 @@ extern int hwal_fread(void* buffer, int length, int filedescriptor)
 	
 extern void hwal_fclose(int filedescriptor)
 {
-	f_close( fd_mappingtable[filedescriptor -1] );
+	f_close( &(fd_mappingtable[filedescriptor -1]) );
 	/* FIXME free the entries in the mapping table */
 }
 
