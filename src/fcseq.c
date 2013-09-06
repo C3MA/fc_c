@@ -54,6 +54,8 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 	{
 		return FCSEQ_RET_IOERR;	
 	}
+	
+	hwal_debug(__FILE__, __LINE__, "Open file on descriptor %d", seq->intern.file.filedescriptor);
 
 	/* Read the beginning of the file */
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
