@@ -88,7 +88,7 @@ extern void hwal_memset(void *buffer, int item, int length)
 	}
 }
 
-extern void hwal_memcpy(const void *s1, const void* s2, int length)
+extern void hwal_memcpy(void *s1, void* s2, int length)
 {
 	int i;
 	uint8_t* buffs1 = (uint8_t*) s1;
@@ -332,3 +332,14 @@ extern void hwal_init(BaseSequentialStream *chp)
 	gChp = chp;
 	chprintf(gChp, "Hardware Abstraction Layer INITIALIZED!\r\n");
 }
+
+extern void* hwal_malloc(int size)
+{
+	return mem_malloc(size);
+}
+
+extern void hwal_free(void* memory)
+{
+	mem_free(memory);
+}
+

@@ -66,7 +66,7 @@ extern "C" {
 	 * @param[in]	s2	memory area with the information to read
 	 * @param[in]	length	amount of bytes to be copied
 	 */
-	extern void hwal_memcpy(const void *s1, const void* s2, int length);
+	extern void hwal_memcpy(void *s1, void* s2, int length);
 	
 	/**
 	 * Calculate the length of the given string
@@ -83,6 +83,18 @@ extern "C" {
 	 */
 	extern void hwal_debug(char* codefile, int linenumber, char* text, ...);
 	
+	/**
+	 * Fetch some new memory
+	 * @param[in]	size	in byte of the new memory to allocate
+	 */
+	extern void* hwal_malloc(int size);
+
+	/**
+	 * Give the memory of the given pointer back into the memory pool.	
+	 * @param[in]	memory the memory, that should be released
+	 */
+	extern void hwal_free(void* memory);
+
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
 #endif

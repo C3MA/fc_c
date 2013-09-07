@@ -150,9 +150,11 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 {
 	int offset = 0;
 	int id, type, frame_length;
+	fcseq_ret_t ret;
 
 	if (seqio->type == FCSEQ_FILEDESCRIPTOR) /* reading a frame from a file */
 	{
+		hwal_debug(__FILE__, __LINE__, "Read from a file");
 		/* Read the beginning of the file */
 		uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 		int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seqio->intern.file.filedescriptor);
@@ -166,31 +168,40 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 
 		/****** Read frame header *******/
 		offset = parse(mem, offset, &id, &type);
+		hwal_debug(__FILE__, __LINE__, "Header at %d with id=%d and type=%d", offset, id, type);
+
 		if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
 		{
 			offset = parse_number(mem, offset, &frame_length);
+			hwal_debug(__FILE__, __LINE__, "%d is the size of the actual frame", frame_length );
 		}
 		else
 		{
+			hwal_debug(__FILE__, __LINE__, "Header at %d with id=%d and type=%d was NOT %d and type %d", BINARYSEQUENCE_FRAME, PROTOTYPE_LENGTHD);
 			/* no header -> end of file */
 			return FCSEQ_RET_EOF;
 		}
 		
-		uint8_t memFrame[frame_length];
+		uint8_t* memFrame = (uint8_t*) hwal_malloc(frame_length);
 		/* The already memory may not contain the complete meta information */
 		int restOfFirst = (FCSEQ_TMPBUFFER_HEAD_SIZE - offset);
-	
+		hwal_debug(__FILE__, __LINE__, "%x -> %x length=%d", memFrame, mem + offset, restOfFirst);
 		/* copy the already read information into a buffer */
 		hwal_memcpy(memFrame, mem + offset, restOfFirst);
+
 		/* the further necessary bytes are read from the file now */
-		int readBytes = hwal_fread(memFrame+restOfFirst, frame_length - restOfFirst, 
+		int readBytes = hwal_fread((uint8_t *) (memFrame + restOfFirst), frame_length - restOfFirst, 
 					seqio->intern.file.filedescriptor);
 		if ( readBytes != (frame_length - restOfFirst) )
 		{	/* big problem! there were not enough bytes in the file */
+			hwal_debug(__FILE__, __LINE__, "Could not find %d bytes for the next frame", frame_length - restOfFirst);
 			return FCSEQ_RET_IOERR;
 		}	
+		hwal_debug(__FILE__, __LINE__, "Now start the parsing from the memory");
 
-		return extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
+		ret = extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
+		hwal_free(memFrame);
+		return ret;
 	}
 	else	/* when working directly in the memory of the complete structure */
 	{
