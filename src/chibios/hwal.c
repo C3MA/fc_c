@@ -20,7 +20,6 @@
 #include "customHwal.h"
 
 #include "ff.h"
-#include "lwip/mem.h"
 
 #define MAXFILEDESCRIPTORS	10
 
@@ -336,11 +335,11 @@ extern void hwal_init(BaseSequentialStream *chp)
 
 extern void* hwal_malloc(int size)
 {
-	return mem_malloc(size);
+	return chHeapAlloc(NULL, size);
 }
 
 extern void hwal_free(void* memory)
 {
-	mem_free(memory);
+	chHeapFree(memory);
 }
 
