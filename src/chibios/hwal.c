@@ -20,6 +20,7 @@
 #include "customHwal.h"
 
 #include "ff.h"
+#include "lwip/mem.h"
 
 #define MAXFILEDESCRIPTORS	10
 

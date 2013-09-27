@@ -27,7 +27,8 @@ extern "C" {
 		FCSEQ_RET_EOF, /**< file end reached */
 		FCSEQ_RET_PARAMERR, /**< invalid parameter were used (NULL pointer) */
 		FCSEQ_RET_NOTIMPL, /**< not implementend atm */
-		FCSEQ_RET_INVALID_DATA /**< Found invalid data */
+		FCSEQ_RET_INVALID_DATA, /**< Found invalid data */
+		FCSEQ_RET_OUTOFMEMORY /**< Give US MORE memory! */
 	};
 	typedef enum FCSEQ_RET fcseq_ret_t;
 	
