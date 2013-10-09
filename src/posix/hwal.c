@@ -20,7 +20,7 @@
 FILE*	fd_mappingtable[MAXFILEDESCRIPTORS];
 int	fdNextFreecount=1; /* do not use the number zero, as zero marks errors while opening */
 
-int hwal_fopen(char *filename, char* type)
+extern int hwal_fopen(char *filename, char* type)
 {
 	int usedMapIndex = fdNextFreecount;
 	if (usedMapIndex > MAXFILEDESCRIPTORS)
@@ -43,15 +43,24 @@ int hwal_fopen(char *filename, char* type)
 	return usedMapIndex;
 }
 	
-int hwal_fread(void* buffer, int length, int filedescriptor)
+extern int hwal_fread(void* buffer, int length, int filedescriptor)
 {
 	return fread(buffer, 1, length, fd_mappingtable[filedescriptor -1]);
 }
 	
 	
-void hwal_fclose(int filedescriptor)
+extern void hwal_fclose(int filedescriptor)
 {
 	fclose(fd_mappingtable[filedescriptor -1]);
 	/* FIXME free the entries in the mapping table */
 }
 
+extern void hwal_memset(void *buffer, int item, int length)
+{
+	memset(buffer, item, length);
+}
+
+extern void hwal_memcpy(const void *s1, const void* s2, int length)
+{
+	memcpy(s1, s2, length);
+}
