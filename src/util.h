@@ -15,11 +15,13 @@
 
 #include <stdint.h>
 
+#ifndef NULL
 #define NULL 0
+#endif
 
-int fc_util_itoa_rightalign(char* buffer, uint32_t width, int32_t number);
+int fc_util_itoa_rightalign(char* pBuffer, uint32_t width, int32_t number);
 
-int fc_util_atoi_rightalign(char* buffer, uint32_t width, int32_t* number);
+int fc_util_atoi_rightalign(char* pBuffer, uint32_t width, int32_t* pNumber);
 
 /*@}*/
 

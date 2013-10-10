@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include "fc.h"
 #include "test.h"
+#include "util.h"
 
 int network(int argc, char *argv[])
 {
@@ -89,6 +90,21 @@ int network(int argc, char *argv[])
     return 0;
 }
 
+void test_ascii_convertion()
+{
+	char buffer[5];
+	memset( &buffer, 0, sizeof(buffer));
+	fc_util_itoa_rightalign(buffer, 4, 3);
+	printf("%d is\t'%s'\n", 3, buffer);
+	fc_util_itoa_rightalign(buffer, 4, 12);
+	printf("%d is\t'%s'\n", 12, buffer);
+	fc_util_itoa_rightalign(buffer, 4, 456);
+	printf("%d is\t'%s'\n", 456, buffer);
+	fc_util_itoa_rightalign(buffer, 4, 7890);
+	printf("%d is\t'%s'\n", 7890, buffer);
+	fc_util_itoa_rightalign(buffer, 4, 66666);
+	printf("%d is\t'%s'\n", 66666, buffer);
+}
 
 int main(int argc, char *argv[])
 {
@@ -108,7 +124,10 @@ int main(int argc, char *argv[])
     //self_test_inforequest();
     //self_test_infoanswer();
     //ReadFile(datei);
-    return network(argc,argv);
     
+	//return network(argc,argv);
+    
+	test_ascii_convertion();
+	
     return 0;
 }
