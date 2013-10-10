@@ -93,6 +93,7 @@ int network(int argc, char *argv[])
 void test_ascii_convertion()
 {
 	char buffer[5];
+	int32_t number = -1; 
 	memset( &buffer, 0, sizeof(buffer));
 	fc_util_itoa_rightalign(buffer, 4, 3);
 	printf("%d is\t'%s'\n", 3, buffer);
@@ -104,6 +105,16 @@ void test_ascii_convertion()
 	printf("%d is\t'%s'\n", 7890, buffer);
 	fc_util_itoa_rightalign(buffer, 4, 66666);
 	printf("%d is\t'%s'\n", 66666, buffer);
+	
+	/** ---- convert the other way round ---- **/
+	/* initialize the buffer */
+	memset(&buffer, ' ', sizeof(buffer));
+	buffer[4] = 0;
+	buffer[3] = '4';
+	
+	/* Test the function */
+	fc_util_atoi_rightalign(buffer, 4, &number);
+	printf("%d was read from\t'%s'\n", number, buffer);
 }
 
 int main(int argc, char *argv[])
