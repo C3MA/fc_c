@@ -2,15 +2,7 @@
 #include "proto.h"
 #include "fc.h"
 #include "hwal.h"
-
-#ifndef _CHIBIOS
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#else
-/* when using chibios */
-#define NULL 0
-#endif
+#include "util.h"
 
 /**
  * @param[in] pInput buffer with the protobuf content
@@ -20,12 +12,9 @@
 void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
 {
     char header[HEADER_LENGTH+2];
-#ifndef _CHIBIOS
-#error "This code must also be ported to chibios"
-    sprintf(header, "%10d", lengthInput);
+	fc_util_itoa_rightalign(header, HEADER_LENGTH, lengthInput);
     hwal_memcpy(pOutput, header, HEADER_LENGTH);
     hwal_memcpy(pOutput+HEADER_LENGTH, pInput, lengthInput);
-#endif
 }
 
 /**
@@ -38,9 +27,7 @@ void add_header(uint8_t* pInput, uint8_t* pOutput, int lengthInput)
 int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
 {
     int id, type;
-#ifndef _CHIBIOS
-#error "This code must also be ported to chibios"
-    if (sscanf((char*)buffer, "%10d",length)!= 1) {
+	if (fc_util_atoi_rightalign((char*)buffer, HEADER_LENGTH, length) <= 0) {
         return -1;
     }
     offset += HEADER_LENGTH;
@@ -49,7 +36,7 @@ int get_header(uint8_t *buffer, int offset, int *sniptyp, int *length)
         return -1;
     
     offset = parse_number(buffer, offset, sniptyp);
-#endif
+	
     return offset;
 }
 
@@ -345,14 +332,11 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     if (id == BINARYSEQUENCEMETADATA_GENERATORNAME && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
-#ifndef _CHIBIOS
-#error "To be ported"
 		if (generator_name != NULL) {
-			*generator_name = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+			*generator_name = (char*) hwal_malloc((long) length+1);   // +1 for 0x00 (string end)
 			hwal_memcpy(*generator_name, buffer+offset, (long) length);
 			(*generator_name)[length] = 0x00; // string ende
 		}
-#endif
         offset += length;
     }
     else
@@ -365,15 +349,12 @@ int parse_metadata(uint8_t *buffer, int offset, int *frames_per_second, int *wid
     if (id == BINARYSEQUENCEMETADATA_GENERATORVERSION && type == PROTOTYPE_LENGTHD  && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
-#ifndef _CHIBIOS
-#error "To be ported"
 		if (generator_version != NULL)
 		{
-			*generator_version = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+			*generator_version = (char*) hwal_malloc((long) length+1);   // +1 for 0x00 (string end)
 			hwal_memcpy(*generator_version, buffer+offset, (long) length);
 			(*generator_version)[length] = 0x00; // string ende
 		}
-#endif
         offset += length;
     }
     else
@@ -408,12 +389,9 @@ int recv_request(uint8_t *buffer, int offset, char **color, int *seqId, int *met
     if (id == REQUESTSNIP_COLOR && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
-#ifndef _CHIBIOS
-#error "To be ported"
-        *color = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        *color = (char*) hwal_malloc((long) length+1);   // +1 for 0x00 (string end)
         hwal_memcpy(*color, buffer+offset, (long) length);
         (*color)[length] = 0x00; // string ende
-#endif
         offset += length;
     }
     else
@@ -811,12 +789,9 @@ int recv_error(uint8_t *buffer, int offset, int *errorcode , char **descr)
     if (id == ERRORSNIP_DESCRIPTION && type == PROTOTYPE_LENGTHD && offset > -1)
     {
         offset = parse_number(buffer, offset, &length);
-#ifndef _CHIBIOS
-#error "To be ported"
-        *descr = (char*) malloc((long) length+1);   // +1 for 0x00 (string end)
+        *descr = (char*) hwal_malloc((long) length+1);   // +1 for 0x00 (string end)
         hwal_memcpy(*descr, buffer+offset, (long) length);
         (*descr)[length] = 0x00; // string end
-#endif
         offset += length;
     }
     else

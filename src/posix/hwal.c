@@ -12,6 +12,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../hwal.h"
 
 #define MAXFILEDESCRIPTORS	10
@@ -60,7 +62,23 @@ extern void hwal_memset(void *buffer, int item, int length)
 	memset(buffer, item, length);
 }
 
-extern void hwal_memcpy(const void *s1, const void* s2, int length)
+extern void hwal_memcpy(void *s1, void* s2, int length)
 {
 	memcpy(s1, s2, length);
+
+}
+
+extern int hwal_strlen(char* text)
+{
+	return strlen(text);
+}
+
+extern void* hwal_malloc(int size)
+{
+	return malloc(size);
+}
+
+extern void hwal_free(void* memory)
+{
+	return free(memory);
 }

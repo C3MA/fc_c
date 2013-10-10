@@ -4,7 +4,7 @@ RM = rm -f
 MKDIR= mkdir -p
 COPY=cp
 
-LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c src/fcseq.c src/posix/hwal.c
+LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c src/fcseq.c src/posix/hwal.c src/util.c
 LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build

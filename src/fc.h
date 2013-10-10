@@ -33,14 +33,14 @@
 #define RGBVALUE_X 4
 #define RGBVALUE_Y 5
 
-// BinaryFrame
+/* @sa BinaryFrame */
 #define BINARYFRAME_PIXEL 1
 
-// BinarySequence
+/* @sa BinarySequence */
 #define BINARYSEQUENCE_METADATA 1
 #define BINARYSEQUENCE_FRAME 2
 
-// Network Snip
+/* @sa Network Snip */
 #define SNIP_TYPE 1
 
 #define SNIPTYPE_PING 1
