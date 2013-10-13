@@ -110,9 +110,40 @@ void test_ascii_convertion()
 	/* initialize the buffer */
 	memset(&buffer, ' ', sizeof(buffer));
 	buffer[4] = 0;
-	buffer[3] = '4';
-	
 	/* Test the function */
+	buffer[3] = '4';
+	fc_util_atoi_rightalign(buffer, 4, &number);
+	printf("%d was read from\t'%s'\n", number, buffer);
+	
+	buffer[2] = '2';
+	buffer[3] = '3';
+	fc_util_atoi_rightalign(buffer, 4, &number);
+	printf("%d was read from\t'%s'\n", number, buffer);
+	
+	buffer[2] = '4';
+	buffer[2] = '5';
+	buffer[3] = '6';
+	fc_util_atoi_rightalign(buffer, 4, &number);
+	printf("%d was read from\t'%s'\n", number, buffer);
+	
+	buffer[1] = '5';
+	buffer[2] = '9';
+	buffer[2] = '8';
+	buffer[3] = '7';
+	fc_util_atoi_rightalign(buffer, 4, &number);
+	printf("%d was read from\t'%s'\n", number, buffer);
+	
+	buffer[1] = 'a';
+	buffer[2] = '9';
+	buffer[2] = '8';
+	buffer[3] = '7';
+	fc_util_atoi_rightalign(buffer, 4, &number);
+	printf("%d was read from\t'%s'\n", number, buffer);
+	
+	buffer[1] = '2';
+	buffer[2] = '3';
+	buffer[2] = 'x';
+	buffer[3] = '7';
 	fc_util_atoi_rightalign(buffer, 4, &number);
 	printf("%d was read from\t'%s'\n", number, buffer);
 }

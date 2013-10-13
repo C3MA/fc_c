@@ -4,6 +4,7 @@
 #define DIGIT_BASE 10
 #define ASCII_PREFIX ' '
 #define ASCII_0		 '0'
+#define ASCII_9		 '9'
 
 static int fc_util_pow(int base, int exponent)
 {
@@ -20,7 +21,7 @@ static int fc_util_pow(int base, int exponent)
 }
 
 /**
- * @param[in|out] pBuffer already allocated with the minimum size of "width
+ * @param[out] pBuffer already allocated with the minimum size of "width"
  * @param[in] width	the number should be aligned
  * @param[in] number	to write into the buffer
  * @return width of the digits, or "zero" on error
@@ -67,5 +68,38 @@ int fc_util_itoa_rightalign(char* pBuffer, uint32_t width, int32_t number)
  */
 int fc_util_atoi_rightalign(char* pBuffer, uint32_t width, int32_t* pNumber)
 {
-	return 0;
+	int32_t number = 0;
+	int digitCnt = 0;
+	int i;
+	
+	for (i = 0; i < width && pBuffer[i] != 0; i++)
+	{
+		/* Skipp all prefixes */
+		if (pBuffer[i] == ASCII_PREFIX)
+		{
+			continue;
+		}
+		else if (pBuffer[i] >= ASCII_0 
+				 && pBuffer[i] <= ASCII_9)
+		{
+			/* shift the old value left */
+			number = number * 10;
+			/* Read actual digit */
+			number += pBuffer[i] - ASCII_0;
+			digitCnt++;
+			
+		}
+		else /* Found a character or something else -> stop searching (leave loop) */
+		{
+			break; 
+		}
+	}
+	
+	/* only update output variable on a found number */ 
+	if (digitCnt > 0)
+	{
+		(*pNumber) = number;
+	}
+	
+	return digitCnt;
 }
