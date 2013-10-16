@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 #include <stdlib.h>
 #include <string.h>
 #include "../hwal.h"
@@ -81,4 +82,14 @@ extern void* hwal_malloc(int size)
 extern void hwal_free(void* memory)
 {
 	return free(memory);
+}
+
+extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
+{
+	va_list ap;
+	printf("%s:%d ", codefile, linenumber);
+	va_start(ap, text);
+	vprintf(text, ap);
+	va_end(ap);	
+	printf("\n");
 }
