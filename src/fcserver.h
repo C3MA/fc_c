@@ -1,8 +1,8 @@
 /* @file fcserver.h
  * @brief Server implementation
- * @author Pcopfer
+ * @author Ollo
  *
- * @date 16.10.2013 – Doxygen documentation added
+ * @date 16.10.2013 – New Server API with some ideas
  * @defgroup Server
  * 
  * Copyright 2013 C3MA. All rights reserved.
@@ -17,8 +17,10 @@
 
 #include <stdint.h>
 
-/* @enum FCSERVER_RET
+/** @enum FCSERVER_RET
+ * @typedef fcserver_ret_t
  * @brief Status code, that is used in this module
+ * A summary of all possible return states in this module
  */
 enum FCSERVER_RET { FCSERVER_RET_OK=1, /**< Function did not detect any problems  */
 	FCSERVER_RET_IOERR, /**< Input/Output error */
@@ -30,7 +32,8 @@ enum FCSERVER_RET { FCSERVER_RET_OK=1, /**< Function did not detect any problems
 };
 typedef enum FCSERVER_RET fcserver_ret_t;
 
-/** @struct FCSERVER
+/** @var FCSERVER
+ *  @var fcserver_t
  *  @brief This structure contains meta information of the actual server instance
  *  @var FCSERVER::clientcount 
  *  Member 'clientcount' has the status information about the actual connected clients
@@ -41,11 +44,11 @@ typedef enum FCSERVER_RET fcserver_ret_t;
 struct FCSERVER {
 	int clientcount;
 };
+typedef struct FCSERVER fcserver_t;	/**< has the status information about the actual connected clients */
 
-typedef struct FCSERVER fcserver_t;
 
-
-/* Action, that should be performed on a new received image.
+/** @fn (*ImageCallback_t)
+ * Action, that should be performed on a new received image.
  *
  * @param[in] rgb24Buffer	Memory buffer containing the actual image.
  * @param[in] width			in pixel of the actual frame
@@ -55,7 +58,8 @@ typedef struct FCSERVER fcserver_t;
  */
 typedef void (*ImageCallback_t)(uint8_t* rgb24Buffer, int width, int height);
 
-/* Action, that should be performed, when a new client is connected
+/** @fn (*ClientCallback_t)
+ * Action, that should be performed, when a new client is connected
  *
  * FIXME find out some usefull parameters!
  *
@@ -64,7 +68,8 @@ typedef void (*ImageCallback_t)(uint8_t* rgb24Buffer, int width, int height);
 typedef void (*ClientCallback_t)(void);
 
 
-/* Initialize the library
+/** @fn fcserver_init
+ * @brief Initialize the library
  * @param[in,out] server structure, representing the actual status of the server (must be already allocated)
  * @param[in] onNewImage provide an callback of type "ImageCallback_t" to define the action on a received frame
  * @param[in] onNewClient Action, when a new client has connected (can be NULL)
