@@ -22,7 +22,9 @@
  * @brief Status code, that is used in this module
  * A summary of all possible return states in this module
  */
-enum FCSERVER_RET { FCSERVER_RET_OK=1, /**< Function did not detect any problems  */
+enum FCSERVER_RET 
+{
+	FCSERVER_RET_OK=1, /**< Function did not detect any problems  */
 	FCSERVER_RET_IOERR, /**< Input/Output error */
 	FCSERVER_RET_EOF, /**< file end reached */
 	FCSERVER_RET_PARAMERR, /**< invalid parameter were used (NULL pointer) */
@@ -56,7 +58,7 @@ typedef struct FCSERVER fcserver_t;	/**< has the status information about the ac
  *
  * @return NOTHING
  */
-typedef void (*ImageCallback_t)(uint8_t* rgb24Buffer, int width, int height);
+typedef void (*ImageCallback_t) (uint8_t* rgb24Buffer, int width, int height);
 
 /** @fn (*ClientCallback_t)
  * Action, that should be performed, when a new client is connected
@@ -65,21 +67,21 @@ typedef void (*ImageCallback_t)(uint8_t* rgb24Buffer, int width, int height);
  *
  * @return NOTHING
  */
-typedef void (*ClientCallback_t)(void);
+typedef void (*ClientCallback_t) (void);
 
 
-/** @fn fcserver_init
+/** @fn fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, ClientCallback_t onNewClient)
  * @brief Initialize the library
- * @param[in,out] server structure, representing the actual status of the server (must be already allocated)
- * @param[in] onNewImage provide an callback of type "ImageCallback_t" to define the action on a received frame
- * @param[in] onNewClient Action, when a new client has connected (can be NULL)
+ * @param[in,out]	server	structure, representing the actual status of the server (must be already allocated)
+ * @param[in]	onNewImage	provide an callback of type "ImageCallback_t" to define the action on a received frame
+ * @param[in]	onNewClient	Action, when a new client has connected (can be NULL)
  *
  * @return status 
  * - FCSERVER_RET_OK ( that what we expect)
  * - FCSERVER_RET_OUTOFMEMORY (you have it! give more memory)
  * - FCSERVER_RET_PARAMERR You forgot an important parameter
  */
-fcserver_ret_t fcserver_init(fcserver_t* server, ImageCallback_t onNewImage,
+fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage,
 							 ClientCallback_t onNewClient);
 
 fcserver_ret_t fcserver_process(void);

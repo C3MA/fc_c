@@ -21,18 +21,18 @@
  ******************************************************************************/
 
 
-fcserver_ret_t fcserver_init(fcserver_t* server, ImageCallback_t onNewImage,
+fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage,
 							 ClientCallback_t onNewClient)
 {
 	return FCSERVER_RET_NOTIMPL;
 }
 
-fcserver_ret_t fcserver_process(void)
+fcserver_ret_t fcserver_process (void)
 {
 	return FCSERVER_RET_NOTIMPL;
 }
 
-fcserver_ret_t fcserver_close(void)
+fcserver_ret_t fcserver_close (void)
 {
 	return FCSERVER_RET_NOTIMPL;
 }

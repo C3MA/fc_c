@@ -85,7 +85,8 @@ extern "C" {
 
 #ifndef FCSEQBUFFER_ONLY
 	
-	/* @brief Create a new sequence.
+	/** @fn	fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
+	 * @brief Create a new sequence.
 	 * @param filename the name or path of the file to load
 	 * @param seq the header with some meta information
 	 * @return fcseq_ret_t status of the opening procedure
@@ -97,7 +98,8 @@ extern "C" {
 	fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq);
 	
 	
-	/* @brief Close the file
+	/** @fn void fcseq_close(fcsequence_t* seq)
+	 * @brief Close the file
 	 * @param[in] seq the sequence file to be close
 	 * @return nothing, even on problems and errors
 	 */
@@ -105,7 +107,8 @@ extern "C" {
 	
 #endif
 	
-	/* @brief Initialize a sequence and parse meta information from a new sequence.
+	/** @fn fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length)
+	 * @brief Initialize a sequence and parse meta information from a new sequence.
 	 * @param[out] seqio to fill
 	 * @param[in] memory with the sequence
 	 * @param[in] length of the available memory containing the sequence
@@ -114,8 +117,8 @@ extern "C" {
 	 */
 	fcseq_ret_t fcseq_loadMemory(fcsequence_t* seqio, uint8_t *memory, uint32_t length);
 	
-	/* Extract one frame from the sequence.
-	 *
+	/** @fn fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
+	 * @brief Extract one frame from the sequence.
 	 * @param[in] seqio the structure of the sequence that should be parsed
 	 * @param[out] rgb24 memory buffer, the files should be stored in.
 	 * The USER has to provide enough space for this memory buffer!
