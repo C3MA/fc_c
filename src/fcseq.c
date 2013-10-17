@@ -28,10 +28,7 @@ fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset,
 #ifndef FCSEQBUFFER_ONLY
 
 fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
-{
-	/* check if the file exists */
-	int pFile;
-	
+{	
 	if (seq == NULL)
 	{
 		return FCSEQ_RET_PARAMERR;
@@ -49,12 +46,12 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 		return FCSEQ_RET_IOERR;	
 	}
 	
-	hwal_debug(__FILE__, __LINE__, "Open file on descriptor %d", seq->intern.file.filedescriptor);
+	DEBUG_LINE("Open file on descriptor %d", seq->intern.file.filedescriptor);
 
 	/* Read the beginning of the file */
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 	int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seq->intern.file.filedescriptor);
-	hwal_debug(__FILE__, __LINE__, "FD%d returned %d bytes (asking for %d)", seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE);
+	DEBUG_LINE("FD%d returned %d bytes (asking for %d)", seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE);
 
 	/* check that all requested data was read */
 	if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
@@ -160,7 +157,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 		int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seqio->intern.file.filedescriptor);
 		
-		hwal_debug(__FILE__, __LINE__, "Read from a file");
+		DEBUG_LINE("Read from a file");
 		
 		/* check that all requested data was read */
 		if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
@@ -171,16 +168,16 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 
 		/****** Read frame header *******/
 		offset = parse(mem, offset, &id, &type);
-		hwal_debug(__FILE__, __LINE__, "Header at %d with id=%d and type=%d", offset, id, type);
+		DEBUG_LINE("Header at %d with id=%d and type=%d", offset, id, type);
 
 		if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
 		{
 			offset = parse_number(mem, offset, &frame_length);
-			hwal_debug(__FILE__, __LINE__, "%d is the size of the actual frame", frame_length );
+			DEBUG_LINE("%d is the size of the actual frame", frame_length );
 		}
 		else
 		{
-			hwal_debug(__FILE__, __LINE__, "Header at %d with id=%d and type=%d was NOT %d and type %d", BINARYSEQUENCE_FRAME, PROTOTYPE_LENGTHD);
+			DEBUG_LINE("Header at %d with id=%d and type=%d was NOT %d and type %d", BINARYSEQUENCE_FRAME, PROTOTYPE_LENGTHD);
 			/* no header -> end of file */
 			return FCSEQ_RET_EOF;
 		}
@@ -188,13 +185,13 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		memFrame = (uint8_t*) hwal_malloc(frame_length);
 		if (memFrame == 0)
 		{
-			hwal_debug(__FILE__, __LINE__, "Requested for %d bytes and got %x", frame_length, memFrame);
+			DEBUG_LINE("Requested for %d bytes and got %x", frame_length, memFrame);
 			return FCSEQ_RET_OUTOFMEMORY;
 		}
 		
 		/* The already memory may not contain the complete meta information */
 		int restOfFirst = (FCSEQ_TMPBUFFER_HEAD_SIZE - offset);
-		hwal_debug(__FILE__, __LINE__, "%x -> %x length=%d", memFrame, mem + offset, restOfFirst);
+		DEBUG_LINE("%x -> %x length=%d", memFrame, mem + offset, restOfFirst);
 		/* copy the already read information into a buffer */
 		hwal_memcpy(memFrame, mem + offset, restOfFirst);
 
@@ -203,10 +200,10 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 					seqio->intern.file.filedescriptor);
 		if ( readBytes != (frame_length - restOfFirst) )
 		{	/* big problem! there were not enough bytes in the file */
-			hwal_debug(__FILE__, __LINE__, "Could not find %d bytes for the next frame", frame_length - restOfFirst);
+			DEBUG_LINE("Could not find %d bytes for the next frame", frame_length - restOfFirst);
 			return FCSEQ_RET_IOERR;
 		}	
-		hwal_debug(__FILE__, __LINE__, "Now start the parsing from the memory");
+		DEBUG_LINE("Now start the parsing from the memory");
 
 		ret = extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
 		hwal_free(memFrame);
@@ -243,8 +240,7 @@ fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset,
 
 	if (memory == NULL || rgb24 == NULL || length == 0)
 	{
-		hwal_debug(__FILE__, __LINE__, "Problem on the parameters: memory: %x, rgb24: %x, length: %d", 
-				   memory, rgb24, length);
+		DEBUG_LINE("Problem on the parameters: memory: %x, rgb24: %x, length: %d", memory, rgb24, length);
 		return FCSEQ_RET_PARAMERR;
 	}
 

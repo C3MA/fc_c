@@ -16,12 +16,18 @@
 #ifndef HWAL_H
 #define HWAL_H
 
+#ifdef DEBUG
+#define DEBUG_LINE( ... )	hwal_debug(__FILE__, __LINE__, __VA_ARGS__);
+#else
+#define DEBUG_LINE( ... )	;
+#endif
+
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
 #endif
-	
+		
 	/**
-         * Open an file.
+     * @brief Open an file.
 	 * An interface to abstract to the plattform dependent code to open an file
 	 *
 	 * @param[in]	filename the name with or without the complete path
