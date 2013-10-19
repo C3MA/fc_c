@@ -16,6 +16,15 @@
 /*@{*/
 
 #include <stdint.h>
+#include "hwal.h"
+
+#define	FCSERVER_MAXCLIENT	5
+
+#define FCSERVER_TEMPMEM_MAX	2048	/**< Maximum size of the temporary memory */
+
+#define FCSERVER_DEFAULT_FPS		60	/**< Default value for the frames per seconds */
+#define FCSERVER_DEFAULT_NAME		"fc-c Server"
+#define FCSERVER_DEFAULT_VERSION	"0.1.1.0"
 
 /** @enum FCSERVER_RET
  * @typedef fcserver_ret_t
@@ -25,6 +34,7 @@
 enum FCSERVER_RET 
 {
 	FCSERVER_RET_OK=1, /**< Function did not detect any problems  */
+	FCSERVER_RET_NODATA, /**< No new data was found on the socket  */
 	FCSERVER_RET_IOERR, /**< Input/Output error */
 	FCSERVER_RET_EOF, /**< file end reached */
 	FCSERVER_RET_PARAMERR, /**< invalid parameter were used (NULL pointer) */
@@ -33,21 +43,6 @@ enum FCSERVER_RET
 	FCSERVER_RET_OUTOFMEMORY /**< Give US MORE memory! */
 };
 typedef enum FCSERVER_RET fcserver_ret_t;
-
-/** @var FCSERVER
- *  @var fcserver_t
- *  @brief This structure contains meta information of the actual server instance
- *  @var FCSERVER::clientcount 
- *  Member 'clientcount' has the status information about the actual connected clients
- *  
- *  @var FCSERVER::type 
- *  Member 'type' defines the source
- */
-struct FCSERVER {
-	int clientcount;
-};
-typedef struct FCSERVER fcserver_t;	/**< has the status information about the actual connected clients */
-
 
 /** @fn (*ImageCallback_t)
  * Action, that should be performed on a new received image.
@@ -60,21 +55,33 @@ typedef struct FCSERVER fcserver_t;	/**< has the status information about the ac
  */
 typedef void (*ImageCallback_t) (uint8_t* rgb24Buffer, int width, int height);
 
-/** @fn (*ClientCallback_t)
- * Action, that should be performed, when a new client is connected
- *
- * FIXME find out some usefull parameters!
- *
- * @return NOTHING
+/** @var FCSERVER
+ *  @var fcserver_t
+ *  @brief This structure contains meta information of the actual server instance
+ *  @var FCSERVER::clientcount 
+ *  Member 'clientcount' has the status information about the actual connected clients
+ *  
+ *  @var FCSERVER::type 
+ *  Member 'type' defines the source
  */
-typedef void (*ClientCallback_t) (void);
-
+struct FCSERVER {
+	int						width;/**< Horizontal count of boxes the phyical installation */
+	int						height;/**< Vertical count of boxes the phyical installation */
+	uint8_t*				tmpMem; /**< Pointer to already allocated memory to work with */
+	uint32_t				tmpMemSize;	/**< Length of th allocated memory, stored in tmpMem */
+	uint8_t					clientcount; /**< information about the actual connected clients */
+	int						serversocket; /**< The socket for the server */
+	int	clientsocket[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */
+	ImageCallback_t			onNewImage; /**< Reference to logic, when a new image should be displayed */
+};
+typedef struct FCSERVER fcserver_t;	/**< has the status information about the actual connected clients */
 
 /** @fn fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, ClientCallback_t onNewClient)
  * @brief Initialize the library
  * @param[in,out]	server	structure, representing the actual status of the server (must be already allocated)
- * @param[in]	onNewImage	provide an callback of type "ImageCallback_t" to define the action on a received frame
- * @param[in]	onNewClient	Action, when a new client has connected (can be NULL)
+ * @param[in]		onNewImage	provide an callback of type "ImageCallback_t" to define the action on a received frame
+ * @param[in]		width		of the phyical installation
+ * @param[in]		height		of the phyical installation
  *
  * @return status 
  * - FCSERVER_RET_OK ( that what we expect)
@@ -82,11 +89,17 @@ typedef void (*ClientCallback_t) (void);
  * - FCSERVER_RET_PARAMERR You forgot an important parameter
  */
 fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage,
-							 ClientCallback_t onNewClient);
+							  int width, int height);
 
-fcserver_ret_t fcserver_process(void);
+/** @fn fcserver_ret_t fcserver_process (fcserver_t* server)
+ * @brief Initialize the library
+ * @param[in]	server	structure, representing the actual status of the server
+ *
+ * @return status 
+ */
+fcserver_ret_t fcserver_process (fcserver_t* server);
 
-fcserver_ret_t fcserver_close(void);
+fcserver_ret_t fcserver_close(fcserver_t* server);
 
 /*@}*/
 

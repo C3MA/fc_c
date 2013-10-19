@@ -15,7 +15,12 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #include "../hwal.h"
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #define MAXFILEDESCRIPTORS	10
 
@@ -92,4 +97,72 @@ extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
 	vprintf(text, ap);
 	va_end(ap);	
 	printf("\n");
+}
+
+
+extern int hwal_socket_tcp_new(int port, int maximumClients)
+{
+	int sockfd = 0;
+	struct sockaddr_in srcAddress;
+	
+    if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        DEBUG_PLINE("Error : Could not create socket");
+        return -1;
+    }
+	
+	memset((char *)&srcAddress, 0, sizeof(srcAddress));
+    srcAddress.sin_family       = AF_INET;
+    srcAddress.sin_addr.s_addr  = htonl(0);
+    srcAddress.sin_port         = htons(port);
+	
+    if(-1 == bind(sockfd,(struct sockaddr *)&srcAddress, sizeof(srcAddress)))
+    {
+		DEBUG_PLINE("error bind failed");
+		exit(EXIT_FAILURE);
+    }
+	
+    if(-1 == listen(sockfd, maximumClients))
+    {
+		DEBUG_PLINE("error listen failed");
+		exit(EXIT_FAILURE);
+    }
+	return sockfd;
+}
+
+extern int hwal_socket_tcp_accet(int socketfd)
+{
+	struct sockaddr_in  clientAddr;
+	socklen_t           sockLen = sizeof(clientAddr);
+	int client;
+	
+	client = accept(socketfd, (struct sockaddr *) &clientAddr, &sockLen);
+	if (client > 0)
+	{
+		DEBUG_PLINE("New Client connected %s:%d [Socket %d]", 
+					inet_ntoa(clientAddr.sin_addr), 
+					clientAddr.sin_port,
+					client);
+	}
+	return client;
+}
+
+extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t size)
+{
+	/* some variables about the connected client */
+	struct sockaddr_in  srcAddr;
+	socklen_t           sockLen = sizeof(srcAddr);
+	
+	/* read something */
+	return recvfrom(clientSocket,
+				 (void *) workingMem,
+				 size,
+				 0,
+				 (struct sockaddr *) &srcAddr,
+				 &sockLen);
+}
+
+extern int hwal_socket_tcp_write(int clientSocket, uint8_t* data, uint32_t size)
+{
+	return write(clientSocket, data, size);
 }

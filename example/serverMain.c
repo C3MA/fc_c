@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include "fcserver.h"
 
 /******************************************************************************
@@ -18,10 +19,6 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 	
 }
 
-void onNewClient(void)
-{
-	
-}
 
 /******************************************************************************
  * LOCAL FUNCTIONS
@@ -36,7 +33,21 @@ int main(int argc, char *argv[])
 	fcserver_ret_t	ret;
 	fcserver_t		server;
 	
-	ret = fcserver_init(&server, &onNewImage, &onNewClient);
-	printf("Server initialization returned %d\n", ret);
+	ret = fcserver_init(&server, &onNewImage, 10, 12);
+	if (ret != FCSERVER_RET_OK)
+	{
+		printf("Server initialization failed with returncode %d\n", ret);
+		return 1;
+	}
+		
+	do {
+		ret = fcserver_process(&server);
+		
+		usleep(10000); /* wait 10ms */
+	} while ( ret == FCSERVER_RET_OK);
+	
+	/* clean everything */
+	fcserver_close(&server);
+	
     return 0;
 }

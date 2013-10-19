@@ -895,6 +895,7 @@ int recv_inforequest(uint8_t *buffer, int offset)
  */
 int send_infoanswer(uint8_t *buffer, int offset, uint8_t *meta, int length_meta)
 {
+	/* Add Snip type */
     offset = add_type(buffer, offset, SNIPTYPE_INFOANSWER);
     
     offset = serialize(buffer, offset, SNIP_INFOANSWERSNIP, PROTOTYPE_LENGTHD);

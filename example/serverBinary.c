@@ -32,8 +32,6 @@ int main(int argc, char *argv[])
 	
 	size_t size = 2048;
     char recvBuff[size];
-    uint8_t buffer[2048];
-    uint8_t output[2048];
     int offset;
     int type=-1;
     int length = 0;
@@ -54,20 +52,41 @@ int main(int argc, char *argv[])
     srcAddress.sin_family       = AF_INET;
     srcAddress.sin_addr.s_addr  = htonl(0);
     srcAddress.sin_port         = htons(NETWORK_PORT);
-    n = accept(sockfd, (struct sockaddr *) &srcAddress, &sockLen);
-	if (n < 0 )
+    if(-1 == bind(sockfd,(struct sockaddr *)&srcAddress, sizeof(srcAddress)))
+    {
+		perror("error bind failed");
+		close(sockfd);
+		exit(EXIT_FAILURE);
+    }
+	
+    if(-1 == listen(sockfd, 10 /* maximum paralell connections */))
+    {
+		perror("error listen failed");
+		close(sockfd);
+		exit(EXIT_FAILURE);
+    }
+	
+	int clientSocket = accept(sockfd, NULL, NULL);
+	
+	if(0 > clientSocket)
 	{
-		printf("Could not listen for network connections [%ld]\n", n);
-		return 2;
+        perror("error accept failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
 	}
 	
+	/* perform read write operations ... */
+	/* n = read(clientSocket, recvBuff, size);*/
+	printf("New client has connected");
+	
     do {
-		n = recvfrom(sockfd,
+		n = recvfrom(clientSocket,
                            (void *) recvBuff,
                            size,
                            0,
                            (struct sockaddr *) &srcAddr,
                            &sockLen);
+		printf("Loop %ld bytes / max of %d\n", n, (int) size);
 		/* next try if nothing was received */
 		if (n == -1)
 			continue;
@@ -84,4 +103,7 @@ int main(int argc, char *argv[])
         printf("typ: %d laenge: %d\n",type,length);
     } while (type == -1);
 	
+	/* Close all: client and server socket */
+	close(clientSocket);
+	close(sockfd);
 }

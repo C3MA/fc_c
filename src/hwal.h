@@ -1,31 +1,36 @@
-/*
- *  hwal.h
+/**
+ * @file hwal.h
+ * @brief Hardware abstraction layer
+ * @author Ollo
  *
- * Hardware abstraction layer
- * ==========================
+ * @date 20.05.2013 – Started with memory and filesystem abstraction
+ * @date 16.10.2013 - Started with network functionality
+ * @defgroup Abstraction
  *
  * Abstraction for the following functionality
  * - opening files
  * - read from file into an buffer
  *
- *  Created by ollo on 20.05.13.
  *  Copyright 2013 C3MA. All rights reserved.
- *
  */
 
 #ifndef HWAL_H
 #define HWAL_H
 
-#ifdef DEBUG
-#define DEBUG_LINE( ... )	hwal_debug(__FILE__, __LINE__, __VA_ARGS__);
+#ifdef PRINT_DEBUG
+#define DEBUG_PLINE( ... )	hwal_debug(__FILE__, __LINE__, __VA_ARGS__);
 #else
-#define DEBUG_LINE( ... )	;
+#define DEBUG_PLINE( ... )	;
 #endif
 
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 extern "C" {
 #endif
-		
+
+#ifndef NULL	
+#define NULL 				0 	/**< Pointer default value; needed but was in removed <string.h> */
+#endif	
+	
 	/**
      * @brief Open an file.
 	 * An interface to abstract to the plattform dependent code to open an file
@@ -100,6 +105,43 @@ extern "C" {
 	 * @param[in]	memory the memory, that should be released
 	 */
 	extern void hwal_free(void* memory);
+	
+	/**
+	 * Create a new TCP socket
+	 * @param[in] port	The portnumber the server should listen on
+	 * @param[in] maximumClients the maximum of paralell opened connections
+	 * @return a new Socket or negative numbers, on problems
+	 */
+	extern int hwal_socket_tcp_new(int port, int maximumClients);
+	
+	/** @fn extern int hwal_socket_tcp_accet(int socketfd)
+	 *
+	 * Accept a new client on a existing TCP socket
+	 * @param[in] socketfd	Already opened server socket
+	 * @return a socket of a new client 
+	 * or a negative number, if no new client was found.
+	 */
+	extern int hwal_socket_tcp_accet(int socketfd);
+	
+	/** @fn extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
+	 *
+	 * @brief Read from an open socket
+	 * @param[in]	clientSocket	Already opened client socket to read from
+	 * @param[in]	workingMem		The memory the result is stored in
+	 * @param[in]	workingMemorySize	The Length of the allocated memory
+	 * @return amount of read bytes, or a negative number on errors
+	 */
+	extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize);
+	
+	/** @fn extern int hwal_socket_tcp_write(int clientSocket, uint8_t* data, uint32_t size)
+	 *
+	 * @brief Write into an open socket
+	 * @param[in]	clientSocket	Already opened client socket to write to
+	 * @param[in]	data	The memory, containing the information to send
+	 * @param[in]	size	The amount of bytes to send.
+	 * @return amount of read bytes, or a negative number on errors
+	 */
+	extern int hwal_socket_tcp_write(int clientSocket, uint8_t* data, uint32_t size);
 
 #ifdef __cplusplus /* If this is a C++ compiler, end C linkage */
 }
