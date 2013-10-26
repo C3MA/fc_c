@@ -19,6 +19,10 @@
 #include <epan/packet.h>
 #include <epan/column-utils.h>
 #include <epan/packet.h>
+#include <epan/expert.h>
+
+#include "proto.h"
+#include "fc.h"
 
 #define FULLCIRCLE_PORT	24567
 
@@ -26,6 +30,7 @@ static int proto_fc = -1;
 
 /* all fields to display needs an handle */
 static int hf_dynfc_length = -1;
+static int hf_dynfc_sniptype = -1;
 
 /* Initialize the subtree pointers */
 static gint ett_dynfc = -1;
@@ -53,6 +58,7 @@ void proto_register_fc(void)
     {
 	// All the general fields for the header
         { &hf_dynfc_length,                 { "Length",                       "dynfc.length", FT_STRING, BASE_NONE, NULL, 0x0,     "", HFILL } },
+	{ &hf_dynfc_sniptype,                { "Sniptype",                     "dynfc.sniptype",    FT_UINT32, BASE_DEC, NULL, 0x0,     "", HFILL } },
 
     };
     /* Setup protocol subtree array */
@@ -85,7 +91,9 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 {
     proto_tree* fc_tree = NULL;
     proto_item *ti;
-
+    int offset, id, type;
+    int sniptyp = 0;
+    uint8_t* buffer = NULL;
     /* Set the detected protocol */
     if (check_col(pinfo->cinfo, COL_PROTOCOL))
     {
@@ -101,7 +109,45 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
   ti = proto_tree_add_item(tree, proto_fc, tvb, 0, -1, FALSE);
   fc_tree = proto_item_add_subtree(ti, ett_dynfc);
 
-  ti = proto_tree_add_item (fc_tree, hf_dynfc_length, tvb, 0, 10, FALSE); 
+  ti = proto_tree_add_item (fc_tree, hf_dynfc_length, tvb, 0, 10, FALSE);
+  
+  /* Extract the type of the snippet */
+  offset = 0;
+  buffer = tvb_memdup(tvb, 10, tvb_length_remaining(tvb, 10) );
+  offset = parse(buffer, offset, &id, &type);
+  if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
+  {
+	expert_add_info_format(pinfo, ti, PI_SEQUENCE, PI_ERROR, "Snipet type could not be extracted");
+        return;
+  } 
+  offset = parse_number(buffer, offset, &sniptyp);
+  
+  switch (type) {
+    case SNIPTYPE_PONG:
+	col_set_str(pinfo->cinfo, COL_INFO, "Pong");
+	//recv_pong((uint8_t*)recvBuff, offset, &counter);
+	break;
+    case SNIPTYPE_INFOANSWER:
+	col_set_str(pinfo->cinfo, COL_INFO, "Info Anwer");
+	break;
+    case SNIPTYPE_ACK:
+	col_set_str(pinfo->cinfo, COL_INFO, "Ack");
+	break;
+    case SNIPTYPE_START:
+	col_set_str(pinfo->cinfo, COL_INFO, "Start");
+	break;
+    case SNIPTYPE_TIMEOUT:
+	col_set_str(pinfo->cinfo, COL_INFO, "Timeout");
+	break;			
+    case SNIPTYPE_ERROR:
+	col_set_str(pinfo->cinfo, COL_INFO, "Error");
+	break;
+    default:
+        break;
+    }
+  
+
+  g_free(buffer);
 }
 
 /*@}*/

@@ -10,6 +10,10 @@
 INCS = -I$(WIRESHARK_SRC) `pkg-config --cflags glib-2.0`
 
 SRCS     = plugin.c packet-fc.c
+# Fullcircle C implementations
+FC_SRC = ../../../src
+SRCS += $(FC_SRC)/proto.c
+INCS += -I$(FC_SRC)
 
 CC   = gcc
 CP   = cp
