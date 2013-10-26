@@ -106,6 +106,10 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
         col_clear(pinfo->cinfo, COL_INFO);
    }
   
+  /* Skip when there is nothing to display */
+  if (tree == NULL)
+	return; 
+ 
   ti = proto_tree_add_item(tree, proto_fc, tvb, 0, -1, FALSE);
   fc_tree = proto_item_add_subtree(ti, ett_dynfc);
 
@@ -114,18 +118,24 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
   /* Extract the type of the snippet */
   offset = 0;
   buffer = tvb_memdup(tvb, 10, tvb_length_remaining(tvb, 10) );
+  
+  offset = 0;
+
   offset = parse(buffer, offset, &id, &type);
   if (id != SNIP_TYPE || type != PROTOTYPE_VARIANT)
   {
-	expert_add_info_format(pinfo, ti, PI_SEQUENCE, PI_ERROR, "Snipet type could not be extracted");
+	expert_add_info_format(pinfo, ti, PI_SEQUENCE, PI_ERROR, "Snipet type could not be extracted (id %d != %d, type %d != %d)", id, SNIP_TYPE, type, PROTOTYPE_VARIANT);
         return;
   } 
   offset = parse_number(buffer, offset, &sniptyp);
   
-  switch (type) {
+  switch (sniptyp) {
     case SNIPTYPE_PONG:
 	col_set_str(pinfo->cinfo, COL_INFO, "Pong");
 	//recv_pong((uint8_t*)recvBuff, offset, &counter);
+	break;
+    case SNIPTYPE_INFOREQUEST:
+	col_set_str(pinfo->cinfo, COL_INFO, "Info Request");
 	break;
     case SNIPTYPE_INFOANSWER:
 	col_set_str(pinfo->cinfo, COL_INFO, "Info Anwer");
@@ -143,9 +153,9 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 	col_set_str(pinfo->cinfo, COL_INFO, "Error");
 	break;
     default:
+	col_append_fstr(pinfo->cinfo, COL_INFO, "Type: %d",sniptyp); 
         break;
     }
-  
 
   g_free(buffer);
 }
