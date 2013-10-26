@@ -9,8 +9,8 @@ LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
-CFLAGS=-c -Wall
-LDFLAGS= -I $(BUILD)/include -lm -L./$(BUILD) -lfc
+CFLAGS=-c -Wall -fPIC
+LDFLAGS= -I$(BUILD)/include -lm -L./$(BUILD) -lfc
 LDFLAGS_LIBRARY= -I$(BUILD)/include -lm
 
 all: client parsefile
