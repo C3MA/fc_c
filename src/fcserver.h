@@ -26,6 +26,9 @@
 #define FCSERVER_DEFAULT_NAME		"fc-c Server"
 #define FCSERVER_DEFAULT_VERSION	"0.1.1.0"
 
+/* Define possible error codes, that can be returned to the client */
+#define FCSERVER_ERR_RESOLUTION		10
+
 /** @enum FCSERVER_RET
  * @typedef fcserver_ret_t
  * @brief Status code, that is used in this module

@@ -11,6 +11,9 @@
 #include "hwal.h"
 #include "fcserver.h"
 
+#define BUFFERSIZE_OUTPUT			1280
+#define BUFFERSIZE_SENDINGBUFFER	1024
+
 /******************************************************************************
  * LOCAL FUNCTIONS
  ******************************************************************************/
@@ -85,6 +88,7 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 	int n, offset = 0;
     int type=-1;
     int length = 0;
+	int write_offset = 0;
 	
 	n = hwal_socket_tcp_read(clientSocket, server->tmpMem, server->tmpMemSize);
 	/* next try if nothing was received */
@@ -115,7 +119,63 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 		case SNIPTYPE_PONG:
 		case SNIPTYPE_ERROR:
 		case SNIPTYPE_REQUEST:
+		{
+			char *color;
+			int seqId;
+			int meta_offset;
+			int meta_length;
+			int frames_per_second, width, heigth;
+			char *generator_name;
+			char *generator_version;
 			
+			offset = recv_request(server->tmpMem, offset, &color, &seqId, &meta_offset, &meta_length);
+            if (offset == -1) {
+                DEBUG_PLINE("recv_request Faild!\n");
+            } else {
+                DEBUG_PLINE("Parse Request, Color: %s, seqId: %d\n",color,seqId);
+            }
+            offset = parse_metadata(server->tmpMem,meta_offset,&frames_per_second, 
+									&width, &heigth, &generator_name, &generator_version);
+            if (offset == -1) {
+                DEBUG_PLINE("parse Metadata Faild!\n");
+                return -1;
+            } else {
+                DEBUG_PLINE("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",
+							frames_per_second,width,heigth,generator_name,generator_version);
+            }
+			
+			/* allocate some memory for answering */
+			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
+			
+			/* Verify , if the client has the correct resolution */
+			if (server->width == width && server->height == heigth)
+			{
+				/* Send the client an acknowledgement (ACK) */
+				write_offset = send_ack(buffer, write_offset);
+				
+			}
+			else
+			{
+				uint8_t buffer[BUFFERSIZE_SENDINGBUFFER];
+				/* Inform the client with an error message */
+				char descr[] = "Wrong Screen resolution";
+				write_offset = send_error(buffer, write_offset, FCSERVER_ERR_RESOLUTION, descr);
+			}
+			
+			/* send the corresponding message: Success or error */
+			add_header(buffer, output, write_offset);
+			hwal_socket_tcp_write(clientSocket, output, write_offset+HEADER_LENGTH);
+			
+			hwal_free(buffer);
+			hwal_free(output);
+			
+			/* Free all resources needed for sending */
+            hwal_free(color);
+            hwal_free(generator_name);
+            hwal_free(generator_version);
+            break;
+		}
 		case SNIPTYPE_START:
 		case SNIPTYPE_FRAME:
 		case SNIPTYPE_ACK:
@@ -129,10 +189,9 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 			break;
 		case SNIPTYPE_INFOREQUEST:
 		{
-			int write_offset = 0;
-			uint8_t *output = hwal_malloc(1280); hwal_memset(output, 0, 1280);
-			uint8_t *buffer = hwal_malloc(1024); hwal_memset(output, 0, 1024);
-			uint8_t *meta	= hwal_malloc(1024); hwal_memset(output, 0, 1024);			
+			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
+			uint8_t *meta	= hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);			
 			int offset_meta = create_metadata(meta, 0, FCSERVER_DEFAULT_FPS, 
 										  server->width, server->height, 
 										  FCSERVER_DEFAULT_NAME,
