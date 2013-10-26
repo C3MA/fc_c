@@ -26,7 +26,7 @@ CFLAGS = -DHAVE_CONFIG_H $(INCS) -DINET6 -D_U_=__attribute__\(\(unused\)\) -Wall
 #CFLAGS += -DPRINT_DEBUG
 
 $(PLUGIN) : $(OBJS)
-	$(CC) -L$(WIRESHARK_SRC) -lwireshark -shared $(OBJS) -o $@
+	$(CC) -shared $(OBJS) -o $@
 
 %.o : %.c
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -35,6 +35,7 @@ clean:
 	rm -f $(PLUGIN) $(OBJS)
 
 # ---------- give a choice to install automatically ------------
+
 
 install : $(PLUGIN)
 	@echo "Please define PREFIX, like e.g."
