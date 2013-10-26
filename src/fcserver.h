@@ -47,6 +47,19 @@ enum FCSERVER_RET
 };
 typedef enum FCSERVER_RET fcserver_ret_t;
 
+/** @enum FCSERVER_RET
+ * @typedef fcserver_ret_t
+ * @brief Status code, that is used in this module
+ * A summary of all possible return states in this module
+ */
+enum FCCLIENT_STATUS 
+{
+	FCCLIENT_STATUS_WAITING=1, /**< The client is waiting for a GO from the server  */
+	FCCLIENT_STATUS_CONNECTED /**<  The clients is sending pictures to the wall */
+	
+};
+typedef enum FCCLIENT_STATUS	fclientstatus_t;
+
 /** @fn (*ImageCallback_t)
  * Action, that should be performed on a new received image.
  *
@@ -58,23 +71,39 @@ typedef enum FCSERVER_RET fcserver_ret_t;
  */
 typedef void (*ImageCallback_t) (uint8_t* rgb24Buffer, int width, int height);
 
+
+/** @var FCCLIENT
+ *  @var fcclient_t
+ *  @brief This structure stores the status of one connected client.
+ *  @var FCCLIENT::clientsocket
+ *  Member 'clientsocket' stores the socket id for the connection to the client.
+ *  @var FCCLIENT::clientstatus
+ *  Member 'type' defines the source
+ */
+struct FCCLIENT {
+	int	clientsocket;
+	fclientstatus_t clientstatus;
+};
+typedef struct FCCLIENT fcclient_t;	/**< has the status information about the actual connected clients */
+
 /** @var FCSERVER
  *  @var fcserver_t
  *  @brief This structure contains meta information of the actual server instance
  *  @var FCSERVER::clientcount 
  *  Member 'clientcount' has the status information about the actual connected clients
- *  
  *  @var FCSERVER::type 
  *  Member 'type' defines the source
  */
 struct FCSERVER {
+	int						status; /**< Actual status of the server, (active/deactivated) */
 	int						width;/**< Horizontal count of boxes the phyical installation */
 	int						height;/**< Vertical count of boxes the phyical installation */
 	uint8_t*				tmpMem; /**< Pointer to already allocated memory to work with */
 	uint32_t				tmpMemSize;	/**< Length of th allocated memory, stored in tmpMem */
 	uint8_t					clientcount; /**< information about the actual connected clients */
 	int						serversocket; /**< The socket for the server */
-	int	clientsocket[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */
+	fcclient_t	client[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */
+	
 	ImageCallback_t			onNewImage; /**< Reference to logic, when a new image should be displayed */
 };
 typedef struct FCSERVER fcserver_t;	/**< has the status information about the actual connected clients */
@@ -93,6 +122,17 @@ typedef struct FCSERVER fcserver_t;	/**< has the status information about the ac
  */
 fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage,
 							  int width, int height);
+
+/** @fn fcserver_ret_t fcserver_setactive (fcserver_t* server, int status)
+ * @brief Set the server to active
+ * @param[in,out]	server	structure, representing the actual status of the server (must be already allocated)
+ * @param[in]		status	if 0, the server does not allow new clients to send something; on status = 1 dynamic content is processed
+ *
+ * @return status 
+ * - FCSERVER_RET_OK ( that what we expect)
+ * - FCSERVER_RET_PARAMERR You forgot an important parameter
+ */
+fcserver_ret_t fcserver_setactive (fcserver_t* server, int status);
 
 /** @fn fcserver_ret_t fcserver_process (fcserver_t* server)
  * @brief Initialize the library

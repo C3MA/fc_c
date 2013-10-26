@@ -39,7 +39,9 @@ int main(int argc, char *argv[])
 		printf("Server initialization failed with returncode %d\n", ret);
 		return 1;
 	}
-		
+	
+	fcserver_setactive(&server, 1 /* TRUE */);
+	
 	do {
 		ret = fcserver_process(&server);
 		

@@ -65,9 +65,9 @@ fcserver_ret_t store_client_in (fcserver_t* server, int clientSocket)
 	
 	/* Search a free spot */
 	for (i=0; i < FCSERVER_MAXCLIENT; i++) {
-		if (server->clientsocket[i] == 0)
+		if (server->client[i].clientsocket == 0)
 		{
-			server->clientsocket[i] = clientSocket;
+			server->client[i].clientsocket = clientSocket;
 			return FCSERVER_RET_OK;
 		}
 	}
@@ -80,17 +80,17 @@ fcserver_ret_t store_client_in (fcserver_t* server, int clientSocket)
  * @brief Speak with the client
  *
  * @param[in]	server			structure, where the client should be put in
- * @param[in]	clientSocket	to talk to.
+ * @param[in]	client			the connected client to talk to.
  * @return status 
  */
-static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
+static fcserver_ret_t process_client (fcserver_t* server, fcclient_t client)
 {
 	int n, offset = 0;
     int type=-1;
     int length = 0;
 	int write_offset = 0;
 	
-	n = hwal_socket_tcp_read(clientSocket, server->tmpMem, server->tmpMemSize);
+	n = hwal_socket_tcp_read(client.clientsocket, server->tmpMem, server->tmpMemSize);
 	/* next try if nothing was received */
 	if (n == -1)
 	{
@@ -151,9 +151,9 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 			/* Verify , if the client has the correct resolution */
 			if (server->width == width && server->height == heigth)
 			{
+				client.clientstatus = FCCLIENT_STATUS_WAITING;
 				/* Send the client an acknowledgement (ACK) */
 				write_offset = send_ack(buffer, write_offset);
-				
 			}
 			else
 			{
@@ -165,7 +165,7 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 			
 			/* send the corresponding message: Success or error */
 			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(clientSocket, output, write_offset+HEADER_LENGTH);
+			hwal_socket_tcp_write(client.clientsocket, output, write_offset+HEADER_LENGTH);
 			
 			hwal_free(buffer);
 			hwal_free(output);
@@ -198,7 +198,7 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 										  FCSERVER_DEFAULT_VERSION);
 			write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
 			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(clientSocket, output, write_offset+HEADER_LENGTH);
+			hwal_socket_tcp_write(client.clientsocket, output, write_offset+HEADER_LENGTH);
 			
 			hwal_free(meta);
 			hwal_free(buffer);
@@ -213,13 +213,52 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 
 fcserver_ret_t fcserver_process (fcserver_t* server)
 {
-	int client;
+	int client = 0;
 	int i;
+	int newClientStarting = 0;
 	
 	/* Check for new waiting clients */
 	if (server == 0 || server->serversocket <= 0)
 	{
 		return FCSERVER_RET_PARAMERR;
+	}
+	
+	/* Check if a new client can get the wall */
+	for (i=0; i < FCSERVER_MAXCLIENT; i++)
+	{
+		/* search for already connected clients */
+		if (server->client[i].clientstatus == FCCLIENT_STATUS_CONNECTED)
+		{
+			client = 1; /* reusing variable as flag to indicate an already connected client */
+		}
+		else if (newClientStarting == 0 && server->client[i].clientstatus == FCCLIENT_STATUS_WAITING)
+		{
+			DEBUG_PLINE("Client %d is waiting", i);
+			newClientStarting = i;
+		}
+	}
+	
+	if (!client)
+	{
+		/* noone is actual using the wall, a new one can start now */
+		if (newClientStarting) {
+			int write_offset = 0;
+			DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting].clientsocket);
+			server->client[newClientStarting].clientstatus = FCCLIENT_STATUS_CONNECTED;
+			
+			/* allocate some memory for answering */
+			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
+			
+			write_offset = send_start(buffer, write_offset);
+			
+			/* send the corresponding message: Success or error */
+			add_header(buffer, output, write_offset);
+			hwal_socket_tcp_write(server->client[newClientStarting].clientsocket, output, write_offset+HEADER_LENGTH);
+			
+			hwal_free(buffer);
+			hwal_free(output);			
+		}
 	}
 	
 	/** handle all actual connected clients **/
@@ -243,10 +282,10 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 	/* handle all open connections */
 	for (i=0; i < FCSERVER_MAXCLIENT; i++)
 	{
-		if (server->clientsocket[i] > 0)
+		if (server->client[i].clientsocket > 0)
 		{
 			/* Found an open client ... speak with him */
-			process_client(server, server->clientsocket[i]);
+			process_client(server, server->client[i]);
 		}
 	}
 	
@@ -265,5 +304,21 @@ fcserver_ret_t fcserver_close (fcserver_t* server)
 		hwal_free(server->tmpMem);
 	}
 	
+	return FCSERVER_RET_OK;
+}
+
+fcserver_ret_t fcserver_setactive (fcserver_t* server, int status)
+{
+	if (server == NULL)
+		return FCSERVER_RET_PARAMERR;
+	
+	if (status > 0)
+	{
+		server->status = 1;
+	}
+	else
+	{
+		server->status = 0;
+	}	
 	return FCSERVER_RET_OK;
 }
