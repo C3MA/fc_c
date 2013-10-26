@@ -143,6 +143,9 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
     case SNIPTYPE_ACK:
 	col_set_str(pinfo->cinfo, COL_INFO, "Ack");
 	break;
+    case SNIPTYPE_REQUEST:
+	col_set_str(pinfo->cinfo, COL_INFO, "Request");
+	break;
     case SNIPTYPE_START:
 	col_set_str(pinfo->cinfo, COL_INFO, "Start");
 	break;
