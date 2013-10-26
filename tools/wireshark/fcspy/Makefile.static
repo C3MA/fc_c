@@ -1,0 +1,48 @@
+#
+# The folder to Wireshark with its sources
+# must be set in the terminal environment, calling this Makefile
+#
+
+
+# Set the includes
+#INCS = -I$(WIRESHARK_SRC) -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/libxml2 
+# alternative: use some magic:
+INCS = -I$(WIRESHARK_SRC) `pkg-config --cflags glib-2.0`
+
+SRCS     = plugin.c packet-fc.c
+
+CC   = gcc
+CP   = cp
+
+OBJS = $(foreach src, $(SRCS), $(src:.c=.o))
+
+PLUGIN_NAME = packet-fc
+PLUGIN      = $(PLUGIN_NAME).so
+PLUGIN_INSTALL = $(PREFIX)/$(PLUGIN_NAME).so
+
+CFLAGS = -DHAVE_CONFIG_H $(INCS) -DINET6 -D_U_=__attribute__\(\(unused\)\) -Wall -Wpointer-arith -g -DXTHREADS -D_REENTRANT -DXUSE_MTSAFE_API -fPIC -DPIC
+
+# Activate debugging messages
+#CFLAGS += -DPRINT_DEBUG
+
+$(PLUGIN) : $(OBJS)
+	$(CC) -L$(WIRESHARK_SRC) -lwireshark -shared $(OBJS) -o $@
+
+%.o : %.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+clean:
+	rm -f $(PLUGIN) $(OBJS)
+
+# ---------- give a choice to install automatically ------------
+
+install : $(PLUGIN)
+	@echo "Please define PREFIX, like e.g."
+	@echo "make install PREFIX=/opt/local/lib/wireshark/plugins/1.8.3"
+	mkdir -p $(PREFIX)
+	$(CP) $(PLUGIN) $(PLUGIN_INSTALL)
+
+uninstall:
+	rm -f $(PLUGIN_INSTALL)
+
+
