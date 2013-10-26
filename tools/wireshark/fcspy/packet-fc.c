@@ -24,6 +24,13 @@
 
 static int proto_fc = -1;
 
+/* all fields to display needs an handle */
+static int hf_dynfc_length = -1;
+
+/* Initialize the subtree pointers */
+static gint ett_dynfc = -1;
+
+
 /** @fn static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
  * @brief Generate a graphical representation of the transmit information
  * 
@@ -41,11 +48,28 @@ static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree);
  */
 void proto_register_fc(void)
 {
+	/* Setup list of header fields  See Section 1.6.1 for details*/
+    static hf_register_info hf[] =
+    {
+	// All the general fields for the header
+        { &hf_dynfc_length,                 { "Length",                       "dynfc.length", FT_STRING, BASE_NONE, NULL, 0x0,     "", HFILL } },
+
+    };
+    /* Setup protocol subtree array */
+    static gint *ett[] = {
+        &ett_dynfc,
+    };
 	proto_fc = proto_register_protocol (
-										 "Fullcircle Protocol", /* name       */
-										 "FC",      /* short name */
-										 "fc"       /* abbrev     */
+										 "Dynamic Fullcircle Protocol", /* name       */
+										 "DynFC",      /* short name */
+										 "dynfc"       /* abbrev     */
 										 );
+	register_dissector("DynFC", dissect_fc, proto_fc); 	
+
+	/* Required function calls to register the header fields and subtrees used */
+	proto_register_field_array(proto_fc, hf, array_length(hf));
+	proto_register_subtree_array(ett, array_length(ett));
+
 }
 
 
@@ -59,9 +83,25 @@ void proto_reg_handoff_fc(void)
 
 static void dissect_fc(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 {
-    col_set_str(pinfo->cinfo, COL_PROTOCOL, "FC");
+    proto_tree* fc_tree = NULL;
+    proto_item *ti;
+
+    /* Set the detected protocol */
+    if (check_col(pinfo->cinfo, COL_PROTOCOL))
+    {
+        col_set_str(pinfo->cinfo, COL_PROTOCOL, "DynFC");
+    }
+
     /* Clear out stuff in the info column */
-    col_clear(pinfo->cinfo,COL_INFO);
+   if (check_col(pinfo->cinfo, COL_INFO))
+   {
+        col_clear(pinfo->cinfo, COL_INFO);
+   }
+  
+  ti = proto_tree_add_item(tree, proto_fc, tvb, 0, -1, FALSE);
+  fc_tree = proto_item_add_subtree(ti, ett_dynfc);
+
+  ti = proto_tree_add_item (fc_tree, hf_dynfc_length, tvb, 0, 10, FALSE); 
 }
 
 /*@}*/
