@@ -82,7 +82,7 @@ fcserver_ret_t store_client_in (fcserver_t* server, int clientSocket)
  */
 static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 {
-	int n, offset;
+	int n, offset = 0;
     int type=-1;
     int length = 0;
 	
@@ -115,6 +115,7 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 		case SNIPTYPE_PONG:
 		case SNIPTYPE_ERROR:
 		case SNIPTYPE_REQUEST:
+			
 		case SNIPTYPE_START:
 		case SNIPTYPE_FRAME:
 		case SNIPTYPE_ACK:
@@ -128,6 +129,7 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 			break;
 		case SNIPTYPE_INFOREQUEST:
 		{
+			int write_offset = 0;
 			uint8_t *output = hwal_malloc(1280); hwal_memset(output, 0, 1280);
 			uint8_t *buffer = hwal_malloc(1024); hwal_memset(output, 0, 1024);
 			uint8_t *meta	= hwal_malloc(1024); hwal_memset(output, 0, 1024);			
@@ -135,9 +137,9 @@ static fcserver_ret_t process_client (fcserver_t* server, int clientSocket)
 										  server->width, server->height, 
 										  FCSERVER_DEFAULT_NAME,
 										  FCSERVER_DEFAULT_VERSION);
-			offset = send_infoanswer(buffer, offset, meta, offset_meta);
-			add_header(buffer, output, offset);
-			hwal_socket_tcp_write(clientSocket, output, offset+HEADER_LENGTH);
+			write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
+			add_header(buffer, output, write_offset);
+			hwal_socket_tcp_write(clientSocket, output, write_offset+HEADER_LENGTH);
 			
 			hwal_free(meta);
 			hwal_free(buffer);
