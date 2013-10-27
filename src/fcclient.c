@@ -143,7 +143,7 @@ extern int fcclient_processNetwork(fcclient_t* fc)
             if (offset == -1) {
                 printf("recv_error Faild!\n");
             } else {
-                printf("Recive ACK\n"); 
+                printf("Received ACK\n"); 
             }
             break;
 		case SNIPTYPE_START:

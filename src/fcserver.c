@@ -83,7 +83,7 @@ fcserver_ret_t store_client_in (fcserver_t* server, int clientSocket)
  * @param[in]	client			the connected client to talk to.
  * @return status 
  */
-static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
+static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 {
 	int n, offset = 0;
     int type=-1;
@@ -91,7 +91,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 	int write_offset = 0;
 	
 	
-	n = hwal_socket_tcp_read(client.clientsocket, server->tmpMem, server->tmpMemSize);
+	n = hwal_socket_tcp_read(client->clientsocket, server->tmpMem, server->tmpMemSize);
 	
 	/*FIXME try to check if client is still connected FCSERVER_RET_CLOSED */
 		
@@ -122,9 +122,6 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 	/* Decode this information */
 	switch (type)
 	{
-		case SNIPTYPE_PING:
-		case SNIPTYPE_PONG:
-		case SNIPTYPE_ERROR:
 		case SNIPTYPE_REQUEST:
 		{
 			char *color;
@@ -158,10 +155,10 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 			/* Verify , if the client has the correct resolution */
 			if (server->width == width && server->height == heigth)
 			{
-				client.clientstatus = FCCLIENT_STATUS_WAITING;
+				client->clientstatus = FCCLIENT_STATUS_WAITING;
 				/* Send the client an acknowledgement (ACK) */
 				write_offset = send_ack(buffer, write_offset);
-				DEBUG_PLINE("ACK Request");
+				DEBUG_PLINE("ACK Request send");
 			}
 			else
 			{
@@ -174,7 +171,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 			
 			/* send the corresponding message: Success or error */
 			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(client.clientsocket, output, write_offset+HEADER_LENGTH);
+			hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
 			
 			hwal_free(buffer);
 			hwal_free(output);
@@ -185,17 +182,30 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
             hwal_free(generator_version);
             break;
 		}
-		case SNIPTYPE_START:
 		case SNIPTYPE_FRAME:
-		case SNIPTYPE_ACK:
-		case SNIPTYPE_NACK:
-		case SNIPTYPE_TIMEOUT:
-		case SNIPTYPE_ABORT:
-		case SNIPTYPE_EOS:
-		case SNIPTYPE_INFOANSWER:
-		default:
-			DEBUG_PLINE("%d is not implemented",type);
+		{
+			int x, y, red, green, blue;
+			int frame_length;
+			int frame_offset, frame_offset_start;
+			
+			offset = recv_frame(server->tmpMem, offset, &frame_offset, &frame_length);
+            if (offset == -1) {
+                DEBUG_PLINE("recv_frame Faild!");
+            } else {
+                DEBUG_PLINE("Parse Frame, frame_length: %d",frame_length);
+            }
+            frame_offset_start = frame_offset;
+            do {
+                frame_offset = frame_parse_pixel(server->tmpMem,frame_offset, &red, &green, &blue, &x, &y);
+				
+                if (offset == -1) {
+                    DEBUG_PLINE("parse Pixel faild");
+                } else {
+                    DEBUG_PLINE("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d",red,green,blue,x,y);
+                }
+            } while (frame_offset < (frame_offset_start+frame_length));
 			break;
+		}
 		case SNIPTYPE_INFOREQUEST:
 		{
 			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
@@ -207,7 +217,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 										  FCSERVER_DEFAULT_VERSION);
 			write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
 			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(client.clientsocket, output, write_offset+HEADER_LENGTH);
+			hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
 			DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
 						FCSERVER_DEFAULT_NAME,
 						FCSERVER_DEFAULT_VERSION);
@@ -215,6 +225,19 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 			hwal_free(buffer);
 			hwal_free(output);
 		}
+			break;
+		case SNIPTYPE_PING:
+		case SNIPTYPE_PONG:
+		case SNIPTYPE_ERROR:
+		case SNIPTYPE_START:
+		case SNIPTYPE_ACK:
+		case SNIPTYPE_NACK:
+		case SNIPTYPE_TIMEOUT:
+		case SNIPTYPE_ABORT:
+		case SNIPTYPE_EOS:
+		case SNIPTYPE_INFOANSWER:
+		default:
+			DEBUG_PLINE("%d is not implemented",type);
 			break;
 	}
 	
@@ -241,22 +264,22 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		if (server->client[i].clientstatus == FCCLIENT_STATUS_CONNECTED)
 		{
 			client = 1; /* reusing variable as flag to indicate an already connected client */
-			DEBUG_PLINE("Client %d is connected", i);
 		}
 		else if (newClientStarting == 0 && server->client[i].clientstatus == FCCLIENT_STATUS_WAITING)
 		{
-			DEBUG_PLINE("Client %d is waiting", i);
-			newClientStarting = i;
+			/* Client %d is waiting", i */
+			newClientStarting = (i + 1); /* count from 1 to FCSERVER_MAXCLIENT + 1 */
 		}
 	}
 	
 	if (!client)
 	{
-		/* noone is actual using the wall, a new one can start now */
-		if (newClientStarting) {
+		/* no-one is actual using the wall, a new one can start now */
+		if (newClientStarting) /* as the index starts at one we can detect here new clients */
+		{
 			int write_offset = 0;
-			DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting].clientsocket);
-			server->client[newClientStarting].clientstatus = FCCLIENT_STATUS_CONNECTED;
+			DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting - 1].clientsocket);
+			server->client[newClientStarting - 1].clientstatus = FCCLIENT_STATUS_CONNECTED;
 			
 			/* allocate some memory for answering */
 			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
@@ -266,12 +289,13 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			
 			/* send the corresponding message: Success or error */
 			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(server->client[newClientStarting].clientsocket, output, write_offset+HEADER_LENGTH);
+			hwal_socket_tcp_write(server->client[newClientStarting - 1].clientsocket, output, write_offset+HEADER_LENGTH);
 			
 			hwal_free(buffer);
 			hwal_free(output);			
 		}
 	}
+	client = 0; /* Reset the temporary variable, for the original porpuse */
 	
 	/** handle all actual connected clients **/
 	/* search for new waiting ones */
@@ -297,10 +321,10 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		if (server->client[i].clientsocket > 0)
 		{
 			/* Found an open client ... speak with him */
-			if (process_client(server, server->client[i]) == FCSERVER_RET_CLOSED)
+			if (process_client(server, &(server->client[i]) ) == FCSERVER_RET_CLOSED)
 			{
 				DEBUG_PLINE("Client with socket %d closed", server->client[i].clientsocket);
-				server->client[i].clientsocket = 0;
+				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
 			}
 		}
 	}
