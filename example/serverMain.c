@@ -16,7 +16,19 @@
 
 void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 {
-	
+	int i;
+		
+	//printf("%d x %d\n", width, height);
+	for (i=1; i <= width * height; i++) {
+		printf("%2X %2X %2X |", rgb24Buffer[i * 3 + 0], 
+			   rgb24Buffer[i * 3 + 1], rgb24Buffer[i * 3 + 2]);
+		
+		if (i % width == 0)
+		{
+			printf("\n");
+		}
+	}
+	printf("\n------------------------------------------\n");
 }
 
 

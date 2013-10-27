@@ -27,6 +27,12 @@
 fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, int width, int height)
 {
 	DEBUG_PLINE("Server-Init");
+	
+	if (width <= 0 || height <= 0)
+	{
+		return FCSERVER_RET_PARAMERR;
+	}
+	
 	/* Clean the memory structure (as a new server is started) */
 	hwal_memset(server, 0, sizeof(fcserver_t));
 	
@@ -43,6 +49,8 @@ fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, in
 	server->tmpMem = hwal_malloc(server->tmpMemSize);
 	server->width = width;
 	server->height = height;
+	
+	server->imageBuffer = hwal_malloc(width * height * 3);
 	
 	return FCSERVER_RET_OK;
 }
@@ -187,6 +195,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 			int x, y, red, green, blue;
 			int frame_length;
 			int frame_offset, frame_offset_start;
+			int index;
 			
 			offset = recv_frame(server->tmpMem, offset, &frame_offset, &frame_length);
             if (offset == -1) {
@@ -197,13 +206,16 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
             frame_offset_start = frame_offset;
             do {
                 frame_offset = frame_parse_pixel(server->tmpMem,frame_offset, &red, &green, &blue, &x, &y);
-				
-                if (offset == -1) {
-                    DEBUG_PLINE("parse Pixel faild");
-                } else {
-                    DEBUG_PLINE("Parse Pixel, red: %d , green: %d , blue: %d , x: %d , y: %d",red,green,blue,x,y);
-                }
+				index = (((x * server->width) + y) * 3);
+				server->imageBuffer[index + 0] = red;
+				server->imageBuffer[index + 1] = green;
+				server->imageBuffer[index + 2] = blue;				
             } while (frame_offset < (frame_offset_start+frame_length));
+			
+			if (server->onNewImage > 0)
+			{
+				server->onNewImage(server->imageBuffer, server->width, server->height);
+			}
 			break;
 		}
 		case SNIPTYPE_INFOREQUEST:
@@ -353,6 +365,11 @@ fcserver_ret_t fcserver_close (fcserver_t* server)
 	if (server->tmpMem > 0)
 	{
 		hwal_free(server->tmpMem);
+	}
+	
+	if (server->imageBuffer > 0)
+	{
+		hwal_free(server->imageBuffer);
 	}
 	
 	return FCSERVER_RET_OK;

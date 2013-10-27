@@ -101,6 +101,7 @@ struct FCSERVER {
 	int						status; /**< Actual status of the server, (active/deactivated) */
 	int						width;/**< Horizontal count of boxes the phyical installation */
 	int						height;/**< Vertical count of boxes the phyical installation */
+	uint8_t*				imageBuffer; /**< Buffer to store a received frame */
 	uint8_t*				tmpMem; /**< Pointer to already allocated memory to work with */
 	uint32_t				tmpMemSize;	/**< Length of th allocated memory, stored in tmpMem */
 	uint8_t					clientcount; /**< information about the actual connected clients */
