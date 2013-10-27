@@ -136,6 +136,7 @@ extern int hwal_socket_tcp_accet(int socketfd)
 	socklen_t           sockLen = sizeof(clientAddr);
 	int client;
 	
+	/*FIXME make accept non blocking ... tried extra parameter , SOCK_NONBLOCK */
 	client = accept(socketfd, (struct sockaddr *) &clientAddr, &sockLen);
 	if (client > 0)
 	{

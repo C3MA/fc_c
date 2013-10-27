@@ -116,7 +116,9 @@ extern "C" {
 	
 	/** @fn extern int hwal_socket_tcp_accet(int socketfd)
 	 *
-	 * Accept a new client on a existing TCP socket
+	 * Accept a new client on a existing TCP socket.
+	 * This function must be NONE blocking
+	 *
 	 * @param[in] socketfd	Already opened server socket
 	 * @return a socket of a new client 
 	 * or a negative number, if no new client was found.

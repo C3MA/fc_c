@@ -83,14 +83,17 @@ fcserver_ret_t store_client_in (fcserver_t* server, int clientSocket)
  * @param[in]	client			the connected client to talk to.
  * @return status 
  */
-static fcserver_ret_t process_client (fcserver_t* server, fcclient_t client)
+static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 {
 	int n, offset = 0;
     int type=-1;
     int length = 0;
 	int write_offset = 0;
 	
+	
 	n = hwal_socket_tcp_read(client.clientsocket, server->tmpMem, server->tmpMemSize);
+	
+	DEBUG_PLINE("Socket %d has %d", client.clientsocket, n);
 	/* next try if nothing was received */
 	if (n == -1)
 	{
@@ -110,7 +113,7 @@ static fcserver_ret_t process_client (fcserver_t* server, fcclient_t client)
 		return FCSERVER_RET_IOERR;
 	}
 	
-	DEBUG_PLINE("New Header typ: %d length of information: %d\n",type,length);
+	DEBUG_PLINE("New Header typ: %d length of information: %d [fetched is %d byte from the network]",type,length, n);
 	
 	/* Decode this information */
 	switch (type)
@@ -130,17 +133,17 @@ static fcserver_ret_t process_client (fcserver_t* server, fcclient_t client)
 			
 			offset = recv_request(server->tmpMem, offset, &color, &seqId, &meta_offset, &meta_length);
             if (offset == -1) {
-                DEBUG_PLINE("recv_request Faild!\n");
+                DEBUG_PLINE("recv_request Faild!");
             } else {
-                DEBUG_PLINE("Parse Request, Color: %s, seqId: %d\n",color,seqId);
+                DEBUG_PLINE("Parse Request, Color: %s, seqId: %d",color,seqId);
             }
             offset = parse_metadata(server->tmpMem,meta_offset,&frames_per_second, 
 									&width, &heigth, &generator_name, &generator_version);
             if (offset == -1) {
-                DEBUG_PLINE("parse Metadata Faild!\n");
+                DEBUG_PLINE("parse Metadata Faild!");
                 return -1;
             } else {
-                DEBUG_PLINE("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s\n",
+                DEBUG_PLINE("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s",
 							frames_per_second,width,heigth,generator_name,generator_version);
             }
 			
@@ -154,12 +157,14 @@ static fcserver_ret_t process_client (fcserver_t* server, fcclient_t client)
 				client.clientstatus = FCCLIENT_STATUS_WAITING;
 				/* Send the client an acknowledgement (ACK) */
 				write_offset = send_ack(buffer, write_offset);
+				DEBUG_PLINE("ACK Request");
 			}
 			else
 			{
 				uint8_t buffer[BUFFERSIZE_SENDINGBUFFER];
 				/* Inform the client with an error message */
 				char descr[] = "Wrong Screen resolution";
+				DEBUG_PLINE("Error while requesting: '%s'", descr);
 				write_offset = send_error(buffer, write_offset, FCSERVER_ERR_RESOLUTION, descr);
 			}
 			
@@ -199,7 +204,9 @@ static fcserver_ret_t process_client (fcserver_t* server, fcclient_t client)
 			write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
 			add_header(buffer, output, write_offset);
 			hwal_socket_tcp_write(client.clientsocket, output, write_offset+HEADER_LENGTH);
-			
+			DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
+						FCSERVER_DEFAULT_NAME,
+						FCSERVER_DEFAULT_VERSION);
 			hwal_free(meta);
 			hwal_free(buffer);
 			hwal_free(output);
@@ -230,6 +237,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		if (server->client[i].clientstatus == FCCLIENT_STATUS_CONNECTED)
 		{
 			client = 1; /* reusing variable as flag to indicate an already connected client */
+			DEBUG_PLINE("Client %d is connected", i);
 		}
 		else if (newClientStarting == 0 && server->client[i].clientstatus == FCCLIENT_STATUS_WAITING)
 		{
@@ -279,6 +287,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		}
 	}
 	
+	DEBUG_PLINE("Handle all connected clients");
 	/* handle all open connections */
 	for (i=0; i < FCSERVER_MAXCLIENT; i++)
 	{

@@ -42,7 +42,11 @@ int main(int argc, char *argv[])
 	/* the server has answered */
 	
 	success2 = fcclient_start(client);
-	printf("Start: %d\n", success2);
+	printf("Sending start returned: %d\n", success2);
+	if (success2 <= 0)
+	{
+		return 1;
+	}
 	
 	uint8_t frame[client->width * client->height * 20]; 
 	x = 0;
