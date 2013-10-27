@@ -22,6 +22,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include <fcntl.h>
+
 #define MAXFILEDESCRIPTORS	10
 
 /* a small mapping table to abstract from the filedescriptors */
@@ -104,6 +106,7 @@ extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
 	int sockfd = 0;
 	struct sockaddr_in srcAddress;
+	int flags;
 	
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -119,14 +122,29 @@ extern int hwal_socket_tcp_new(int port, int maximumClients)
     if(-1 == bind(sockfd,(struct sockaddr *)&srcAddress, sizeof(srcAddress)))
     {
 		DEBUG_PLINE("error bind failed");
-		exit(EXIT_FAILURE);
+		return -2;
     }
 	
     if(-1 == listen(sockfd, maximumClients))
     {
 		DEBUG_PLINE("error listen failed");
-		exit(EXIT_FAILURE);
+		return -3;
     }
+	
+	
+	/*Make connection noneblocking ( needed for the accept) */
+	if (-1 == (flags = fcntl(sockfd, F_GETFL, 0)))
+	{
+		DEBUG_PLINE("Could not switch to nonblocking");
+		return -4;
+	}
+	else
+	{
+		fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+		
+	}
+
+	
 	return sockfd;
 }
 
@@ -135,8 +153,7 @@ extern int hwal_socket_tcp_accet(int socketfd)
 	struct sockaddr_in  clientAddr;
 	socklen_t           sockLen = sizeof(clientAddr);
 	int client;
-	
-	/*FIXME make accept non blocking ... tried extra parameter , SOCK_NONBLOCK */
+		
 	client = accept(socketfd, (struct sockaddr *) &clientAddr, &sockLen);
 	if (client > 0)
 	{
