@@ -7,6 +7,7 @@ FCPWD=$(APP_LIBS)/fc/src
 LIBSRC += ${FCPWD}/fc.c \
 ${FCPWD}/proto.c \
 ${FCPWD}/fcseq.c \
+${FCPWD}/fcserver.c \
 ${FCPWD}/chibios/hwal.c \
 
 # Add required include directories
