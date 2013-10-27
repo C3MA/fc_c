@@ -43,7 +43,9 @@ enum FCSERVER_RET
 	FCSERVER_RET_PARAMERR, /**< invalid parameter were used (NULL pointer) */
 	FCSERVER_RET_NOTIMPL, /**< not implementend atm */
 	FCSERVER_RET_INVALID_DATA, /**< Found invalid data */
-	FCSERVER_RET_OUTOFMEMORY /**< Give US MORE memory! */
+	FCSERVER_RET_OUTOFMEMORY, /**< Give US MORE memory! */
+	FCSERVER_RET_CLOSED, /**< Socket was closed! */
+	FCSERVER_RET_NOTHINGNEW	/**< No new packet was received */
 };
 typedef enum FCSERVER_RET fcserver_ret_t;
 

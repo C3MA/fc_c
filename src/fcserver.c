@@ -93,15 +93,19 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t client)
 	
 	n = hwal_socket_tcp_read(client.clientsocket, server->tmpMem, server->tmpMemSize);
 	
-	DEBUG_PLINE("Socket %d has %d", client.clientsocket, n);
-	/* next try if nothing was received */
+	/*FIXME try to check if client is still connected FCSERVER_RET_CLOSED */
+		
+	/* First check, if the Client has something to say */
 	if (n == -1)
 	{
-		return FCSERVER_RET_NODATA;
+		/* no new packet found on the network */
+		return FCSERVER_RET_NOTHINGNEW;
 	}
-	
-	/* First check, if the Client has something to say */
-	if (n < HEADER_LENGTH)
+	else if (n == 0)
+	{
+		return FCSERVER_RET_CLOSED;
+	}
+	else if (n < HEADER_LENGTH)
 	{
 		DEBUG_PLINE("Error : Network read error");
 		return FCSERVER_RET_IOERR;
@@ -287,14 +291,17 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		}
 	}
 	
-	DEBUG_PLINE("Handle all connected clients");
 	/* handle all open connections */
 	for (i=0; i < FCSERVER_MAXCLIENT; i++)
 	{
 		if (server->client[i].clientsocket > 0)
 		{
 			/* Found an open client ... speak with him */
-			process_client(server, server->client[i]);
+			if (process_client(server, server->client[i]) == FCSERVER_RET_CLOSED)
+			{
+				DEBUG_PLINE("Client with socket %d closed", server->client[i].clientsocket);
+				server->client[i].clientsocket = 0;
+			}
 		}
 	}
 	
