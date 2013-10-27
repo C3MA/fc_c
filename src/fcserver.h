@@ -28,6 +28,7 @@
 
 /* Define possible error codes, that can be returned to the client */
 #define FCSERVER_ERR_RESOLUTION		10
+#define FCSERVER_ERR_MAXCLIENTS		11
 
 /** @enum FCSERVER_RET
  * @typedef fcserver_ret_t

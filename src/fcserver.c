@@ -310,8 +310,19 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		}
 		else
 		{
-			DEBUG_PLINE("No Space for new client");
-			/* FIXME tell the client "NOOOOO, go a way!" */
+			uint8_t buffer[BUFFERSIZE_SENDINGBUFFER];
+			/* Inform the client with an error message */
+			char descr[] = "No Space for new client";
+			int write_offset = 0;
+			
+			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+			
+			write_offset = send_error(buffer, write_offset, FCSERVER_ERR_MAXCLIENTS, descr);			
+			DEBUG_PLINE("No Space for new client");			
+			/* send the corresponding message: Success or error */
+			add_header(buffer, output, write_offset);
+			hwal_socket_tcp_write(client, output, write_offset+HEADER_LENGTH);			
+			hwal_socket_tcp_close(client);
 		}
 	}
 	

@@ -114,6 +114,14 @@ extern "C" {
 	 */
 	extern int hwal_socket_tcp_new(int port, int maximumClients);
 	
+	/** @fn extern void hwal_socket_tcp_close(int socketfd)
+	 *
+	 * Close the given socket
+	 *
+	 * @param[in] socketfd	Socket to close
+	 */
+	extern void hwal_socket_tcp_close(int socketfd);
+	
 	/** @fn extern int hwal_socket_tcp_accet(int socketfd)
 	 *
 	 * Accept a new client on a existing TCP socket.

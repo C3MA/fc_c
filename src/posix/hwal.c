@@ -148,6 +148,14 @@ extern int hwal_socket_tcp_new(int port, int maximumClients)
 	return sockfd;
 }
 
+extern void hwal_socket_tcp_close(int socketfd)
+{
+	if (socketfd > 0)
+	{
+		close(socketfd);
+	}
+}
+
 extern int hwal_socket_tcp_accet(int socketfd)
 {
 	struct sockaddr_in  clientAddr;
