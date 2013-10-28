@@ -21,6 +21,11 @@
 
 #include "ff.h"
 
+/* Socket requirements */
+#include "lwip/opt.h"
+#include "lwip/arch.h"
+#include "lwip/api.h"
+
 #define MAXFILEDESCRIPTORS	10
 
 #define MAX_FILLER 11
@@ -343,3 +348,80 @@ extern void hwal_free(void* memory)
 	chHeapFree(memory);
 }
 
+extern int hwal_socket_tcp_new(int port, int maximumClients)
+{
+	struct netconn *conn;
+	
+	/* Create a new TCP connection handle */
+	conn = netconn_new(NETCONN_TCP);
+	
+	/* Bind to port 80 (HTTP) with default IP address */
+	netconn_bind(conn, NULL, port);
+	
+	/* Put the connection into LISTEN state */
+	netconn_listen(conn);
+	
+	return (int) conn;
+}
+
+extern void hwal_socket_tcp_close(int socketfd)
+{
+	struct netconn *conn = (struct netconn *) socketfd;
+	netconn_delete(conn);
+}
+
+extern int hwal_socket_tcp_accet(int socketfd)
+{
+	struct netconn *newconn;
+	struct netconn *conn = (struct netconn *) socketfd;
+	
+	netconn_accept(conn, &newconn);
+	return (int) newconn;
+}
+
+extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
+{
+	struct netbuf *inbuf;
+	u16_t buflen = (u16_t) workingMemorySize;
+	struct netconn *conn = (struct netconn *) clientSocket;
+	err_t err;
+	
+	/* Read the data from the port, blocking if nothing yet there.
+	 We assume the request (the part we care about) is in one netbuf */
+	err = netconn_recv(conn, &inbuf);
+	if (err == ERR_OK)
+	{
+		err = netbuf_data(inbuf, (void **)&workingMem, &buflen);
+		if (err == ERR_OK)
+		{
+			return -1;
+		}
+		else
+		{
+			return buflen;
+		}
+
+	}
+	else
+	{
+		return -1;
+	}
+
+}
+
+extern int hwal_socket_tcp_write(int clientSocket, uint8_t* data, uint32_t size)
+{
+	err_t err;
+	struct netconn *conn = (struct netconn *) clientSocket;
+	
+	err = netconn_write(conn, data, size, NETCONN_NOCOPY);
+	if (err == ERR_OK)
+	{
+		return size;
+	}
+	else
+	{
+		return -1;
+	}
+
+}
