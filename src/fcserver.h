@@ -58,8 +58,10 @@ typedef enum FCSERVER_RET fcserver_ret_t;
 enum FCCLIENT_STATUS 
 {
 	FCCLIENT_STATUS_WAITING=1, /**< The client is waiting for a GO from the server  */
-	FCCLIENT_STATUS_CONNECTED /**<  The clients is sending pictures to the wall */
-	
+	FCCLIENT_STATUS_CONNECTED, /**<  The clients is sending pictures to the wall */
+	FCCLIENT_STATUS_INITING, /**<  First contact of the client with the server */
+	FCCLIENT_STATUS_DISCONNECTED, /**<  The clients has left */
+	FCCLIENT_STATUS_TOOMUTCH /**<  There is no space to handle also this client */
 };
 typedef enum FCCLIENT_STATUS	fclientstatus_t;
 
@@ -74,6 +76,16 @@ typedef enum FCCLIENT_STATUS	fclientstatus_t;
  */
 typedef void (*ImageCallback_t) (uint8_t* rgb24Buffer, int width, int height);
 
+/** @fn (*ClientCallback_t)
+ * Action, that should be performed on a new received image.
+ *
+ * @param[in] totalAmount	The amount of action connected clients
+ * @param[in] width			in pixel of the actual frame
+ * @param[in] height		in pixel of the actual frame
+ *
+ * @return NOTHING
+ */
+typedef void (*ClientCallback_t) (uint8_t totalAmount, fclientstatus_t action, int clientsocket);
 
 /** @var FCCLIENT
  *  @var fcclient_t
@@ -109,6 +121,7 @@ struct FCSERVER {
 	fcclient_t	client[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */
 	
 	ImageCallback_t			onNewImage; /**< Reference to logic, when a new image should be displayed */
+	ClientCallback_t		onClientChange; /**< Reference to logic, when client joins or leave */
 };
 typedef struct FCSERVER fcserver_t;	/**< has the status information about the actual connected clients */
 
@@ -116,6 +129,7 @@ typedef struct FCSERVER fcserver_t;	/**< has the status information about the ac
  * @brief Initialize the library
  * @param[in,out]	server	structure, representing the actual status of the server (must be already allocated)
  * @param[in]		onNewImage	provide an callback of type "ImageCallback_t" to define the action on a received frame
+ * @param[in]		onClientChange	provide an callback of type "ClientCallback_t" to define the action on change on the incoming clients
  * @param[in]		width		of the phyical installation
  * @param[in]		height		of the phyical installation
  *
@@ -124,7 +138,7 @@ typedef struct FCSERVER fcserver_t;	/**< has the status information about the ac
  * - FCSERVER_RET_OUTOFMEMORY (you have it! give more memory)
  * - FCSERVER_RET_PARAMERR You forgot an important parameter
  */
-fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage,
+fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, ClientCallback_t	onClientChange,
 							  int width, int height);
 
 /** @fn fcserver_ret_t fcserver_setactive (fcserver_t* server, int status)

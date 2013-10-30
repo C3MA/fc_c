@@ -31,6 +31,10 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 	printf("\n------------------------------------------\n");
 }
 
+void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocket)
+{
+	printf("Callback client %d did %X\t[%d clients]\n", clientsocket, action, totalAmount);
+}
 
 /******************************************************************************
  * LOCAL FUNCTIONS
@@ -45,7 +49,7 @@ int main(int argc, char *argv[])
 	fcserver_ret_t	ret;
 	fcserver_t		server;
 	
-	ret = fcserver_init(&server, &onNewImage, 10, 12);
+	ret = fcserver_init(&server, &onNewImage, &onClientChange, 10, 12);
 	if (ret != FCSERVER_RET_OK)
 	{
 		printf("Server initialization failed with returncode %d\n", ret);
