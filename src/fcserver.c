@@ -24,7 +24,8 @@
  ******************************************************************************/
 
 
-fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, int width, int height)
+fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, ClientCallback_t	onClientChange,
+							  int width, int height)
 {
 	DEBUG_PLINE("Server-Init");
 	
@@ -45,6 +46,8 @@ fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, in
 	
 	/* store the callbacks */
 	server->onNewImage = onNewImage;
+	server->onClientChange = onClientChange;
+	
 	server->tmpMemSize = FCSERVER_TEMPMEM_MAX;
 	server->tmpMem = hwal_malloc(server->tmpMemSize);
 	server->width = width;
@@ -293,6 +296,12 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting - 1].clientsocket);
 			server->client[newClientStarting - 1].clientstatus = FCCLIENT_STATUS_CONNECTED;
 			
+			if (server->onClientChange > 0)
+			{
+				server->onClientChange(server->clientcount, FCCLIENT_STATUS_CONNECTED, 
+									   server->client[newClientStarting - 1].clientsocket);
+			}
+			
 			/* allocate some memory for answering */
 			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
 			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
@@ -319,6 +328,11 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 		{
 			server->clientcount++;
 			store_client_in(server, client);
+			
+			if (server->onClientChange > 0)
+			{
+				server->onClientChange(server->clientcount, FCCLIENT_STATUS_INITING, client);
+			}
 		}
 		else
 		{
@@ -335,6 +349,11 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			add_header(buffer, output, write_offset);
 			hwal_socket_tcp_write(client, output, write_offset+HEADER_LENGTH);			
 			hwal_socket_tcp_close(client);
+			
+			if (server->onClientChange > 0)
+			{
+				server->onClientChange(server->clientcount, FCCLIENT_STATUS_TOOMUTCH, client);
+			}
 		}
 	}
 	
@@ -347,7 +366,14 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			if (process_client(server, &(server->client[i]) ) == FCSERVER_RET_CLOSED)
 			{
 				DEBUG_PLINE("Client with socket %d closed", server->client[i].clientsocket);
+				if (server->onClientChange > 0)
+				{
+					server->onClientChange(server->clientcount, 
+										   FCCLIENT_STATUS_DISCONNECTED, 
+										   server->client[i].clientsocket);
+				}
 				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
+				server->clientcount--;				
 			}
 		}
 	}
