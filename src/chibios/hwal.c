@@ -374,7 +374,8 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 {
 	struct netbuf *inbuf;
 	char *buf = (char *) hwal_malloc(512);
-	u16_t buflen = 0;
+	u16_t	buflen			= 0;
+	u16_t	buflenFurther	= 0;
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
 	workingMemorySize = 0;
@@ -400,6 +401,24 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		{
 			/* copy content to the outputbuffer */
 			hwal_memcpy(workingMem, buf, buflen);
+			
+			netconn_set_recvtimeout(conn, 100 );    // timeout on 100 milliseconds
+			
+			/* check if more bytes should be read -> do so */
+			while((err = netconn_recv(conn,&inbuf)) == ERR_OK)
+			{
+				netbuf_first(inbuf);
+				do{
+					netbuf_data(inbuf, (void*)&buf, &buflenFurther);
+					DEBUG_PLINE("Further read found %d bytes and returned %d\t[actual buffer size: %d]", 
+								buflenFurther, err, buflen);
+					hwal_memcpy(workingMem+buflen, buf, buflenFurther);
+					buflen += buflenFurther; /* update length / startoffset for copying */
+				}while(netbuf_next(inbuf) >= 0);
+				
+				netbuf_delete(inbuf);
+			}
+			netconn_set_recvtimeout(conn, 5000 );    // timeout on 5 seconds
 		}
 		
 		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
