@@ -29,10 +29,15 @@ CFLAGS = -DHAVE_CONFIG_H $(INCS) -DINET6 -D_U_=__attribute__\(\(unused\)\) -Wall
 # Activate debugging messages
 #CFLAGS += -DPRINT_DEBUG
 
+
 $(PLUGIN) : $(OBJS)
 	$(CC) -shared $(OBJS) -o $@
 
-%.o : %.c
+# Copy the static plugin.c to the expected name
+prepare:
+	$(CP) plugin-static.c plugin.c
+
+%.o : %.c prepare
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
