@@ -352,43 +352,12 @@ extern void hwal_free(void* memory)
 	chHeapFree(memory);
 }
 
-
-void hwal_netconn_callback(struct netconn *pconn, enum netconn_evt event, u16_t len)
-{
-    switch(event) {
-		case NETCONN_EVT_RCVPLUS:
-#if 0
-			if(len > 0) {
-				HTTPD_POST_MESSAGE(pconn, len, HTTPD_CMD_READRDY);
-			} else if(pconn == httpd) {
-				/* queue message noting that a connection is requested, will accept 
-				 when ready */
-			} /* otherwise this is caused by closing the socket ... */
-#endif
-			break;
-		case NETCONN_EVT_RCVMINUS: 
-			break; /* not useful? */
-		case NETCONN_EVT_SENDPLUS:
-#if 0		
-			if(len > 0) /* otherwise doesn't seem to be useful */
-				HTTPD_POST_MESSAGE(pconn, len, HTTPD_CMD_TXDONE);
-#endif
-			break;
-		case NETCONN_EVT_SENDMINUS: 
-			break; /* not useful? */
-		case NETCONN_EVT_ERROR:
-			//HTTPD_POST_MESSAGE(pconn, len, HTTPD_CMD_ERROR); 
-			break;
-    }
-	DEBUG_PLINE("netconn_callback event=%d, length=%d", event, len);
-}
-
 extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
 	struct netconn *conn;
 	
 	/* Create a new TCP connection handle */
-	conn = netconn_new_with_callback(NETCONN_TCP, hwal_netconn_callback);
+	conn = netconn_new(NETCONN_TCP);
 	
 	/* Bind to port 80 (HTTP) with default IP address */
 	netconn_bind(conn, NULL, port);
