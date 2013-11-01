@@ -271,7 +271,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 	{
 		return FCSERVER_RET_PARAMERR;
 	}
-	
+		
 	/* Check if a new client can get the wall */
 	for (i=0; i < FCSERVER_MAXCLIENT; i++)
 	{

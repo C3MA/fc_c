@@ -10,6 +10,7 @@ ${FCPWD}/fcseq.c \
 ${FCPWD}/util.c \
 ${FCPWD}/fcserver.c \
 ${FCPWD}/chibios/hwal.c \
+${FCPWD}/chibios/hwal_net.c \
 
 # Add required include directories
 LIBINC += ${FCPWD} \

@@ -25,6 +25,7 @@
 #include "lwip/opt.h"
 #include "lwip/arch.h"
 #include "lwip/api.h"
+#include "hwal_net.h" /* needed for noneblocking TCP accept */
 
 #define MAXFILEDESCRIPTORS	10
 
@@ -354,21 +355,8 @@ extern void hwal_free(void* memory)
 
 extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
-	struct netconn *conn;
-	
-	/* Create a new TCP connection handle */
-	conn = netconn_new(NETCONN_TCP);
-	
-	/* Bind to port 80 (HTTP) with default IP address */
-	netconn_bind(conn, NULL, port);
-	
-	/* Put the connection into LISTEN state */
-	netconn_listen(conn);
-	
-	/* Make the communication noneblocking */
-	netconn_set_nonblocking(conn, TRUE);
-	
-	return (int) conn;
+	/* Create a new socket, that handles its accepts in a seperate thread */
+	return hwalnet_new_socket(port, maximumClients);
 }
 
 extern void hwal_socket_tcp_close(int socketfd)
@@ -378,15 +366,9 @@ extern void hwal_socket_tcp_close(int socketfd)
 }
 
 extern int hwal_socket_tcp_accet(int socketfd)
-{
-	struct netconn *newconn;
-	struct netconn *conn = (struct netconn *) socketfd;
-	
-	DEBUG_PLINE("%d accepting...", socketfd);
-	netconn_accept(conn, &newconn);
-	DEBUG_PLINE("Got new client: %d", newconn);
-	
-	return (int) newconn;
+{	
+	int newClient = hwalnet_new_client(socketfd);
+	return newClient;
 }
 
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
