@@ -313,7 +313,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			hwal_socket_tcp_write(server->client[newClientStarting - 1].clientsocket, output, write_offset+HEADER_LENGTH);
 			
 			hwal_free(buffer);
-			hwal_free(output);			
+			hwal_free(output);
 		}
 	}
 	client = 0; /* Reset the temporary variable, for the original porpuse */

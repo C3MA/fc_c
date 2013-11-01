@@ -371,7 +371,7 @@ extern int hwal_socket_tcp_accet(int socketfd)
 	return newClient;
 }
 
-extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
+extern int hwal_socket_tcp_read(uint32 clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
 	struct netbuf *inbuf;
 	char *buf;
@@ -391,7 +391,11 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
 		if (err != ERR_OK)
 		{
-			return -1;
+			return 0;
+		}
+		else if (buflen == 0)
+		{
+			return -1; /* nothing new */
 		}
 		else
 		{

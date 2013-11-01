@@ -139,7 +139,9 @@ extern "C" {
 	 * @param[in]	clientSocket	Already opened client socket to read from
 	 * @param[in]	workingMem		The memory the result is stored in
 	 * @param[in]	workingMemorySize	The Length of the allocated memory
-	 * @return amount of read bytes, or a negative number on errors
+	 * @return amount of read bytes
+	 * @return -1 if no new information is available 
+	 * @return 0 if the client left
 	 */
 	extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize);
 	

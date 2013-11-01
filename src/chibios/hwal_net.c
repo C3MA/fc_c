@@ -89,6 +89,7 @@ static int gConnection = 0;
 		
 		/* Use nonblocking function to count incoming messages */
 		newMessages = chMBGetUsedCountI(&hwalNetmailbox);
+		
 		if (newMessages)
 		{
 			status = chMBFetch(&hwalNetmailbox, &msg1, TIME_INFINITE);
