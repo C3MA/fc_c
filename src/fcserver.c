@@ -100,9 +100,13 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
     int type=-1;
     int length = 0;
 	int write_offset = 0;
+	int actualreading_offset = 0;
 	
-	
-	n = hwal_socket_tcp_read(client->clientsocket, server->tmpMem, server->tmpMemSize);
+	/* FIXME the server->tmpMem should probalby exists for each client
+	 * (even if only one client, connected to the wall can generate the huge packets) */
+	n = hwal_socket_tcp_read(client->clientsocket, 
+							 (server->tmpMem + server->reading_offset), 
+							 (server->tmpMemSize - server->reading_offset));
 		
 	/*FIXME try to check if client is still connected FCSERVER_RET_CLOSED */
 		
@@ -128,136 +132,149 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 		return FCSERVER_RET_IOERR;
 	}
 	
+	/* Add the already extracted bytes to the new ones */
+	n += server->reading_offset;
+	
 	DEBUG_PLINE("New Header typ: %d length of information: %d [fetched is %d byte from the network]",type,length, n);
 	
-	/* Decode this information */
-	switch (type)
+	if (length > n)
 	{
-		case SNIPTYPE_REQUEST:
+		server->reading_offset = n;
+		DEBUG_PLINE("Update offset to %d", server->reading_offset);
+	}
+	else
+	{
+		/* reset the fragment detection for packets */
+		server->reading_offset = 0;
+		
+		/* Decode the information */
+		switch (type)
 		{
-			char *color;
-			int seqId;
-			int meta_offset;
-			int meta_length;
-			int frames_per_second, width, heigth;
-			char *generator_name;
-			char *generator_version;
-			
-			offset = recv_request(server->tmpMem, offset, &color, &seqId, &meta_offset, &meta_length);
-            if (offset == -1) {
-                DEBUG_PLINE("recv_request Faild!");
-            } else {
-                DEBUG_PLINE("Parse Request, Color: %s, seqId: %d",color,seqId);
-            }
-            offset = parse_metadata(server->tmpMem,meta_offset,&frames_per_second, 
-									&width, &heigth, &generator_name, &generator_version);
-            if (offset == -1) {
-                DEBUG_PLINE("parse Metadata Faild!");
-                return -1;
-            } else {
-                DEBUG_PLINE("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s",
-							frames_per_second,width,heigth,generator_name,generator_version);
-            }
-			
-			/* allocate some memory for answering */
-			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
-			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
-			
-			/* Verify , if the client has the correct resolution */
-			if (server->width == width && server->height == heigth)
+			case SNIPTYPE_REQUEST:
 			{
-				client->clientstatus = FCCLIENT_STATUS_WAITING;
-				/* Send the client an acknowledgement (ACK) */
-				write_offset = send_ack(buffer, write_offset);
-				DEBUG_PLINE("ACK Request send");
+				char *color;
+				int seqId;
+				int meta_offset;
+				int meta_length;
+				int frames_per_second, width, heigth;
+				char *generator_name;
+				char *generator_version;
+				
+				offset = recv_request(server->tmpMem, offset, &color, &seqId, &meta_offset, &meta_length);
+				if (offset == -1) {
+					DEBUG_PLINE("recv_request Faild!");
+				} else {
+					DEBUG_PLINE("Parse Request, Color: %s, seqId: %d",color,seqId);
+				}
+				offset = parse_metadata(server->tmpMem,meta_offset,&frames_per_second, 
+										&width, &heigth, &generator_name, &generator_version);
+				if (offset == -1) {
+					DEBUG_PLINE("parse Metadata Faild!");
+					return -1;
+				} else {
+					DEBUG_PLINE("Metadata, fps: %d, width: %d, height: %d, gen._name: %s, gen._version: %s",
+								frames_per_second,width,heigth,generator_name,generator_version);
+				}
+				
+				/* allocate some memory for answering */
+				uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+				uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
+				
+				/* Verify , if the client has the correct resolution */
+				if (server->width == width && server->height == heigth)
+				{
+					client->clientstatus = FCCLIENT_STATUS_WAITING;
+					/* Send the client an acknowledgement (ACK) */
+					write_offset = send_ack(buffer, write_offset);
+					DEBUG_PLINE("ACK Request send");
+				}
+				else
+				{
+					uint8_t buffer[BUFFERSIZE_SENDINGBUFFER];
+					/* Inform the client with an error message */
+					char descr[] = "Wrong Screen resolution";
+					DEBUG_PLINE("Error while requesting: '%s'", descr);
+					write_offset = send_error(buffer, write_offset, FCSERVER_ERR_RESOLUTION, descr);
+				}
+				
+				/* send the corresponding message: Success or error */
+				add_header(buffer, output, write_offset);
+				hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
+				
+				hwal_free(buffer);
+				hwal_free(output);
+				
+				/* Free all resources needed for sending */
+				hwal_free(color);
+				hwal_free(generator_name);
+				hwal_free(generator_version);
+				break;
 			}
-			else
+			case SNIPTYPE_FRAME:
 			{
-				uint8_t buffer[BUFFERSIZE_SENDINGBUFFER];
-				/* Inform the client with an error message */
-				char descr[] = "Wrong Screen resolution";
-				DEBUG_PLINE("Error while requesting: '%s'", descr);
-				write_offset = send_error(buffer, write_offset, FCSERVER_ERR_RESOLUTION, descr);
+				int x, y, red, green, blue;
+				int frame_length;
+				int frame_offset, frame_offset_start;
+				int index;
+				
+				offset = recv_frame(server->tmpMem, offset, &frame_offset, &frame_length);
+				if (offset == -1) {
+					DEBUG_PLINE("recv_frame Faild!");
+				} else {
+					DEBUG_PLINE("Parse Frame, frame_length: %d",frame_length);
+				}
+				frame_offset_start = frame_offset;
+				do {
+					frame_offset = frame_parse_pixel(server->tmpMem,frame_offset, &red, &green, &blue, &x, &y);
+					index = (((x * server->width) + y) * 3);
+					server->imageBuffer[index + 0] = red;
+					server->imageBuffer[index + 1] = green;
+					server->imageBuffer[index + 2] = blue;				
+				} while (frame_offset < (frame_offset_start+frame_length));
+				
+				if (server->onNewImage > 0)
+				{
+					server->onNewImage(server->imageBuffer, server->width, server->height);
+				}
+				break;
 			}
-			
-			/* send the corresponding message: Success or error */
-			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
-			
-			hwal_free(buffer);
-			hwal_free(output);
-			
-			/* Free all resources needed for sending */
-            hwal_free(color);
-            hwal_free(generator_name);
-            hwal_free(generator_version);
-            break;
-		}
-		case SNIPTYPE_FRAME:
-		{
-			int x, y, red, green, blue;
-			int frame_length;
-			int frame_offset, frame_offset_start;
-			int index;
-			
-			offset = recv_frame(server->tmpMem, offset, &frame_offset, &frame_length);
-            if (offset == -1) {
-                DEBUG_PLINE("recv_frame Faild!");
-            } else {
-                DEBUG_PLINE("Parse Frame, frame_length: %d",frame_length);
-            }
-            frame_offset_start = frame_offset;
-            do {
-                frame_offset = frame_parse_pixel(server->tmpMem,frame_offset, &red, &green, &blue, &x, &y);
-				index = (((x * server->width) + y) * 3);
-				server->imageBuffer[index + 0] = red;
-				server->imageBuffer[index + 1] = green;
-				server->imageBuffer[index + 2] = blue;				
-            } while (frame_offset < (frame_offset_start+frame_length));
-			
-			if (server->onNewImage > 0)
+			case SNIPTYPE_INFOREQUEST:
 			{
-				server->onNewImage(server->imageBuffer, server->width, server->height);
+				uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+				uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
+				uint8_t *meta	= hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);			
+				int offset_meta = create_metadata(meta, 0, FCSERVER_DEFAULT_FPS, 
+											  server->width, server->height, 
+											  FCSERVER_DEFAULT_NAME,
+											  FCSERVER_DEFAULT_VERSION);
+				write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
+				add_header(buffer, output, write_offset);
+				hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
+				DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
+							FCSERVER_DEFAULT_NAME,
+							FCSERVER_DEFAULT_VERSION);
+				hwal_free(meta);
+				hwal_free(buffer);
+				hwal_free(output);
 			}
-			break;
+				break;
+			case SNIPTYPE_PING:
+			case SNIPTYPE_PONG:
+			case SNIPTYPE_ERROR:
+			case SNIPTYPE_START:
+			case SNIPTYPE_ACK:
+			case SNIPTYPE_NACK:
+			case SNIPTYPE_TIMEOUT:
+			case SNIPTYPE_ABORT:
+			case SNIPTYPE_EOS:
+			case SNIPTYPE_INFOANSWER:
+			default:
+				DEBUG_PLINE("%d is not implemented",type);
+				break;
 		}
-		case SNIPTYPE_INFOREQUEST:
-		{
-			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
-			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
-			uint8_t *meta	= hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);			
-			int offset_meta = create_metadata(meta, 0, FCSERVER_DEFAULT_FPS, 
-										  server->width, server->height, 
-										  FCSERVER_DEFAULT_NAME,
-										  FCSERVER_DEFAULT_VERSION);
-			write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
-			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
-			DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
-						FCSERVER_DEFAULT_NAME,
-						FCSERVER_DEFAULT_VERSION);
-			hwal_free(meta);
-			hwal_free(buffer);
-			hwal_free(output);
-		}
-			break;
-		case SNIPTYPE_PING:
-		case SNIPTYPE_PONG:
-		case SNIPTYPE_ERROR:
-		case SNIPTYPE_START:
-		case SNIPTYPE_ACK:
-		case SNIPTYPE_NACK:
-		case SNIPTYPE_TIMEOUT:
-		case SNIPTYPE_ABORT:
-		case SNIPTYPE_EOS:
-		case SNIPTYPE_INFOANSWER:
-		default:
-			DEBUG_PLINE("%d is not implemented",type);
-			break;
 	}
 	
-	
-	return FCSERVER_RET_NOTIMPL;
+	return FCSERVER_RET_OK;
 }
 
 fcserver_ret_t fcserver_process (fcserver_t* server)

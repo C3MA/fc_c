@@ -116,6 +116,7 @@ struct FCSERVER {
 	uint8_t*				imageBuffer; /**< Buffer to store a received frame */
 	uint8_t*				tmpMem; /**< Pointer to already allocated memory to work with */
 	uint32_t				tmpMemSize;	/**< Length of th allocated memory, stored in tmpMem */
+	uint32_t				reading_offset; /**< Actual buffer length, necessary, if informations are fragmented on different packets */
 	uint8_t					clientcount; /**< information about the actual connected clients */
 	int						serversocket; /**< The socket for the server */
 	fcclient_t	client[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */

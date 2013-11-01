@@ -403,34 +403,12 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 			hwal_memcpy(workingMem, buf, buflen);
 		}
 		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
-		
-#if 0		
-		if (buflen > 0)
-		{
-			/* check if more bytes should be read -> do so */
-			while((err = netconn_recv(conn,&inbuf)) == ERR_OK)
-			{
-				DEBUG_PLINE( "_" );
-				netbuf_first(inbuf);
-				do{
-					netbuf_data(inbuf, (void*)&buf, &buflenFurther);
-					DEBUG_PLINE("Further read found %d bytes and returned %d\t[actual buffer size: %d]", 
-								buflenFurther, err, buflen);
-					hwal_memcpy(workingMem+buflen, buf, buflenFurther);
-					buflen += buflenFurther; /* update length / startoffset for copying */
-				}while(netbuf_next(inbuf) >= 0);
-				
-				netbuf_delete(inbuf);
-			}
-		}
-#endif
-		
 		return buflen;
 
 	}
 	else
 	{
-		return -1;
+		return 0; /* conenction closed by the client */
 	}
 
 }
