@@ -103,7 +103,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	
 	
 	n = hwal_socket_tcp_read(client->clientsocket, server->tmpMem, server->tmpMemSize);
-	
+		
 	/*FIXME try to check if client is still connected FCSERVER_RET_CLOSED */
 		
 	/* First check, if the Client has something to say */

@@ -386,6 +386,7 @@ extern int hwal_socket_tcp_accet(int socketfd)
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
 	struct netbuf *inbuf;
+	char *buf;
 	u16_t buflen = (u16_t) workingMemorySize;
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
@@ -393,15 +394,21 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	/* Read the data from the port, blocking if nothing yet there.
 	 We assume the request (the part we care about) is in one netbuf */
 	err = netconn_recv(conn, &inbuf);
+	//DEBUG_PLINE("%d read returned %d", conn, err);
+	
 	if (err == ERR_OK)
 	{
-		err = netbuf_data(inbuf, (void **)&workingMem, &buflen);
-		if (err == ERR_OK)
+		netbuf_data(inbuf, (void **)&buf, &buflen);
+		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
+		if (err != ERR_OK)
 		{
 			return -1;
 		}
 		else
 		{
+			/* copy content to the outputbuffer */
+			hwal_memcpy(workingMem, buf, buflen);
+			
 			return buflen;
 		}
 
@@ -419,6 +426,9 @@ extern int hwal_socket_tcp_write(int clientSocket, uint8_t* data, uint32_t size)
 	struct netconn *conn = (struct netconn *) clientSocket;
 	
 	err = netconn_write(conn, data, size, NETCONN_NOCOPY);
+	
+	DEBUG_PLINE("%d write returned %d", conn, err);
+	
 	if (err == ERR_OK)
 	{
 		return size;
@@ -427,5 +437,4 @@ extern int hwal_socket_tcp_write(int clientSocket, uint8_t* data, uint32_t size)
 	{
 		return -1;
 	}
-
 }
