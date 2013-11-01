@@ -335,7 +335,11 @@ extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
 extern void hwal_init(BaseSequentialStream *chp)
 {
 	gChp = chp;
+#ifdef PRINT_DEBUG
 	chprintf(gChp, "Hardware Abstraction Layer INITIALIZED!\r\n");
+#else
+	chprintf(gChp, "DEBUGGING is DEACTIVATED!\r\n");
+#endif
 }
 
 extern void* hwal_malloc(int size)
