@@ -100,7 +100,6 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
     int type=-1;
     int length = 0;
 	int write_offset = 0;
-	int actualreading_offset = 0;
 	
 	/* FIXME the server->tmpMem should probalby exists for each client
 	 * (even if only one client, connected to the wall can generate the huge packets) */
