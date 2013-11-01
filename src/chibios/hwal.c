@@ -373,12 +373,12 @@ extern int hwal_socket_tcp_accet(int socketfd)
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
 	struct netbuf *inbuf;
-	char *buf;
-	u16_t buflen = (u16_t) workingMemorySize;
+	char *buf = (char *) hwal_malloc(512);
+	u16_t buflen = 0;
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
-	
-	DEBUG_PLINE("%d reading...", conn);
+	workingMemorySize = 0;
+		
 	/* Read the data from the port, blocking if nothing yet there.
 	 We assume the request (the part we care about) is in one netbuf */
 	err = netconn_recv(conn, &inbuf);
@@ -390,19 +390,20 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
 		if (err != ERR_OK)
 		{
-			return 0;
+			buflen = 0;
 		}
 		else if (buflen == 0)
 		{
-			return -1; /* nothing new */
+			buflen = -1; /* nothing new */
 		}
 		else
 		{
 			/* copy content to the outputbuffer */
 			hwal_memcpy(workingMem, buf, buflen);
-			
-			return buflen;
 		}
+		
+		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
+		return buflen;
 
 	}
 	else
