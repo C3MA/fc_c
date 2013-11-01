@@ -367,11 +367,10 @@ extern void hwal_socket_tcp_close(int socketfd)
 
 extern int hwal_socket_tcp_accet(int socketfd)
 {	
-	int newClient = hwalnet_new_client(socketfd);
-	return newClient;
+	return hwalnet_new_client(socketfd);
 }
 
-extern int hwal_socket_tcp_read(uint32 clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
+extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
 	struct netbuf *inbuf;
 	char *buf;

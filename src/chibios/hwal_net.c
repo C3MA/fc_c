@@ -66,7 +66,7 @@ static int gConnection = 0;
 		netconn_listen(conn);
 		
 		/* Make the communication noneblocking */
-		//netconn_set_nonblocking(conn, TRUE);
+		netconn_set_nonblocking(conn, TRUE);
 		
 		gConnection = (int) conn;
 		
