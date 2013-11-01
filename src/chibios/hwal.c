@@ -401,12 +401,16 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		{
 			/* copy content to the outputbuffer */
 			hwal_memcpy(workingMem, buf, buflen);
-			
-			netconn_set_recvtimeout(conn, 100 );    // timeout on 100 milliseconds
-			
+		}
+		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
+		
+#if 0		
+		if (buflen > 0)
+		{
 			/* check if more bytes should be read -> do so */
 			while((err = netconn_recv(conn,&inbuf)) == ERR_OK)
 			{
+				DEBUG_PLINE( "_" );
 				netbuf_first(inbuf);
 				do{
 					netbuf_data(inbuf, (void*)&buf, &buflenFurther);
@@ -418,10 +422,9 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 				
 				netbuf_delete(inbuf);
 			}
-			netconn_set_recvtimeout(conn, 5000 );    // timeout on 5 seconds
 		}
+#endif
 		
-		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
 		return buflen;
 
 	}
