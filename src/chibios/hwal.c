@@ -352,18 +352,52 @@ extern void hwal_free(void* memory)
 	chHeapFree(memory);
 }
 
+
+void hwal_netconn_callback(struct netconn *pconn, enum netconn_evt event, u16_t len)
+{
+    switch(event) {
+		case NETCONN_EVT_RCVPLUS:
+#if 0
+			if(len > 0) {
+				HTTPD_POST_MESSAGE(pconn, len, HTTPD_CMD_READRDY);
+			} else if(pconn == httpd) {
+				/* queue message noting that a connection is requested, will accept 
+				 when ready */
+			} /* otherwise this is caused by closing the socket ... */
+#endif
+			break;
+		case NETCONN_EVT_RCVMINUS: 
+			break; /* not useful? */
+		case NETCONN_EVT_SENDPLUS:
+#if 0		
+			if(len > 0) /* otherwise doesn't seem to be useful */
+				HTTPD_POST_MESSAGE(pconn, len, HTTPD_CMD_TXDONE);
+#endif
+			break;
+		case NETCONN_EVT_SENDMINUS: 
+			break; /* not useful? */
+		case NETCONN_EVT_ERROR:
+			//HTTPD_POST_MESSAGE(pconn, len, HTTPD_CMD_ERROR); 
+			break;
+    }
+	DEBUG_PLINE("netconn_callback event=%d, length=%d", event, len);
+}
+
 extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
 	struct netconn *conn;
 	
 	/* Create a new TCP connection handle */
-	conn = netconn_new(NETCONN_TCP);
+	conn = netconn_new_with_callback(NETCONN_TCP, hwal_netconn_callback);
 	
 	/* Bind to port 80 (HTTP) with default IP address */
 	netconn_bind(conn, NULL, port);
 	
 	/* Put the connection into LISTEN state */
 	netconn_listen(conn);
+	
+	/* Make the communication noneblocking */
+	netconn_set_nonblocking(conn, TRUE);
 	
 	return (int) conn;
 }
@@ -379,7 +413,10 @@ extern int hwal_socket_tcp_accet(int socketfd)
 	struct netconn *newconn;
 	struct netconn *conn = (struct netconn *) socketfd;
 	
+	DEBUG_PLINE("%d accepting...", socketfd);
 	netconn_accept(conn, &newconn);
+	DEBUG_PLINE("Got new client: %d", newconn);
+	
 	return (int) newconn;
 }
 
@@ -391,10 +428,11 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
 	
+	DEBUG_PLINE("%d reading...", conn);
 	/* Read the data from the port, blocking if nothing yet there.
 	 We assume the request (the part we care about) is in one netbuf */
 	err = netconn_recv(conn, &inbuf);
-	//DEBUG_PLINE("%d read returned %d", conn, err);
+	DEBUG_PLINE("%d read returned %d", conn, err);
 	
 	if (err == ERR_OK)
 	{
