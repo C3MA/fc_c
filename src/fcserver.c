@@ -388,6 +388,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 										   FCCLIENT_STATUS_DISCONNECTED, 
 										   server->client[i].clientsocket);
 				}
+				hwal_socket_tcp_close(server->client[i].clientsocket);
 				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
 				server->clientcount--;				
 			}

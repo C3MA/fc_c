@@ -38,10 +38,9 @@ static int gConnection = 0;
 		/* Prepare Mailbox to communicate with the others */
 		chMBInit(&hwalNetmailbox, (msg_t *)buffer4mailbox, HWALNET_MAILBOX_SIZE);
 		
-		while (TRUE) {
-			
+		while (TRUE)
+		{	
 			netconn_accept(conn, &newconn);
-			
 			chMBPostI(&hwalNetmailbox, (uint32_t) newconn);
 		}
 		
@@ -66,7 +65,7 @@ static int gConnection = 0;
 		netconn_listen(conn);
 		
 		/* Make the communication noneblocking */
-		netconn_set_nonblocking(conn, TRUE);
+		//netconn_set_nonblocking(conn, TRUE);
 		
 		gConnection = (int) conn;
 		
@@ -89,6 +88,8 @@ static int gConnection = 0;
 		
 		/* Use nonblocking function to count incoming messages */
 		newMessages = chMBGetUsedCountI(&hwalNetmailbox);
+		
+		//DEBUG_PLINE("open accepts %d", newMessages);
 		
 		if (newMessages)
 		{
