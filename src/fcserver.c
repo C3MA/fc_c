@@ -14,6 +14,7 @@
 #define BUFFERSIZE_OUTPUT			1280
 #define BUFFERSIZE_SENDINGBUFFER	1024
 
+#define RGBVALUE_SIZE	3 /**< Bytes are needed to store the color information of one pixel */
 /******************************************************************************
  * LOCAL FUNCTIONS
  ******************************************************************************/
@@ -53,7 +54,7 @@ fcserver_ret_t fcserver_init (fcserver_t* server, ImageCallback_t onNewImage, Cl
 	server->width = width;
 	server->height = height;
 	
-	server->imageBuffer = hwal_malloc(width * height * 3);
+	server->imageBuffer = hwal_malloc(width * height * RGBVALUE_SIZE + 1 /* Space at the end */);
 	
 	return FCSERVER_RET_OK;
 }
@@ -403,7 +404,8 @@ fcserver_ret_t fcserver_close (fcserver_t* server)
 {
 	if (server == NULL)
 		return FCSERVER_RET_PARAMERR;
-		
+	
+	hwal_socket_tcp_close(server->serversocket);
 	
 	if (server->tmpMem > 0)
 	{

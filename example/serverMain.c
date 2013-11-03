@@ -8,6 +8,9 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <signal.h>
+
 #include "fcserver.h"
 
 /******************************************************************************
@@ -19,11 +22,11 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 	int i;
 		
 	//printf("%d x %d\n", width, height);
-	for (i=1; i <= width * height; i++) {
-		printf("%2X %2X %2X |", rgb24Buffer[i * 3 + 0], 
+	for (i=0; i < width * height; i++) {
+		printf("%02X%02X%02X|", rgb24Buffer[i * 3 + 0], 
 			   rgb24Buffer[i * 3 + 1], rgb24Buffer[i * 3 + 2]);
 		
-		if (i % width == 0)
+		if ( (i + 1) % width == 0)
 		{
 			printf("\n");
 		}
@@ -40,6 +43,22 @@ void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocke
  * LOCAL FUNCTIONS
  ******************************************************************************/
 
+static fcserver_t		server;
+
+// Define the function to be called when ctrl-c (SIGINT) signal is sent to process
+void signal_callback_handler(int signum)
+{
+	printf("Caught signal %d\n",signum);
+	
+	
+	printf("Stopping the Server...\n");
+	
+	/* clean everything */
+	fcserver_close(&server);
+	
+	// Terminate program
+	exit(signum);
+}
 
 /******************************************************************************
  * ENTRY POINT
@@ -47,7 +66,6 @@ void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocke
 int main(int argc, char *argv[])
 {
 	fcserver_ret_t	ret;
-	fcserver_t		server;
 	
 	ret = fcserver_init(&server, &onNewImage, &onClientChange, 10, 12);
 	if (ret != FCSERVER_RET_OK)
