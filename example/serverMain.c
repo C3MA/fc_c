@@ -31,7 +31,7 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 			printf("\n");
 		}
 	}
-	printf("\n------------------------------------------\n");
+	printf("------------------------------------------\n");
 }
 
 void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocket)
