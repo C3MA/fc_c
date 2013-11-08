@@ -82,6 +82,7 @@ extern void hwal_fclose(int filedescriptor)
 {
 	f_close( &(fd_mappingtable[filedescriptor -1]) );
 	/* FIXME free the entries in the mapping table */
+	fdNextFreecount--;
 }
 
 extern void hwal_memset(void *buffer, int item, int length)

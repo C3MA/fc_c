@@ -70,7 +70,7 @@ void fcseq_close(fcsequence_t* seq)
 		return;
 	}
 	
-	/* only, when a file was used as soure,
+	/* Only, when a file was used as source,
 	 * this module allocates memory, which must be freed 
 	 */
 	if (seq->type == FCSEQ_FILEDESCRIPTOR)
