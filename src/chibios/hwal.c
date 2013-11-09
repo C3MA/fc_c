@@ -351,7 +351,8 @@ extern void* hwal_malloc(int size)
 
 extern void hwal_free(void* memory)
 {
-	chHeapFree(memory);
+	if (memory != NULL)
+		chHeapFree(memory);
 }
 
 extern int hwal_socket_tcp_new(int port, int maximumClients)
@@ -374,12 +375,10 @@ extern int hwal_socket_tcp_accet(int socketfd)
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
 	struct netbuf *inbuf;
-	char *buf = (char *) hwal_malloc(512);
+	char	*buf;
 	u16_t	buflen			= 0;
-	u16_t	buflenFurther	= 0;
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
-	workingMemorySize = 0;
 		
 	/* Read the data from the port, blocking if nothing yet there.
 	 We assume the request (the part we care about) is in one netbuf */
@@ -400,8 +399,17 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		}
 		else
 		{
-			/* copy content to the outputbuffer */
-			hwal_memcpy(workingMem, buf, buflen);
+			if (buflen <= workingMemorySize)
+			{
+				/* copy content to the outputbuffer */
+				hwal_memcpy(workingMem, buf, buflen);			
+			}
+			else
+			{
+				/* resque as mutch memory as possible */
+				hwal_memcpy(workingMem, buf, workingMemorySize);
+				buflen = -2; /* There was not enough memory */
+			}
 		}
 		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
 		return buflen;

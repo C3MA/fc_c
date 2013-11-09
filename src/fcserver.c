@@ -259,7 +259,8 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 					write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
 					add_header(buffer, output, write_offset);
 					hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
-					DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
+					DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",
+								server->width, server->height, FCSERVER_DEFAULT_FPS,
 								FCSERVER_DEFAULT_NAME,
 								FCSERVER_DEFAULT_VERSION);
 					hwal_free(meta);
