@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #ifndef NULL	
-#define NULL 				0 	/**< Pointer default value; needed but was in removed <string.h> */
+#define NULL 		0 	/**< Pointer default value; needed but was in removed <string.h> */
 #endif	
 	
 	/**
