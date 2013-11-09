@@ -135,8 +135,8 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	/* Add the already extracted bytes to the new ones */
 	n += server->reading_offset;
 	
-	DEBUG_PLINE("%2X. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
-				client->clientsocket, type,length, n);
+	DEBUG_PLINE("%d [%d]. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
+				client->clientsocket, server->clientcount, type,length, n);
 	
 	if (length > n)
 	{
@@ -241,22 +241,37 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 			}
 			case SNIPTYPE_INFOREQUEST:
 			{
-				uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
-				uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
-				uint8_t *meta	= hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);			
-				int offset_meta = create_metadata(meta, 0, FCSERVER_DEFAULT_FPS, 
-											  server->width, server->height, 
-											  FCSERVER_DEFAULT_NAME,
-											  FCSERVER_DEFAULT_VERSION);
-				write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
-				add_header(buffer, output, write_offset);
-				hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
-				DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
-							FCSERVER_DEFAULT_NAME,
-							FCSERVER_DEFAULT_VERSION);
-				hwal_free(meta);
-				hwal_free(buffer);
-				hwal_free(output);
+				uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); 
+				uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); 
+				uint8_t *meta	= hwal_malloc(BUFFERSIZE_SENDINGBUFFER); 
+				
+				if (output != NULL && buffer != NULL && meta != NULL) /* check if there is some memory for us */
+				{
+					/* Prepare the memory, by cleaning it */
+					hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+					hwal_memset(buffer, 0, BUFFERSIZE_SENDINGBUFFER);
+					hwal_memset(meta, 0, BUFFERSIZE_SENDINGBUFFER);
+				
+					int offset_meta = create_metadata(meta, 0, FCSERVER_DEFAULT_FPS, 
+												  server->width, server->height, 
+												  FCSERVER_DEFAULT_NAME,
+												  FCSERVER_DEFAULT_VERSION);
+					write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
+					add_header(buffer, output, write_offset);
+					hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
+					DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",server->width, server->height, FCSERVER_DEFAULT_FPS,
+								FCSERVER_DEFAULT_NAME,
+								FCSERVER_DEFAULT_VERSION);
+					hwal_free(meta);
+					hwal_free(buffer);
+					hwal_free(output);
+				}
+				else
+				{
+					DEBUG_PLINE("No memory left");
+					return FCSERVER_RET_OUTOFMEMORY;
+				}
+
 			}
 				break;
 			case SNIPTYPE_PING:
