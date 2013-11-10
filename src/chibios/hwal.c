@@ -386,7 +386,9 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	err = netconn_recv(conn, &inbuf);
 	DEBUG_PLINE("%d read returned %d", conn, err);
 	
-	if (err == ERR_OK)
+	switch (err)
+	{
+	case ERR_OK:
 	{
 		netbuf_data(inbuf, (void **)&buf, &buflen);
 		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
@@ -414,10 +416,10 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		}
 		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
 		return buflen;
-
 	}
-	else
-	{
+	case ERR_TIMEOUT:
+		return -1; /* nothing new */
+	default:
 		return 0; /* conenction closed by the client */
 	}
 
