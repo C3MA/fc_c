@@ -57,7 +57,7 @@ extern int hwal_fopen(char *filename, char* type)
 		fdNextFreecount--;
 		return 0; /* damn it did not work */
 	}
-	hwal_debug(__FILE__, __LINE__, "Open file with index %d and descriptor %d", usedMapIndex, fd_mappingtable[usedMapIndex - 1]);
+	DEBUG_PLINE("Open file with index %d and descriptor %d", usedMapIndex, fd_mappingtable[usedMapIndex - 1]);
 	return usedMapIndex;
 }
 	
@@ -66,7 +66,7 @@ extern int hwal_fread(void* buffer, int length, int filedescriptor)
 	int br;
 	FRESULT status;
 	status = f_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
-	hwal_debug(__FILE__, __LINE__, "Read returned %d ", status );
+	DEBUG_PLINE("Read returned %d ", status );
 	if (status != FR_OK)
 	{
 		return 0; /* problems, return zero as problematic length */
@@ -380,9 +380,9 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
 	
-	/* Read the data from the port, blocking if nothing yet there.
-	 We assume the request (the part we care about) is in one netbuf */	
-	/*FIXME: Make this code non blocking, too */
+	/* Make this code non blocking: */
+	netconn_set_recvtimeout (conn, 10 /* in milliseconds */);
+	
 	err = netconn_recv(conn, &inbuf);
 	DEBUG_PLINE("%d read returned %d", conn, err);
 	
