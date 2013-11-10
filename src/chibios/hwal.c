@@ -379,9 +379,10 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	u16_t	buflen			= 0;
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
-		
+	
 	/* Read the data from the port, blocking if nothing yet there.
-	 We assume the request (the part we care about) is in one netbuf */
+	 We assume the request (the part we care about) is in one netbuf */	
+	/*FIXME: Make this code non blocking, too */
 	err = netconn_recv(conn, &inbuf);
 	DEBUG_PLINE("%d read returned %d", conn, err);
 	

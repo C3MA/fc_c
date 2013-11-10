@@ -18,7 +18,7 @@
 * LOCAL FUNCTIONS
 ******************************************************************************/
 
-fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length);
+static fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length);
 
 /******************************************************************************
 * GLOBAL FUNCTIONS
@@ -231,7 +231,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 }
 
 
-fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length)
+static fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length)
 {
 	int lastOffset = offset + length;
 	int red, green, blue;
@@ -257,6 +257,5 @@ fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset,
 			rgb24[pos + 2] = blue;
 		}
 	} while (offset < lastOffset);
-	
 	return FCSEQ_RET_OK;
 }
