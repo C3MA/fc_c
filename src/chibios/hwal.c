@@ -355,10 +355,24 @@ extern void hwal_free(void* memory)
 		chHeapFree(memory);
 }
 
+static void socket_callback(struct netconn *conn,enum netconn_evt evnt,u16_t len)
+{
+	switch (evnt) {
+		case NETCONN_EVT_RCVPLUS:
+			DEBUG_PLINE("Found some byte at %d [conn %d], exactly %d", conn, evt, len);
+			break;
+		default:
+			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evt, conn, len);
+			;
+	}
+}
+
 extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
+	(void) maximumClients;
+	
 	/* Create a new socket, that handles its accepts in a seperate thread */
-	return hwalnet_new_socket(port, maximumClients);
+	return hwalnet_new_socket(port, &socket_callback);
 }
 
 extern void hwal_socket_tcp_close(int socketfd)
@@ -380,8 +394,10 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	struct netconn *conn = (struct netconn *) clientSocket;
 	err_t err;
 	
+#if 0
 	/* Make this code non blocking: */
-	netconn_set_recvtimeout (conn, 10 /* in milliseconds */);
+	netconn_set_recvtimeout (conn, 0 /* in milliseconds */); 
+#endif
 	
 	err = netconn_recv(conn, &inbuf);
 	DEBUG_PLINE("%d read returned %d", conn, err);

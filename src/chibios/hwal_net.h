@@ -5,6 +5,8 @@
 #include "hwal.h"
 #include "ff.h"
 
+#include "lwip/api.h"
+
 #ifndef HWAL_NET_THREAD_STACK_SIZE
 #define HWAL_NET_THREAD_STACK_SIZE   THD_WA_SIZE(512)
 #endif
@@ -15,11 +17,11 @@ extern "C" {
 /**
  * Create a new TCP socket and handle the accept functionality in a seperate thread
  * 
- * @param[in] port	The portnumber the server should listen on
- * @param[in] maximumClients the maximum of paralell opened connections
+ * @param[in] port		The portnumber the server should listen on
+ * @param[in] callback	triggered on changes on the TCP socket
  * @return a new Socket or negative numbers, on problems
  */
-int	hwalnet_new_socket(int port, int maximumClients);
+int	hwalnet_new_socket(int port, netconn_callback callback);
 
 /**
  * Checks the seperate thread for new clients, that want to be handled.

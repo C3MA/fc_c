@@ -12,7 +12,6 @@
 /* Socket requirements */
 #include "lwip/opt.h"
 #include "lwip/arch.h"
-#include "lwip/api.h"
 
 #define HWALNET_MAILBOX_SIZE		10
 
@@ -46,7 +45,7 @@ static int gConnection = 0;
 		
 	}
 	
-	int	hwalnet_new_socket(int port, int maximumClients)
+	int	hwalnet_new_socket(int port, netconn_callback callback)
 	{
 		struct netconn *conn;
 		if (gConnection)
@@ -56,16 +55,15 @@ static int gConnection = 0;
 		}
 		
 		/* Create a new TCP connection handle */
-		conn = netconn_new(NETCONN_TCP);
-		
+		conn = netconn_new_with_callback(NETCONN_TCP, callback);
+				
 		/* Bind to port with default IP address */
 		netconn_bind(conn, NULL, port);
 		
 		/* Put the connection into LISTEN state */
 		netconn_listen(conn);
 		
-		/* Make the communication noneblocking */
-		//netconn_set_nonblocking(conn, TRUE);
+		netconn_set_nonblocking(conn, TRUE);      // Don't block!
 		
 		gConnection = (int) conn;
 		
