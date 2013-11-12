@@ -31,6 +31,15 @@
 
 #define MAX_FILLER 11
 
+#define	TCPINPUT_MAILBOX_SIZE	4
+
+/** @var buffer4mailbox
+ *	@var mailboxOut
+ *	@brief Internal mailbox, to indicate something new to read has arrived
+ */
+static uint32_t gTCPincommingBuf[TCPINPUT_MAILBOX_SIZE];
+static MAILBOX_DECL(gTCPinMailbox, gTCPincommingBuf, TCPINPUT_MAILBOX_SIZE);
+
 /* attribute, needed to store the stream to print on */
 static BaseSequentialStream *gChp = NULL;
 
@@ -362,10 +371,12 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 {
 	switch (evnt) {
 		case NETCONN_EVT_RCVPLUS:
-			DEBUG_PLINE("Found some byte at %d [conn %d], exactly %d", conn, evnt, len);
-			break;
 		case NETCONN_EVT_RCVMINUS:
-			DEBUG_PLINE("Read too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			chSysLock();
+			/* Put new events always in the first place */
+			chMBPostAheadI(&gTCPinMailbox, (int) conn);
+			chSysUnlock();
 			break;
 		case NETCONN_EVT_SENDPLUS:
 			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
@@ -385,6 +396,9 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
 	(void) maximumClients;
+	/* Prepare the Mailbox for the callbackfunction to indicate new packets */
+	chMBInit(&gTCPinMailbox, (msg_t *)gTCPincommingBuf, TCPINPUT_MAILBOX_SIZE);
+	DEBUG_PLINE("TCP Read Mailbox is ready to use! And prepared for %d messages", TCPINPUT_MAILBOX_SIZE);
 	
 	/* Create a new socket, that handles its accepts in a seperate thread */
 	return hwalnet_new_socket(port, &socket_callback);
@@ -403,16 +417,34 @@ extern int hwal_socket_tcp_accet(int socketfd)
 
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
+	err_t err;
 	struct netbuf *inbuf;
 	char	*buf;
 	u16_t	buflen			= 0;
+	int newMessages;
+	msg_t msg1, status;
 	struct netconn *conn = (struct netconn *) clientSocket;
-	err_t err;
 	
-#if 0
-	/* Make this code non blocking: */
-	netconn_set_recvtimeout (conn, 0 /* in milliseconds */); 
-#endif
+	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
+	newMessages = chMBGetUsedCountI(&gTCPinMailbox);
+	
+	if (newMessages <= 0)
+	{
+		/* There are no new messages found */
+		return -1;
+	}
+	
+	status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
+	if (status == RDY_OK)
+	{
+		chSysLock();
+		if (((int) msg1) !=  clientSocket){
+			DEBUG_PLINE("Socket %d expected, but %d has new bytes", clientSocket, ((uint32_t) msg1));
+			chMBPostI(&gTCPinMailbox, (int) msg1);
+			return -1;
+		}
+		chSysUnlock();
+	}
 	
 	err = netconn_recv(conn, &inbuf);
 	DEBUG_PLINE("%d read returned %d", conn, err);
