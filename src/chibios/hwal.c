@@ -364,6 +364,18 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 		case NETCONN_EVT_RCVPLUS:
 			DEBUG_PLINE("Found some byte at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
+		case NETCONN_EVT_RCVMINUS:
+			DEBUG_PLINE("Read too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		case NETCONN_EVT_SENDPLUS:
+			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		case NETCONN_EVT_SENDMINUS:
+			DEBUG_PLINE("Write too some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		case NETCONN_EVT_ERROR:
+			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
 		default:
 			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
 			break;
