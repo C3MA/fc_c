@@ -370,13 +370,14 @@ extern void hwal_free(void* memory)
 static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t len)
 {
 	switch (evnt) {
-		case NETCONN_EVT_RCVPLUS:
-		case NETCONN_EVT_RCVMINUS:
-			//DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+		case NETCONN_EVT_RCVPLUS:			
 			chSysLock();
 			/* Put new events always in the first place */
-			chMBPostAheadI(&gTCPinMailbox, (int) conn);
+			chMBPostAheadI(&gTCPinMailbox, (uint32_t) conn);
 			chSysUnlock();
+			break;
+		case NETCONN_EVT_RCVMINUS:
+			//DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_SENDPLUS:
 			//DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
@@ -441,20 +442,21 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	}
 	
 	err = ERR_TIMEOUT;
-	for (i=0; i < newMessages; i++) {
+	for (i=0; i < newMessages; i++)
+	{
 		
 		status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
 		if (status == RDY_OK)
 		{
 			chSysLock();
-			if (((int) msg1) ==  clientSocket)
+			if (((uint32_t) msg1) ==  (uint32_t) clientSocket)
 			{
 				err = ERR_OK;
 			}
 			else
 			{
-				DEBUG_PLINE("[%d.] Socket %d expected, but %d has new bytes", (i + 1), clientSocket, ((uint32_t) msg1));
-				chMBPostI(&gTCPinMailbox, (int) msg1);				
+				DEBUG_PLINE("[%d.] Socket %X expected, but %X has new bytes", (i + 1), clientSocket, ((uint32_t) msg1));
+				chMBPostI(&gTCPinMailbox, (uint32_t) msg1);				
 			}
 			chSysUnlock();
 		}
