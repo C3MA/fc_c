@@ -372,23 +372,23 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 	switch (evnt) {
 		case NETCONN_EVT_RCVPLUS:
 		case NETCONN_EVT_RCVMINUS:
-			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			//DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			chSysLock();
 			/* Put new events always in the first place */
 			chMBPostAheadI(&gTCPinMailbox, (int) conn);
 			chSysUnlock();
 			break;
 		case NETCONN_EVT_SENDPLUS:
-			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			//DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_SENDMINUS:
-			DEBUG_PLINE("Write too some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			//DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_ERROR:
-			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			//DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		default:
-			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+			//DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
 			break;
 	}
 }
@@ -417,16 +417,22 @@ extern int hwal_socket_tcp_accet(int socketfd)
 
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
-	err_t err;
-	struct netbuf *inbuf;
-	char	*buf;
-	u16_t	buflen			= 0;
-	int newMessages;
-	msg_t msg1, status;
-	struct netconn *conn = (struct netconn *) clientSocket;
+	err_t			err;
+	int				i;
+	struct netbuf	*inbuf;
+	char			*buf;
+	u16_t			buflen	= 0;
+	int				newMessages	= 0;
+	msg_t			msg1;
+	msg_t			status;
+	struct netconn	*conn = (struct netconn *) clientSocket;
+	
+	DEBUG_PLINE("Socket %d reading...", clientSocket);
 	
 	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
 	newMessages = chMBGetUsedCountI(&gTCPinMailbox);
+	
+	DEBUG_PLINE("Found %d msg in the queue", newMessages);
 	
 	if (newMessages <= 0)
 	{
@@ -434,16 +440,30 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		return -1;
 	}
 	
-	status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
-	if (status == RDY_OK)
-	{
-		chSysLock();
-		if (((int) msg1) !=  clientSocket){
-			DEBUG_PLINE("Socket %d expected, but %d has new bytes", clientSocket, ((uint32_t) msg1));
-			chMBPostI(&gTCPinMailbox, (int) msg1);
-			return -1;
+	err = ERR_TIMEOUT;
+	for (i=0; i < newMessages; i++) {
+		
+		status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
+		if (status == RDY_OK)
+		{
+			chSysLock();
+			if (((int) msg1) ==  clientSocket)
+			{
+				err = ERR_OK;
+			}
+			else
+			{
+				DEBUG_PLINE("[%d.] Socket %d expected, but %d has new bytes", (i + 1), clientSocket, ((uint32_t) msg1));
+				chMBPostI(&gTCPinMailbox, (int) msg1);				
+			}
+			chSysUnlock();
 		}
-		chSysUnlock();
+	}
+	
+	/* no suitable thread found */
+	if (err != ERR_OK)
+	{
+		return -1;
 	}
 	
 	err = netconn_recv(conn, &inbuf);
