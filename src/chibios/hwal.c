@@ -42,6 +42,9 @@ int	fdNextFreecount=1; /* do not use the number zero, as zero marks errors while
 extern int hwal_fopen(char *filename, char* type)
 {
 	int usedMapIndex = fdNextFreecount;
+
+	(void) type; /* make GCC happy and show it, that we don't need this argument here */
+
 	if (usedMapIndex > MAXFILEDESCRIPTORS)
 	{
 		return 0; /* reached the maximum possible files */
@@ -355,15 +358,15 @@ extern void hwal_free(void* memory)
 		chHeapFree(memory);
 }
 
-static void socket_callback(struct netconn *conn,enum netconn_evt evnt,u16_t len)
+static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t len)
 {
 	switch (evnt) {
 		case NETCONN_EVT_RCVPLUS:
-			DEBUG_PLINE("Found some byte at %d [conn %d], exactly %d", conn, evt, len);
+			DEBUG_PLINE("Found some byte at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		default:
-			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evt, conn, len);
-			;
+			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+			break;
 	}
 }
 
