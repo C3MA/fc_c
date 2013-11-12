@@ -133,8 +133,8 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	/* Add the already extracted bytes to the new ones */
 	n += server->reading_offset;
 	
-	DEBUG_PLINE("%d [%d]. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
-				client->clientsocket, server->clientcount, type,length, n);
+	/*DEBUG_PLINE("%d [%d]. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
+				client->clientsocket, server->clientcount, type,length, n);*/
 	
 	if (length > n)
 	{
@@ -363,7 +363,6 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 	/** handle all actual connected clients **/
 	/* search for new waiting ones */
 	client = hwal_socket_tcp_accet(server->serversocket);
-	DEBUG_PLINE("Check for new client returned : %d", client);
 	
 	if (client > 0)
 	{
@@ -405,7 +404,6 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 	{
 		if (server->client[i].clientsocket > 0)
 		{
-			DEBUG_PLINE("Process client %d", i);
 			/* Found an open client ... speak with him */
 			if (process_client(server, &(server->client[i]) ) == FCSERVER_RET_CLOSED)
 			{

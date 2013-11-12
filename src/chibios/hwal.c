@@ -377,16 +377,16 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			chSysUnlock();
 			break;
 		case NETCONN_EVT_RCVMINUS:
-			//DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_SENDPLUS:
-			//DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_SENDMINUS:
-			//DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_ERROR:
-			//DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		default:
 			//DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
@@ -428,12 +428,20 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	msg_t			status;
 	struct netconn	*conn = (struct netconn *) clientSocket;
 	
-	DEBUG_PLINE("Socket %d reading...", clientSocket);
+	/* Check incoming parameters */
+	if (clientSocket == 0 || workingMem == 0 || workingMemorySize == 0)
+	{
+		return -2;
+	}
 	
 	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
 	newMessages = chMBGetUsedCountI(&gTCPinMailbox);
 	
-	DEBUG_PLINE("Found %d msg in the queue", newMessages);
+	DEBUG_PLINE("Socket %d is in state %d", clientSocket, conn->state); /*FIXME remove debug code */	
+	if (conn->state == NETCONN_CLOSE)
+	{
+		return 0; /* conenction closed by the client */
+	}
 	
 	if (newMessages <= 0)
 	{
@@ -455,7 +463,8 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 			}
 			else
 			{
-				DEBUG_PLINE("[%d.] Socket %X expected, but %X has new bytes", (i + 1), clientSocket, ((uint32_t) msg1));
+				DEBUG_PLINE("[%d. / %d ] Socket %X expected, but %X has new bytes", (i + 1), (newMessages + 1),
+							clientSocket, ((uint32_t) msg1));
 				chMBPostI(&gTCPinMailbox, (uint32_t) msg1);				
 			}
 			chSysUnlock();
