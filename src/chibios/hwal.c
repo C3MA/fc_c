@@ -33,12 +33,19 @@
 
 #define	TCPINPUT_MAILBOX_SIZE	4
 
-/** @var buffer4mailbox
- *	@var mailboxOut
+/** @var gTCPincommingBuf
+ *	@var gTCPinMailbox
  *	@brief Internal mailbox, to indicate something new to read has arrived
  */
 static uint32_t gTCPincommingBuf[TCPINPUT_MAILBOX_SIZE];
 static MAILBOX_DECL(gTCPinMailbox, gTCPincommingBuf, TCPINPUT_MAILBOX_SIZE);
+
+/** @var gTCPinProbBuf
+ *	@var gTCPinProblemMailbox
+ *	@brief Internal mailbox, to indicate problems on errors
+ */
+static uint32_t gTCPinProbBuf[TCPINPUT_MAILBOX_SIZE];
+static MAILBOX_DECL(gTCPinProblemMailbox, gTCPinProbBuf, TCPINPUT_MAILBOX_SIZE);
 
 /* attribute, needed to store the stream to print on */
 static BaseSequentialStream *gChp = NULL;
@@ -352,7 +359,7 @@ extern void hwal_init(BaseSequentialStream *chp)
 #ifdef PRINT_DEBUG
 	chprintf(gChp, "Hardware Abstraction Layer INITIALIZED!\r\n");
 #else
-	chprintf(gChp, "DEBUGGING is DEACTIVATED!\r\n");
+	chprintf(gChp, "DEBUGGING is not possible!\r\n");
 #endif
 }
 
@@ -377,6 +384,10 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			chSysUnlock();
 			break;
 		case NETCONN_EVT_RCVMINUS:
+			chSysLock();
+			/* Put new events always in the first place */
+			chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
+			chSysUnlock();
 			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		case NETCONN_EVT_SENDPLUS:
@@ -399,6 +410,8 @@ extern int hwal_socket_tcp_new(int port, int maximumClients)
 	(void) maximumClients;
 	/* Prepare the Mailbox for the callbackfunction to indicate new packets */
 	chMBInit(&gTCPinMailbox, (msg_t *)gTCPincommingBuf, TCPINPUT_MAILBOX_SIZE);
+	chMBInit(&gTCPinProblemMailbox, (msg_t *)gTCPinProbBuf, TCPINPUT_MAILBOX_SIZE);
+	
 	DEBUG_PLINE("TCP Read Mailbox is ready to use! And prepared for %d messages", TCPINPUT_MAILBOX_SIZE);
 	
 	/* Create a new socket, that handles its accepts in a seperate thread */
