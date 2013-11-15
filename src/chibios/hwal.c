@@ -435,8 +435,9 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	int				i;
 	struct netbuf	*inbuf;
 	char			*buf;
-	u16_t			buflen	= 0;
-	int				newMessages	= 0;
+	u16_t			buflen				= 0;
+	int				newMessages			= 0;
+	int				newMsgProbMailbox	= 0;
 	msg_t			msg1;
 	msg_t			status;
 	struct netconn	*conn = (struct netconn *) clientSocket;
@@ -448,10 +449,29 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	}
 	
 	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
-	newMessages = chMBGetUsedCountI(&gTCPinMailbox);
+	newMessages = chMBGetUsedCountI( &gTCPinProblemMailbox );
 	
-	DEBUG_PLINE("Socket %d is in state %d", clientSocket, conn->state); /*FIXME remove debug code */	
-	if (conn->state == NETCONN_CLOSE)
+	newMsgProbMailbox = chMBGetUsedCountI( &gTCPinMailbox );
+	
+	/* ------ check if the TCP session is still active -------- */
+	err = ERR_TIMEOUT;
+	for (i=0; i < newMsgProbMailbox; i++)
+	{
+		
+		status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
+		if (status == RDY_OK)
+		{
+			chSysLock();
+			if (((uint32_t) msg1) ==  (uint32_t) clientSocket)
+			{
+				err = ERR_OK;
+			}
+			chSysUnlock();
+		}
+	}
+	
+	/* no suitable thread found */
+	if (err != ERR_OK)
 	{
 		return 0; /* conenction closed by the client */
 	}
@@ -462,6 +482,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		return -1;
 	}
 	
+	/* ------ Search for new bytes to read -------- */
 	err = ERR_TIMEOUT;
 	for (i=0; i < newMessages; i++)
 	{
