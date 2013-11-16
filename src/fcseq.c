@@ -45,12 +45,13 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 		return FCSEQ_RET_IOERR;	
 	}
 	
-	DEBUG_PLINE("Open file on descriptor %d", seq->intern.file.filedescriptor);
+	/* DEBUG_PLINE("Open file on descriptor %d", seq->intern.file.filedescriptor); */
 
 	/* Read the beginning of the file */
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 	int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seq->intern.file.filedescriptor);
-	DEBUG_PLINE("FD%d returned %d bytes (asking for %d)", seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE);
+	/* DEBUG_PLINE("FD%d returned %d bytes (asking for %d)", 
+			seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE); */
 
 	/* check that all requested data was read */
 	if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)

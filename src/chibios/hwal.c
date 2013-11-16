@@ -76,7 +76,8 @@ extern int hwal_fopen(char *filename, char* type)
 		fdNextFreecount--;
 		return 0; /* damn it did not work */
 	}
-	DEBUG_PLINE("Open file with index %d and descriptor %d", usedMapIndex, fd_mappingtable[usedMapIndex - 1]);
+	/* DEBUG_PLINE("Open file with index %d and descriptor %d", usedMapIndex, 
+			fd_mappingtable[usedMapIndex - 1]); */
 	return usedMapIndex;
 }
 	
