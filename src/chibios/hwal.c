@@ -85,7 +85,7 @@ extern int hwal_fread(void* buffer, int length, int filedescriptor)
 	int br;
 	FRESULT status;
 	status = f_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
-	DEBUG_PLINE("Read returned %d ", status );
+	/* DEBUG_PLINE("Read returned %d ", status ); */
 	if (status != FR_OK)
 	{
 		return 0; /* problems, return zero as problematic length */
@@ -449,35 +449,36 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	}
 	
 	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
-	newMessages = chMBGetUsedCountI( &gTCPinProblemMailbox );
+	newMsgProbMailbox = chMBGetUsedCountI( &gTCPinProblemMailbox );
 	
-	newMsgProbMailbox = chMBGetUsedCountI( &gTCPinMailbox );
-	
-	/* ------ check if the TCP session is still active -------- */
-	err = ERR_TIMEOUT;
-	for (i=0; i < newMsgProbMailbox; i++)
-	{
-		
-		status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
-		if (status == RDY_OK)
-		{
-			chSysLock();
-			if (((uint32_t) msg1) ==  (uint32_t) clientSocket)
-			{
-				err = ERR_OK;
-			}
-			chSysUnlock();
-		}
-	}
-	
-	/* no suitable thread found */
-	if (err != ERR_OK)
-	{
-		return 0; /* conenction closed by the client */
-	}
+	newMessages = chMBGetUsedCountI( &gTCPinMailbox );
 	
 	if (newMessages <= 0)
 	{
+		/* ------ check if the TCP session is still active -------- */
+		err = ERR_TIMEOUT;
+		for (i=0; i < newMsgProbMailbox; i++)
+		{
+			
+			status = chMBFetch(&gTCPinProblemMailbox, &msg1, TIME_INFINITE);
+			if (status == RDY_OK)
+			{
+				chSysLock();
+				if (((uint32_t) msg1) ==  (uint32_t) clientSocket)
+				{
+					err = ERR_OK;
+				}
+				chSysUnlock();
+			}
+		}
+		
+		/* no suitable thread found */
+		if (err == ERR_OK)
+		{
+			DEBUG_PLINE("Socket %X seems disconnected", clientSocket);
+			return 0; /* connection closed by the client */
+		}
+		
 		/* There are no new messages found */
 		return -1;
 	}
