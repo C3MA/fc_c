@@ -499,8 +499,8 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 			}
 			else
 			{
-				DEBUG_PLINE("[%d. / %d ] Socket %X expected, but %X has new bytes", (i + 1), (newMessages + 1),
-							clientSocket, ((uint32_t) msg1));
+				/* DEBUG_PLINE("[%d. / %d ] Socket %X expected, but %X has new bytes", (i + 1), (newMessages + 1),
+							clientSocket, ((uint32_t) msg1)); */
 				chMBPostI(&gTCPinMailbox, (uint32_t) msg1);				
 			}
 			chSysUnlock();

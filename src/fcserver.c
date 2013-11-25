@@ -418,7 +418,6 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
 				server->clientcount--;							
 			}
-			DEBUG_PLINE("client %d handled", i);
 		}
 	}
 	
