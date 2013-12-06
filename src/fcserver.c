@@ -232,7 +232,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 					server->imageBuffer[index + 2] = blue;				
 				} while (frame_offset < (frame_offset_start+frame_length));
 				
-				if (server->onNewImage > 0)
+				if (server->onNewImage != NULL)
 				{
 					server->onNewImage(server->imageBuffer, server->width, server->height);
 				}
@@ -313,7 +313,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting - 1].clientsocket);
 			server->client[newClientStarting - 1].clientstatus = FCCLIENT_STATUS_CONNECTED;
 			
-			if (server->onClientChange > 0)
+			if (server->onClientChange != NULL)
 			{
 				server->onClientChange(server->clientcount, FCCLIENT_STATUS_CONNECTED, 
 									   server->client[newClientStarting - 1].clientsocket);
@@ -346,7 +346,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			server->clientcount++;
 			store_client_in(server, client);
 			
-			if (server->onClientChange > 0)
+			if (server->onClientChange != NULL)
 			{
 				server->onClientChange(server->clientcount, FCCLIENT_STATUS_INITING, client);
 			}
@@ -367,7 +367,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			hwal_socket_tcp_write(client, output, write_offset+HEADER_LENGTH);			
 			hwal_socket_tcp_close(client);
 			
-			if (server->onClientChange > 0)
+			if (server->onClientChange != NULL)
 			{
 				server->onClientChange(server->clientcount, FCCLIENT_STATUS_TOOMUTCH, client);
 			}
@@ -383,7 +383,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			if (process_client(server, &(server->client[i]) ) == FCSERVER_RET_CLOSED)
 			{
 				DEBUG_PLINE("Client with socket %d closed", server->client[i].clientsocket);
-				if (server->onClientChange > 0)
+				if (server->onClientChange != NULL)
 				{
 					server->onClientChange(server->clientcount, 
 										   FCCLIENT_STATUS_DISCONNECTED, 
@@ -407,12 +407,12 @@ fcserver_ret_t fcserver_close (fcserver_t* server)
 	
 	hwal_socket_tcp_close(server->serversocket);
 	
-	if (server->tmpMem > 0)
+	if (server->tmpMem != NULL)
 	{
 		hwal_free(server->tmpMem);
 	}
 	
-	if (server->imageBuffer > 0)
+	if (server->imageBuffer != NULL)
 	{
 		hwal_free(server->imageBuffer);
 	}
