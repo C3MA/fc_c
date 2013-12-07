@@ -31,6 +31,22 @@
 
 #define MAX_FILLER 11
 
+#define	TCPINPUT_MAILBOX_SIZE	4
+
+/** @var gTCPincommingBuf
+ *	@var gTCPinMailbox
+ *	@brief Internal mailbox, to indicate something new to read has arrived
+ */
+static uint32_t gTCPincommingBuf[TCPINPUT_MAILBOX_SIZE];
+static MAILBOX_DECL(gTCPinMailbox, gTCPincommingBuf, TCPINPUT_MAILBOX_SIZE);
+
+/** @var gTCPinProbBuf
+ *	@var gTCPinProblemMailbox
+ *	@brief Internal mailbox, to indicate problems on errors
+ */
+static uint32_t gTCPinProbBuf[TCPINPUT_MAILBOX_SIZE];
+static MAILBOX_DECL(gTCPinProblemMailbox, gTCPinProbBuf, TCPINPUT_MAILBOX_SIZE);
+
 /* attribute, needed to store the stream to print on */
 static BaseSequentialStream *gChp = NULL;
 
@@ -42,6 +58,9 @@ int	fdNextFreecount=1; /* do not use the number zero, as zero marks errors while
 extern int hwal_fopen(char *filename, char* type)
 {
 	int usedMapIndex = fdNextFreecount;
+
+	(void) type; /* make GCC happy and show it, that we don't need this argument here */
+
 	if (usedMapIndex > MAXFILEDESCRIPTORS)
 	{
 		return 0; /* reached the maximum possible files */
@@ -57,7 +76,8 @@ extern int hwal_fopen(char *filename, char* type)
 		fdNextFreecount--;
 		return 0; /* damn it did not work */
 	}
-	hwal_debug(__FILE__, __LINE__, "Open file with index %d and descriptor %d", usedMapIndex, fd_mappingtable[usedMapIndex - 1]);
+	/* DEBUG_PLINE("Open file with index %d and descriptor %d", usedMapIndex, 
+			fd_mappingtable[usedMapIndex - 1]); */
 	return usedMapIndex;
 }
 	
@@ -66,7 +86,7 @@ extern int hwal_fread(void* buffer, int length, int filedescriptor)
 	int br;
 	FRESULT status;
 	status = f_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
-	hwal_debug(__FILE__, __LINE__, "Read returned %d ", status );
+	/* DEBUG_PLINE("Read returned %d ", status ); */
 	if (status != FR_OK)
 	{
 		return 0; /* problems, return zero as problematic length */
@@ -340,7 +360,7 @@ extern void hwal_init(BaseSequentialStream *chp)
 #ifdef PRINT_DEBUG
 	chprintf(gChp, "Hardware Abstraction Layer INITIALIZED!\r\n");
 #else
-	chprintf(gChp, "DEBUGGING is DEACTIVATED!\r\n");
+	chprintf(gChp, "DEBUGGING is not possible!\r\n");
 #endif
 }
 
@@ -351,13 +371,52 @@ extern void* hwal_malloc(int size)
 
 extern void hwal_free(void* memory)
 {
-	chHeapFree(memory);
+	if (memory != NULL)
+		chHeapFree(memory);
+}
+
+static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t len)
+{
+	switch (evnt) {
+		case NETCONN_EVT_RCVPLUS:			
+			chSysLock();
+			/* Put new events always in the first place */
+			chMBPostAheadI(&gTCPinMailbox, (uint32_t) conn);
+			chSysUnlock();
+			break;
+		case NETCONN_EVT_RCVMINUS:
+			chSysLock();
+			/* Put new events always in the first place */
+			chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
+			chSysUnlock();
+			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		case NETCONN_EVT_SENDPLUS:
+			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		case NETCONN_EVT_SENDMINUS:
+			DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		case NETCONN_EVT_ERROR:
+			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			break;
+		default:
+			//DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+			break;
+	}
 }
 
 extern int hwal_socket_tcp_new(int port, int maximumClients)
 {
+	(void) maximumClients;
+	/* Prepare the Mailbox for the callbackfunction to indicate new packets */
+	chMBInit(&gTCPinMailbox, (msg_t *)gTCPincommingBuf, TCPINPUT_MAILBOX_SIZE);
+	chMBInit(&gTCPinProblemMailbox, (msg_t *)gTCPinProbBuf, TCPINPUT_MAILBOX_SIZE);
+	
+	DEBUG_PLINE("TCP Read Mailbox is ready to use! And prepared for %d messages", TCPINPUT_MAILBOX_SIZE);
+	
 	/* Create a new socket, that handles its accepts in a seperate thread */
-	return hwalnet_new_socket(port, maximumClients);
+	return hwalnet_new_socket(port, &socket_callback);
 }
 
 extern void hwal_socket_tcp_close(int socketfd)
@@ -373,20 +432,93 @@ extern int hwal_socket_tcp_accet(int socketfd)
 
 extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t workingMemorySize)
 {
-	struct netbuf *inbuf;
-	char *buf = (char *) hwal_malloc(512);
-	u16_t	buflen			= 0;
-	u16_t	buflenFurther	= 0;
-	struct netconn *conn = (struct netconn *) clientSocket;
-	err_t err;
-	workingMemorySize = 0;
+	err_t			err;
+	int				i;
+	struct netbuf	*inbuf;
+	char			*buf;
+	u16_t			buflen				= 0;
+	int				newMessages			= 0;
+	int				newMsgProbMailbox	= 0;
+	msg_t			msg1;
+	msg_t			status;
+	struct netconn	*conn = (struct netconn *) clientSocket;
+	
+	/* Check incoming parameters */
+	if (clientSocket == 0 || workingMem == 0 || workingMemorySize == 0)
+	{
+		return -2;
+	}
+	
+	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
+	newMsgProbMailbox = chMBGetUsedCountI( &gTCPinProblemMailbox );
+	
+	newMessages = chMBGetUsedCountI( &gTCPinMailbox );
+	
+	if (newMessages <= 0)
+	{
+		/* ------ check if the TCP session is still active -------- */
+		err = ERR_TIMEOUT;
+		for (i=0; i < newMsgProbMailbox; i++)
+		{
+			
+			status = chMBFetch(&gTCPinProblemMailbox, &msg1, TIME_INFINITE);
+			if (status == RDY_OK)
+			{
+				chSysLock();
+				if (((uint32_t) msg1) ==  (uint32_t) clientSocket)
+				{
+					err = ERR_OK;
+				}
+				chSysUnlock();
+			}
+		}
 		
-	/* Read the data from the port, blocking if nothing yet there.
-	 We assume the request (the part we care about) is in one netbuf */
+		/* no suitable thread found */
+		if (err == ERR_OK)
+		{
+			DEBUG_PLINE("Socket %X seems disconnected", clientSocket);
+			return 0; /* connection closed by the client */
+		}
+		
+		/* There are no new messages found */
+		return -1;
+	}
+	
+	/* ------ Search for new bytes to read -------- */
+	err = ERR_TIMEOUT;
+	for (i=0; i < newMessages; i++)
+	{
+		
+		status = chMBFetch(&gTCPinMailbox, &msg1, TIME_INFINITE);
+		if (status == RDY_OK)
+		{
+			chSysLock();
+			if (((uint32_t) msg1) ==  (uint32_t) clientSocket)
+			{
+				err = ERR_OK;
+			}
+			else
+			{
+				/* DEBUG_PLINE("[%d. / %d ] Socket %X expected, but %X has new bytes", (i + 1), (newMessages + 1),
+							clientSocket, ((uint32_t) msg1)); */
+				chMBPostI(&gTCPinMailbox, (uint32_t) msg1);				
+			}
+			chSysUnlock();
+		}
+	}
+	
+	/* no suitable thread found */
+	if (err != ERR_OK)
+	{
+		return -1;
+	}
+	
 	err = netconn_recv(conn, &inbuf);
 	DEBUG_PLINE("%d read returned %d", conn, err);
 	
-	if (err == ERR_OK)
+	switch (err)
+	{
+	case ERR_OK:
 	{
 		netbuf_data(inbuf, (void **)&buf, &buflen);
 		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
@@ -400,15 +532,24 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		}
 		else
 		{
-			/* copy content to the outputbuffer */
-			hwal_memcpy(workingMem, buf, buflen);
+			if (buflen <= workingMemorySize)
+			{
+				/* copy content to the outputbuffer */
+				hwal_memcpy(workingMem, buf, buflen);			
+			}
+			else
+			{
+				/* resque as mutch memory as possible */
+				hwal_memcpy(workingMem, buf, workingMemorySize);
+				buflen = -2; /* There was not enough memory */
+			}
 		}
 		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
 		return buflen;
-
 	}
-	else
-	{
+	case ERR_TIMEOUT:
+		return -1; /* nothing new */
+	default:
 		return 0; /* conenction closed by the client */
 	}
 

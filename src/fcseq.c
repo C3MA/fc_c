@@ -18,7 +18,7 @@
 * LOCAL FUNCTIONS
 ******************************************************************************/
 
-fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length);
+static fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length);
 
 /******************************************************************************
 * GLOBAL FUNCTIONS
@@ -45,12 +45,13 @@ fcseq_ret_t fcseq_load(char *filename, fcsequence_t* seq)
 		return FCSEQ_RET_IOERR;	
 	}
 	
-	DEBUG_PLINE("Open file on descriptor %d", seq->intern.file.filedescriptor);
+	/* DEBUG_PLINE("Open file on descriptor %d", seq->intern.file.filedescriptor); */
 
 	/* Read the beginning of the file */
 	uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 	int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seq->intern.file.filedescriptor);
-	DEBUG_PLINE("FD%d returned %d bytes (asking for %d)", seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE);
+	/* DEBUG_PLINE("FD%d returned %d bytes (asking for %d)", 
+			seq->intern.file.filedescriptor, read, FCSEQ_TMPBUFFER_HEAD_SIZE); */
 
 	/* check that all requested data was read */
 	if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
@@ -155,9 +156,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		/* Read the beginning of the file */
 		uint8_t mem[FCSEQ_TMPBUFFER_HEAD_SIZE];
 		int read = hwal_fread(mem, FCSEQ_TMPBUFFER_HEAD_SIZE, seqio->intern.file.filedescriptor);
-		
-		DEBUG_PLINE("Read from a file");
-		
+				
 		/* check that all requested data was read */
 		if (read != FCSEQ_TMPBUFFER_HEAD_SIZE)
 		{
@@ -167,12 +166,12 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 
 		/****** Read frame header *******/
 		offset = parse(mem, offset, &id, &type);
-		DEBUG_PLINE("Header at %d with id=%d and type=%d", offset, id, type);
+		/* DEBUG_PLINE("Header at %d with id=%d and type=%d", offset, id, type); */
 
 		if (id == BINARYSEQUENCE_FRAME && type == PROTOTYPE_LENGTHD && offset > -1)
 		{
 			offset = parse_number(mem, offset, &frame_length);
-			DEBUG_PLINE("%d is the size of the actual frame", frame_length );
+			/* DEBUG_PLINE("%d is the size of the actual frame", frame_length ); */
 		}
 		else
 		{
@@ -190,7 +189,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		
 		/* The already memory may not contain the complete meta information */
 		int restOfFirst = (FCSEQ_TMPBUFFER_HEAD_SIZE - offset);
-		DEBUG_PLINE("%x -> %x length=%d", memFrame, mem + offset, restOfFirst);
+		/* DEBUG_PLINE("%x -> %x length=%d", memFrame, mem + offset, restOfFirst); */
 		/* copy the already read information into a buffer */
 		hwal_memcpy(memFrame, mem + offset, restOfFirst);
 
@@ -201,8 +200,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		{	/* big problem! there were not enough bytes in the file */
 			DEBUG_PLINE("Could not find %d bytes for the next frame", frame_length - restOfFirst);
 			return FCSEQ_RET_IOERR;
-		}	
-		DEBUG_PLINE("Now start the parsing from the memory");
+		}
 
 		ret = extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
 		hwal_free(memFrame);
@@ -231,7 +229,7 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 }
 
 
-fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length)
+static fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset, int length)
 {
 	int lastOffset = offset + length;
 	int red, green, blue;
@@ -257,6 +255,5 @@ fcseq_ret_t extractFrame(uint8_t* memory, uint8_t* rgb24, int width, int offset,
 			rgb24[pos + 2] = blue;
 		}
 	} while (offset < lastOffset);
-	
 	return FCSEQ_RET_OK;
 }

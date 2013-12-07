@@ -163,6 +163,14 @@ fcserver_ret_t fcserver_process (fcserver_t* server);
 
 fcserver_ret_t fcserver_close(fcserver_t* server);
 
+/** @fn fcserver_ret_t fcserver_disconnect_all(fcserver_t* server)
+ * @brief Disconnect all actual connected client.
+ * @param[in]	server	structure, representing the actual status of the server
+ *
+ * @return status
+ */
+fcserver_ret_t fcserver_disconnect_all(fcserver_t* server);
+
 /*@}*/
 
 #endif
