@@ -199,10 +199,12 @@ fcseq_ret_t fcseq_nextFrame(fcsequence_t* seqio, uint8_t* rgb24)
 		if ( readBytes != (frame_length - restOfFirst) )
 		{	/* big problem! there were not enough bytes in the file */
 			DEBUG_PLINE("Could not find %d bytes for the next frame", frame_length - restOfFirst);
-			return FCSEQ_RET_IOERR;
+			ret = FCSEQ_RET_IOERR;
 		}
-
-		ret = extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
+		else
+		{
+			ret = extractFrame(memFrame, rgb24, seqio->width, 0, frame_length);
+		}
 		hwal_free(memFrame);
 		return ret;
 	}
