@@ -89,7 +89,6 @@ int main(int argc, char *argv[])
 				}
 			}
 			
-			
 			/* Now we need to send some nice frames to the wall */
 			fcclient_sendFrame(client, frame);
 			x += 1;
@@ -109,7 +108,7 @@ int main(int argc, char *argv[])
 		}
 		
 		/*FIXME update the function using "select()" with an timeout */
-		usleep(500000);
+		usleep(1000000);
 	}
 		
 	

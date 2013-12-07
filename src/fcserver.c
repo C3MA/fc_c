@@ -380,6 +380,8 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 				int write_offset = 0;
 				DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting - 1].clientsocket);
 				server->client[newClientStarting - 1].clientstatus = FCCLIENT_STATUS_CONNECTED;
+				/* Initialize the start level */
+				server->receivedLevelMs = FRAME_ALIVE_STARTLEVEL;
 				
 				if (server->onClientChange != NULL)
 				{
@@ -401,32 +403,32 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 				hwal_free(output);
 			}
 		}
-		client = 0; /* Reset the temporary variable, for the original porpuse */
-	}
-	else /* There is an client, that is sending something to the wall */
-	{
-		i = (client - 1);
-		/* Secure, that it is sending fast enough */
-		if (server->receivedLevelMs == 0 || server->receivedLevelMs > FRAME_ALIVE_STARTLEVEL)
+		else /* There is an client, that is sending something to the wall */
 		{
-			/* Inform the client with an error message */
-			char descr[] = "too slow";
-			sendMessage2client(server->client[i].clientsocket, FCSERVER_ERR_MAXCLIENTS, descr);
-			
-			/* Now kick him out */
-			hwal_socket_tcp_close(server->client[i].clientsocket);			
-			if (server->onClientChange != NULL)
+			i = (client - 1);
+			/* Secure, that it is sending fast enough */
+			if (server->receivedLevelMs == 0 || server->receivedLevelMs > FRAME_ALIVE_STARTLEVEL)
 			{
-				server->onClientChange(server->clientamount, FCCLIENT_STATUS_DISCONNECTED, server->client[i].clientsocket);
+				/* Inform the client with an error message */
+				char descr[] = "too slow";
+				sendMessage2client(server->client[i].clientsocket, FCSERVER_ERR_MAXCLIENTS, descr);
+				
+				/* Now kick him out */
+				hwal_socket_tcp_close(server->client[i].clientsocket);			
+				if (server->onClientChange != NULL)
+				{
+					server->onClientChange(server->clientamount, FCCLIENT_STATUS_DISCONNECTED, server->client[i].clientsocket);
+				}
+				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
+				server->clientamount--;
 			}
-			hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
-            server->clientamount--;
+			else
+			{
+				server->receivedLevelMs -= cycletime;
+				DEBUG_PLINE("Wall latency level: %4d ms	(raw %d):", FRAME_ALIVE_STARTLEVEL - server->receivedLevelMs, server->receivedLevelMs);
+			}
 		}
-        else
-        {
-			server->receivedLevelMs -= cycletime;
-			DEBUG_PLINE("Wall latency level: %4d ms	(raw %d):", FRAME_ALIVE_STARTLEVEL - server->receivedLevelMs, server->receivedLevelMs);
-		}
+		client = 0; /* Reset the temporary variable, for the original porpuse */
 	}
 
 	

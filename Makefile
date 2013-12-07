@@ -4,12 +4,14 @@ RM = rm -f
 MKDIR= mkdir -p
 COPY=cp
 
-LIB_SOURCES=src/fc.c src/fcclient.c src/proto.c src/fcseq.c src/posix/hwal.c src/util.c
+LIB_SOURCES=src/fc.c src/fcclient.c src/fcserver.c src/proto.c src/fcseq.c src/posix/hwal.c src/util.c
 LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
 CFLAGS=-c -Wall
+# Activate debugging with:
+CFLAGS += -DPRINT_DEBUG
 LDFLAGS= -I $(BUILD)/include -lm -L./$(BUILD) -lfc
 LDFLAGS_LIBRARY= -I$(BUILD)/include -lm
 
@@ -23,6 +25,9 @@ client: libfc
 
 parsefile: libfc
 	$(CC) -o $@ example/parsefile.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS) 
+
+server: libfc
+	$(CC) -o $@ example/serverMain.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS) 
 
 $(LIB_NAME): $(LIB_OBJECTS) mksystem
 	$(CC) $(LIB_OBJECTS) $(LDFLAGS_LIBRARY) -shared -o $(BUILD)/$@.so
