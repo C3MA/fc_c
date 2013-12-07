@@ -26,6 +26,9 @@
 #define FCSERVER_DEFAULT_NAME		"fc-c Server"
 #define FCSERVER_DEFAULT_VERSION	"0.1.1.0"
 
+#define FRAME_ALIVE_FACTOR      4       /**< Factor to increase the expected framerate, to be hold as sender */
+#define FRAME_ALIVE_STARTLEVEL  ((1000 * FCSERVER_DEFAULT_FPS) / FRAME_ALIVE_FACTOR) /**< Amount of milliseconds, if no new frame was detected, the connection is closed */
+
 /* Define possible error codes, that can be returned to the client */
 #define FCSERVER_ERR_RESOLUTION		10
 #define FCSERVER_ERR_MAXCLIENTS		11
