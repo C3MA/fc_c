@@ -56,6 +56,37 @@ void sendMessage2client(int clientsocket, int errorcode, char *descr)
 	hwal_free(output);
 }
 
+/**
+ * @fn void disconnectClient(fcserver_t* server, int clientoffset, char *descr)
+ *
+ * Send a message to the client and disconnect after this action
+ * The memory of the client is freed and the TCP socket is also closed.
+ *
+ * @param[in]	server			all necessary information of the server
+ * @param[in]	clientoffset	index in the array of the client, that is actual connected to the client
+ * @param[in]	errorcode		Id to identify the error message
+ * @param[in]	descr			Information message with cause, why there was an disconnect
+ */
+void disconnectClient(fcserver_t* server, int clientoffset, int errorcode, char *descr)
+{
+	if (server == NULL)
+	{
+		return;
+	}
+
+	/* Inform the client with an error message */
+	sendMessage2client(server->client[clientoffset].clientsocket, errorcode, descr);
+
+	/* Now kick him out */
+	hwal_socket_tcp_close(server->client[clientoffset].clientsocket);
+	if (server->onClientChange != NULL)
+	{
+		server->onClientChange(server->clientamount, FCCLIENT_STATUS_DISCONNECTED, server->client[clientoffset].clientsocket);
+	}
+	hwal_memset( &(server->client[clientoffset]), 0, sizeof(fcclient_t) );
+	server->clientamount--;
+}
+
 /******************************************************************************
  * GLOBAL FUNCTIONS
  ******************************************************************************/
@@ -366,83 +397,82 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 		return FCSERVER_RET_PARAMERR;
 	}
 	
-	/* the server is activated and there is actually noone connected */
-	if (server->status)
+
+	/* Check if a new client can get the wall */
+	for (i=0; i < FCSERVER_MAXCLIENT; i++)
 	{
-		/* Check if a new client can get the wall */
-		for (i=0; i < FCSERVER_MAXCLIENT; i++)
+		/* search for already connected clients */
+		if (server->client[i].clientstatus == FCCLIENT_STATUS_CONNECTED)
 		{
-			/* search for already connected clients */
-			if (server->client[i].clientstatus == FCCLIENT_STATUS_CONNECTED)
-			{
-				client = (i + 1); /* reusing variable as flag to indicate an already connected client */
-				/* + 1 to indicate if there is an client and to get the index of the connected client */
-			}
-			else if (newClientStarting == 0 && server->client[i].clientstatus == FCCLIENT_STATUS_WAITING)
+			client = (i + 1); /* reusing variable as flag to indicate an already connected client */
+			/* + 1 to indicate if there is an client and to get the index of the connected client */
+		}
+		else if (newClientStarting == 0 && server->client[i].clientstatus == FCCLIENT_STATUS_WAITING)
+		{
+			/* the server is activated and there is actually noone connected */
+			if (server->status)
 			{
 				/* Client %d is waiting", i */
 				newClientStarting = (i + 1); /* count from 1 to FCSERVER_MAXCLIENT + 1 */
 			}
 		}
-		
-		if (!client)
-		{
-			/* no-one is actual using the wall, a new one can start now */
-			if (newClientStarting) /* as the index starts at one we can detect here new clients */
-			{
-				int write_offset = 0;
-				DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting - 1].clientsocket);
-				server->client[newClientStarting - 1].clientstatus = FCCLIENT_STATUS_CONNECTED;
-				/* Initialize the start level */
-				server->receivedLevelMs = FRAME_ALIVE_STARTLEVEL;
-				
-				if (server->onClientChange != NULL)
-				{
-					server->onClientChange(server->clientamount, FCCLIENT_STATUS_CONNECTED, 
-										   server->client[newClientStarting - 1].clientsocket);
-				}
-				
-				/* allocate some memory for answering */
-				uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
-				uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
-				
-				write_offset = send_start(buffer, write_offset);
-				
-				/* send the corresponding message: Success or error */
-				add_header(buffer, output, write_offset);
-				hwal_socket_tcp_write(server->client[newClientStarting - 1].clientsocket, output, write_offset+HEADER_LENGTH);
-				
-				hwal_free(buffer);
-				hwal_free(output);
-			}
-		}
-		else /* There is an client, that is sending something to the wall */
-		{
-			i = (client - 1);
-			/* Secure, that it is sending fast enough */
-			if (server->receivedLevelMs == 0 || server->receivedLevelMs > FRAME_ALIVE_STARTLEVEL)
-			{
-				/* Inform the client with an error message */
-				char descr[] = "too slow";
-				sendMessage2client(server->client[i].clientsocket, FCSERVER_ERR_MAXCLIENTS, descr);
-				
-				/* Now kick him out */
-				hwal_socket_tcp_close(server->client[i].clientsocket);			
-				if (server->onClientChange != NULL)
-				{
-					server->onClientChange(server->clientamount, FCCLIENT_STATUS_DISCONNECTED, server->client[i].clientsocket);
-				}
-				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
-				server->clientamount--;
-			}
-			else
-			{
-				server->receivedLevelMs -= cycletime;
-				DEBUG_PLINE("Wall latency level: %4d ms	(raw %d):", FRAME_ALIVE_STARTLEVEL - server->receivedLevelMs, server->receivedLevelMs);
-			}
-		}
-		client = 0; /* Reset the temporary variable, for the original porpuse */
 	}
+
+	if (!client)
+	{
+		/* no-one is actual using the wall, a new one can start now */
+		if (newClientStarting) /* as the index starts at one we can detect here new clients */
+		{
+			int write_offset = 0;
+			DEBUG_PLINE("Client %d has now the wall", server->client[newClientStarting - 1].clientsocket);
+			server->client[newClientStarting - 1].clientstatus = FCCLIENT_STATUS_CONNECTED;
+			/* Initialize the start level */
+			server->receivedLevelMs = FRAME_ALIVE_STARTLEVEL;
+
+			if (server->onClientChange != NULL)
+			{
+				server->onClientChange(server->clientamount, FCCLIENT_STATUS_CONNECTED,
+									   server->client[newClientStarting - 1].clientsocket);
+			}
+
+			/* allocate some memory for answering */
+			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
+			uint8_t *buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER); hwal_memset(output, 0, BUFFERSIZE_SENDINGBUFFER);
+
+			write_offset = send_start(buffer, write_offset);
+
+			/* send the corresponding message: Success or error */
+			add_header(buffer, output, write_offset);
+			hwal_socket_tcp_write(server->client[newClientStarting - 1].clientsocket, output, write_offset+HEADER_LENGTH);
+
+			hwal_free(buffer);
+			hwal_free(output);
+		}
+	}
+	else /* There is an client, that is sending something to the wall */
+	{
+		i = (client - 1);
+
+		if (!server->status) /* Server is no longer active */
+		{
+			char descr[] = "Interrupted by an file";
+			disconnectClient(server, i, FCSERVER_ERR_INTERRUPTED, descr);
+
+			server->receivedLevelMs = 0;
+		}
+		/* Secure, that it is sending fast enough */
+		else if (server->receivedLevelMs == 0 || server->receivedLevelMs > FRAME_ALIVE_STARTLEVEL)
+		{
+			char descr[] = "too slow";
+			disconnectClient(server, i, FCSERVER_ERR_TOO_SLOW, descr);
+		}
+		else
+		{
+			server->receivedLevelMs -= cycletime;
+			DEBUG_PLINE("Wall latency level: %4d ms	(raw %d):", FRAME_ALIVE_STARTLEVEL - server->receivedLevelMs, server->receivedLevelMs);
+		}
+	}
+	client = 0; /* Reset the temporary variable, for the original porpuse */
 
 	
 	/** handle all actual connected clients **/
@@ -535,10 +565,18 @@ fcserver_ret_t fcserver_close (fcserver_t* server)
 	return FCSERVER_RET_OK;
 }
 
-fcserver_ret_t fcserver_setactive (fcserver_t* server, int status)
+fcserver_ret_t fcserver_setactive(fcserver_t* server, int status)
 {
 	if (server == NULL)
+	{
 		return FCSERVER_RET_PARAMERR;
+	}
+
+	/* A small message on changes */
+	if (server->status != status)
+	{
+		DEBUG_PLINE("Server status from %d to %d", server->status, status);
+	}
 	
 	if (status > 0)
 	{
