@@ -514,7 +514,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	}
 	
 	err = netconn_recv(conn, &inbuf);
-	DEBUG_PLINE("%d read returned %d", conn, err);
+	/* DEBUG_PLINE("%d read returned %d", conn, err); */
 	
 	switch (err)
 	{
@@ -550,7 +550,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	case ERR_TIMEOUT:
 		return -1; /* nothing new */
 	default:
-		return 0; /* conenction closed by the client */
+		return 0; /* connection closed by the client */
 	}
 
 }

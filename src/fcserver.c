@@ -138,7 +138,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
     int length = 0;
 	int write_offset = 0;
 	
-	/* FIXME the server->tmpMem should probalby exists for each client
+	/* FIXME the server->tmpMem should probably exists for each client
 	 * (even if only one client, connected to the wall can generate the huge packets) */
 	n = hwal_socket_tcp_read(client->clientsocket, 
 							 (server->tmpMem + server->reading_offset), 
@@ -156,9 +156,10 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	}
 	else if (n < HEADER_LENGTH)
 	{
-		DEBUG_PLINE("Error : Network read error");
+		DEBUG_PLINE("Error : Network read error, found only %d bytes", n);
 		return FCSERVER_RET_IOERR;
 	}
+
 	offset = get_header(server->tmpMem, 0, &type, &length);
 	if (offset == -1)
 	{
@@ -169,8 +170,8 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	/* Add the already extracted bytes to the new ones */
 	n += server->reading_offset;
 	
-	/*DEBUG_PLINE("%d [%d]. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
-				client->clientsocket, server->clientcount, type,length, n);*/
+	DEBUG_PLINE("%d [%d]. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
+				client->clientsocket, server->clientamount, type,length, n);
 	
 	if (length > n)
 	{
