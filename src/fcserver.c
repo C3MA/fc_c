@@ -534,26 +534,3 @@ fcserver_ret_t fcserver_setactive (fcserver_t* server, int status)
 	}	
 	return FCSERVER_RET_OK;
 }
-
-fcserver_ret_t fcserver_disconnect_all(fcserver_t* server)
-{
-	int i;
-	/* handle all open connections */
-	for (i=0; i < FCSERVER_MAXCLIENT; i++)
-	{
-		if (server->client[i].clientsocket > 0)
-		{
-			DEBUG_PLINE("Kill socket %d", server->client[i].clientsocket);
-			if (server->onClientChange != NULL)
-			{
-				server->onClientChange(server->clientamount,
-									   FCCLIENT_STATUS_DISCONNECTED,
-									   server->client[i].clientsocket);
-			}
-			hwal_socket_tcp_close(server->client[i].clientsocket);
-			hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
-			server->clientamount--;
-		}
-	}
-	return FCSERVER_RET_OK;
-}
