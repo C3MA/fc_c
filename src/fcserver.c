@@ -189,7 +189,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 					
 					if (server->onClientChange != NULL)
 					{
-						server->onClientChange(server->clientcount, FCCLIENT_STATUS_WAITING, 
+						server->onClientChange(server->clientamount, FCCLIENT_STATUS_WAITING, 
 											   client->clientsocket);
 					}
 				}
@@ -298,7 +298,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	return FCSERVER_RET_OK;
 }
 
-fcserver_ret_t fcserver_process (fcserver_t* server)
+fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 {
 	int client = 0;
 	int i;
@@ -339,7 +339,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 				
 				if (server->onClientChange != NULL)
 				{
-					server->onClientChange(server->clientcount, FCCLIENT_STATUS_CONNECTED, 
+					server->onClientChange(server->clientamount, FCCLIENT_STATUS_CONNECTED, 
 										   server->client[newClientStarting - 1].clientsocket);
 				}
 				
@@ -366,14 +366,14 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 	
 	if (client > 0)
 	{
-		if (server->clientcount < (FCSERVER_MAXCLIENT - 1))
+		if (server->clientamount < (FCSERVER_MAXCLIENT - 1))
 		{
-			server->clientcount++;
+			server->clientamount++;
 			store_client_in(server, client);
 			
 			if (server->onClientChange != NULL)
 			{
-				server->onClientChange(server->clientcount, FCCLIENT_STATUS_INITING, client);
+				server->onClientChange(server->clientamount, FCCLIENT_STATUS_INITING, client);
 			}
 		}
 		else
@@ -394,7 +394,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 			
 			if (server->onClientChange != NULL)
 			{
-				server->onClientChange(server->clientcount, FCCLIENT_STATUS_TOOMUTCH, client);
+				server->onClientChange(server->clientamount, FCCLIENT_STATUS_TOOMUTCH, client);
 			}
 		}
 	}
@@ -410,13 +410,13 @@ fcserver_ret_t fcserver_process (fcserver_t* server)
 				DEBUG_PLINE("Client with socket %d closed", server->client[i].clientsocket);
 				if (server->onClientChange != NULL)
 				{
-					server->onClientChange(server->clientcount, 
+					server->onClientChange(server->clientamount, 
 										   FCCLIENT_STATUS_DISCONNECTED, 
 										   server->client[i].clientsocket);
 				}
 				hwal_socket_tcp_close(server->client[i].clientsocket);
 				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
-				server->clientcount--;							
+				server->clientamount--;							
 			}
 		}
 	}
@@ -472,13 +472,13 @@ fcserver_ret_t fcserver_disconnect_all(fcserver_t* server)
 			DEBUG_PLINE("Kill socket %d", server->client[i].clientsocket);
 			if (server->onClientChange != NULL)
 			{
-				server->onClientChange(server->clientcount,
+				server->onClientChange(server->clientamount,
 									   FCCLIENT_STATUS_DISCONNECTED,
 									   server->client[i].clientsocket);
 			}
 			hwal_socket_tcp_close(server->client[i].clientsocket);
 			hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
-			server->clientcount--;
+			server->clientamount--;
 		}
 	}
 	return FCSERVER_RET_OK;

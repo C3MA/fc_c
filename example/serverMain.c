@@ -66,6 +66,7 @@ void signal_callback_handler(int signum)
 int main(int argc, char *argv[])
 {
 	fcserver_ret_t	ret;
+	int sleeptime;
 	
 	ret = fcserver_init(&server, &onNewImage, &onClientChange, 10, 12);
 	if (ret != FCSERVER_RET_OK)
@@ -76,10 +77,11 @@ int main(int argc, char *argv[])
 	
 	fcserver_setactive(&server, 1 /* TRUE */);
 	
+	sleeptime = 10; 
 	do {
-		ret = fcserver_process(&server);
+		ret = fcserver_process(&server, sleeptime);
 		
-		usleep(10000); /* wait 10ms */
+		usleep( sleeptime * 1000 );/* wait 10ms */ 
 	} while ( ret == FCSERVER_RET_OK);
 	
 	/* clean everything */

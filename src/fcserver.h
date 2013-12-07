@@ -117,7 +117,7 @@ struct FCSERVER {
 	uint8_t*				tmpMem; /**< Pointer to already allocated memory to work with */
 	uint32_t				tmpMemSize;	/**< Length of th allocated memory, stored in tmpMem */
 	uint32_t				reading_offset; /**< Actual buffer length, necessary, if informations are fragmented on different packets */
-	uint8_t					clientcount; /**< information about the actual connected clients */
+	uint8_t					clientamount; /**< information about the number of actual connected clients */
 	int						serversocket; /**< The socket for the server */
 	fcclient_t	client[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */
 	
@@ -155,11 +155,12 @@ fcserver_ret_t fcserver_setactive (fcserver_t* server, int status);
 
 /** @fn fcserver_ret_t fcserver_process (fcserver_t* server)
  * @brief Initialize the library
- * @param[in]	server	structure, representing the actual status of the server
+ * @param[in]	server		structure, representing the actual status of the server
+ * @param[in]	cycletime	duration in milliseconds this function is be called approximately again.
  *
  * @return status 
  */
-fcserver_ret_t fcserver_process (fcserver_t* server);
+fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime);
 
 fcserver_ret_t fcserver_close(fcserver_t* server);
 
