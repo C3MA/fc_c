@@ -237,7 +237,7 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 					server->imageBuffer[index + 2] = blue;				
 				} while (frame_offset < (frame_offset_start+frame_length));
 				
-				if (server->onNewImage != 0)
+				if (server->onNewImage != NULL)
 				{
 					server->onNewImage(server->imageBuffer, server->width, server->height);
 				}
@@ -432,12 +432,12 @@ fcserver_ret_t fcserver_close (fcserver_t* server)
 	
 	hwal_socket_tcp_close(server->serversocket);
 	
-	if (server->tmpMem != 0)
+	if (server->tmpMem != NULL)
 	{
 		hwal_free(server->tmpMem);
 	}
 	
-	if (server->imageBuffer != 0)
+	if (server->imageBuffer != NULL)
 	{
 		hwal_free(server->imageBuffer);
 	}
@@ -458,5 +458,28 @@ fcserver_ret_t fcserver_setactive (fcserver_t* server, int status)
 	{
 		server->status = 0;
 	}	
+	return FCSERVER_RET_OK;
+}
+
+fcserver_ret_t fcserver_disconnect_all(fcserver_t* server)
+{
+	int i;
+	/* handle all open connections */
+	for (i=0; i < FCSERVER_MAXCLIENT; i++)
+	{
+		if (server->client[i].clientsocket > 0)
+		{
+			DEBUG_PLINE("Kill socket %d", server->client[i].clientsocket);
+			if (server->onClientChange != NULL)
+			{
+				server->onClientChange(server->clientcount,
+									   FCCLIENT_STATUS_DISCONNECTED,
+									   server->client[i].clientsocket);
+			}
+			hwal_socket_tcp_close(server->client[i].clientsocket);
+			hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
+			server->clientcount--;
+		}
+	}
 	return FCSERVER_RET_OK;
 }
