@@ -389,16 +389,16 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			/* Put new events always in the first place */
 			chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
 			chSysUnlock();
-			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/*DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_SENDPLUS:
-			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/* DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_SENDMINUS:
-			DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/* DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_ERROR:
-			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/* DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		default:
 			//DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
