@@ -14,11 +14,47 @@
 #define BUFFERSIZE_OUTPUT			1280
 #define BUFFERSIZE_SENDINGBUFFER	1024
 
-#define RGBVALUE_SIZE	3 /**< Bytes are needed to store the color information of one pixel */
+#define RGBVALUE_SIZE		3	/**< Bytes are needed to store the color information of one pixel */
+#define FRAME_ALIVE_FACTOR	4	/**< Factor to increase the expected framerate, to be hold as sender */
+#define FRAME_ALIVE_STARTLEVEL	((1000 * FCSERVER_DEFAULT_FPS) / FRAME_ALIVE_FACTOR) /**< Amount of milliseconds, if no new frame was detected, the connection is closed */
+
 /******************************************************************************
  * LOCAL FUNCTIONS
  ******************************************************************************/
 
+
+/** @fn void sendMessage2client(int clientsocket, int errorcode, char *descr)
+ * @brief Send an error Snip to the client
+ * Send an message about an error, that occurs to the client
+ * @param[in]	clientsocket	Network socket of the client to talk to
+ * @param[in]	errorcode		Id to identify the error message
+ * @param[in]	desc			Some text to explain, this message
+ */
+void sendMessage2client(int clientsocket, int errorcode, char *descr)
+{
+	uint8_t *output;
+	uint8_t *buffer;
+	int write_offset = 0;
+	
+	if (clientsocket <= NULL || descr == NULL)
+	{
+		/* without valid parameter, nothing can be sent */
+		return;
+	}
+	
+	output = hwal_malloc(BUFFERSIZE_OUTPUT); 
+	buffer = hwal_malloc(BUFFERSIZE_SENDINGBUFFER);
+	
+	/* Inform the client with an error message */
+	DEBUG_PLINE("Error: '%s'", descr);
+	write_offset = send_error(buffer, write_offset, errorcode, descr);
+
+	/* send the corresponding message: Success or error */
+	add_header(buffer, output, write_offset);
+	hwal_socket_tcp_write(clientsocket, output, write_offset+HEADER_LENGTH);
+	hwal_free(buffer);
+	hwal_free(output);
+}
 
 /******************************************************************************
  * GLOBAL FUNCTIONS
@@ -223,9 +259,12 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 				int index;
 				
 				offset = recv_frame(server->tmpMem, offset, &frame_offset, &frame_length);
-				if (offset == -1) {
+				if (offset == -1)
+				{
 					DEBUG_PLINE("recv_frame Faild!");
-				} else {
+				}
+				else
+				{
 					DEBUG_PLINE("Parse Frame, frame_length: %d",frame_length);
 				}
 				frame_offset_start = frame_offset;
@@ -237,6 +276,10 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 					server->imageBuffer[index + 2] = blue;				
 				} while (frame_offset < (frame_offset_start+frame_length));
 				
+				/* Reset the counter to detect the death of the sending client */
+				server->receivedLevelMs = FRAME_ALIVE_STARTLEVEL;
+				
+				/* Give the new frame to the buddy, who has to draw it */
 				if (server->onNewImage != NULL)
 				{
 					server->onNewImage(server->imageBuffer, server->width, server->height);
@@ -305,7 +348,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 	int newClientStarting = 0;
 	
 	/* Check for new waiting clients */
-	if (server == 0 || server->serversocket <= 0)
+	if (server == 0 || server->serversocket <= 0 || cycletime <= 0)
 	{
 		return FCSERVER_RET_PARAMERR;
 	}
@@ -378,20 +421,12 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 		}
 		else
 		{
-			uint8_t buffer[BUFFERSIZE_SENDINGBUFFER];
 			/* Inform the client with an error message */
 			char descr[] = "No Space for new client";
-			int write_offset = 0;
+			sendMessage2client(client, FCSERVER_ERR_MAXCLIENTS, descr);
 			
-			uint8_t *output = hwal_malloc(BUFFERSIZE_OUTPUT); hwal_memset(output, 0, BUFFERSIZE_OUTPUT);
-			
-			write_offset = send_error(buffer, write_offset, FCSERVER_ERR_MAXCLIENTS, descr);			
-			DEBUG_PLINE("No Space for new client");			
-			/* send the corresponding message: Success or error */
-			add_header(buffer, output, write_offset);
-			hwal_socket_tcp_write(client, output, write_offset+HEADER_LENGTH);			
-			hwal_socket_tcp_close(client);
-			
+			/* Now kick him out */
+			hwal_socket_tcp_close(client);			
 			if (server->onClientChange != NULL)
 			{
 				server->onClientChange(server->clientamount, FCCLIENT_STATUS_TOOMUTCH, client);

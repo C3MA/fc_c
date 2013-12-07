@@ -22,7 +22,7 @@
 
 #define FCSERVER_TEMPMEM_MAX	2048	/**< Maximum size of the temporary memory */
 
-#define FCSERVER_DEFAULT_FPS		60	/**< Default value for the frames per seconds */
+#define FCSERVER_DEFAULT_FPS		24	/**< Default value for the frames per seconds */
 #define FCSERVER_DEFAULT_NAME		"fc-c Server"
 #define FCSERVER_DEFAULT_VERSION	"0.1.1.0"
 
@@ -120,6 +120,8 @@ struct FCSERVER {
 	uint8_t					clientamount; /**< information about the number of actual connected clients */
 	int						serversocket; /**< The socket for the server */
 	fcclient_t	client[FCSERVER_MAXCLIENT]; /**< Space for up to @see FCSERVER_MAXCLIENT clients */
+	uint32_t				receivedLevelMs;	/**< This level is increased each cycle, (by the elapsed milliseconds)
+												 a new frame pulls it up, this trigger must never get empty */
 	
 	ImageCallback_t			onNewImage; /**< Reference to logic, when a new image should be displayed */
 	ClientCallback_t		onClientChange; /**< Reference to logic, when client joins or leave */
