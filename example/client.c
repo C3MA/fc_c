@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 		}
 		
 		/*FIXME update the function using "select()" with an timeout */
-		usleep(1000000);
+		usleep(100000);
 	}
 		
 	
