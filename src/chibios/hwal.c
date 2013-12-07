@@ -343,7 +343,7 @@ unsigned_common:
 extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
 {
 	 va_list ap;
-	/* when no stream is definded, to print on, then quit the function */
+	/* when no stream is defined, to print on, then quit the function */
 	if (gChp == NULL)
 		return;
 	chprintf(gChp, "%s:%d ", codefile, linenumber);
