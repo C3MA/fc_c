@@ -22,7 +22,7 @@
 
 #define FCSERVER_TEMPMEM_MAX	2048	/**< Maximum size of the temporary memory */
 
-#define FCSERVER_DEFAULT_FPS		24	/**< Default value for the frames per seconds */
+#define FCSERVER_DEFAULT_FPS		25	/**< Default value for the frames per seconds */
 #define FCSERVER_DEFAULT_NAME		"fc-c Server"
 #define FCSERVER_DEFAULT_VERSION	"0.1.1.0"
 
