@@ -343,7 +343,7 @@ unsigned_common:
 extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
 {
 	 va_list ap;
-	/* when no stream is definded, to print on, then quit the function */
+	/* when no stream is defined, to print on, then quit the function */
 	if (gChp == NULL)
 		return;
 	chprintf(gChp, "%s:%d ", codefile, linenumber);
@@ -389,16 +389,16 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			/* Put new events always in the first place */
 			chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
 			chSysUnlock();
-			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/*DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_SENDPLUS:
-			DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/* DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_SENDMINUS:
-			DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/* DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_ERROR:
-			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			/* DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		default:
 			//DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
@@ -514,7 +514,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	}
 	
 	err = netconn_recv(conn, &inbuf);
-	DEBUG_PLINE("%d read returned %d", conn, err);
+	/* DEBUG_PLINE("%d read returned %d", conn, err); */
 	
 	switch (err)
 	{
@@ -550,7 +550,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	case ERR_TIMEOUT:
 		return -1; /* nothing new */
 	default:
-		return 0; /* conenction closed by the client */
+		return 0; /* connection closed by the client */
 	}
 
 }

@@ -29,6 +29,9 @@
 /* Define possible error codes, that can be returned to the client */
 #define FCSERVER_ERR_RESOLUTION		10
 #define FCSERVER_ERR_MAXCLIENTS		11
+#define	FCSERVER_ERR_INTERRUPTED	12 /**< Interrupted by an file */
+#define	FCSERVER_ERR_TOO_SLOW		13 /**< Client must send its frames faster! */
+
 
 /** @enum FCSERVER_RET
  * @typedef fcserver_ret_t
@@ -165,14 +168,6 @@ fcserver_ret_t fcserver_setactive (fcserver_t* server, int status);
 fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime);
 
 fcserver_ret_t fcserver_close(fcserver_t* server);
-
-/** @fn fcserver_ret_t fcserver_disconnect_all(fcserver_t* server)
- * @brief Disconnect all actual connected client.
- * @param[in]	server	structure, representing the actual status of the server
- *
- * @return status
- */
-fcserver_ret_t fcserver_disconnect_all(fcserver_t* server);
 
 /*@}*/
 
