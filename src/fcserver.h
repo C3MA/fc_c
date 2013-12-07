@@ -96,7 +96,7 @@ typedef void (*ClientCallback_t) (uint8_t totalAmount, fclientstatus_t action, i
  *  Member 'type' defines the source
  */
 struct FCCLIENT {
-	int	clientsocket;
+	int				clientsocket;
 	fclientstatus_t clientstatus;
 };
 typedef struct FCCLIENT fcclient_t;	/**< has the status information about the actual connected clients */

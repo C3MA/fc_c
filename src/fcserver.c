@@ -362,7 +362,8 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 			/* search for already connected clients */
 			if (server->client[i].clientstatus == FCCLIENT_STATUS_CONNECTED)
 			{
-				client = 1; /* reusing variable as flag to indicate an already connected client */
+				client = (i + 1); /* reusing variable as flag to indicate an already connected client */
+				/* + 1 to indicate if there is an client and to get the index of the connected client */
 			}
 			else if (newClientStarting == 0 && server->client[i].clientstatus == FCCLIENT_STATUS_WAITING)
 			{
@@ -402,6 +403,32 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 		}
 		client = 0; /* Reset the temporary variable, for the original porpuse */
 	}
+	else /* There is an client, that is sending something to the wall */
+	{
+		i = (client - 1);
+		/* Secure, that it is sending fast enough */
+		if (server->receivedLevelMs == 0 || server->receivedLevelMs > FRAME_ALIVE_STARTLEVEL)
+		{
+			/* Inform the client with an error message */
+			char descr[] = "too slow";
+			sendMessage2client(server->client[i].clientsocket, FCSERVER_ERR_MAXCLIENTS, descr);
+			
+			/* Now kick him out */
+			hwal_socket_tcp_close(server->client[i].clientsocket);			
+			if (server->onClientChange != NULL)
+			{
+				server->onClientChange(server->clientamount, FCCLIENT_STATUS_DISCONNECTED, server->client[i].clientsocket);
+			}
+			hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
+            server->clientamount--;
+		}
+        else
+        {
+			server->receivedLevelMs -= cycletime;
+			DEBUG_PLINE("Wall latency level: %4d ms	(raw %d):", FRAME_ALIVE_STARTLEVEL - server->receivedLevelMs, server->receivedLevelMs);
+		}
+	}
+
 	
 	/** handle all actual connected clients **/
 	/* search for new waiting ones */
@@ -425,7 +452,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 			char descr[] = "No Space for new client";
 			sendMessage2client(client, FCSERVER_ERR_MAXCLIENTS, descr);
 			
-			/* Now kick him out */
+			/* Now stop talking to him */
 			hwal_socket_tcp_close(client);			
 			if (server->onClientChange != NULL)
 			{
