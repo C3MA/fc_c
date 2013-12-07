@@ -163,7 +163,8 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 	offset = get_header(server->tmpMem, 0, &type, &length);
 	if (offset == -1)
 	{
-		DEBUG_PLINE("Error : Could not analyze header");
+		DEBUG_PLINE("Error : Could not analyze header, packet has %d bytes, starting with %2X%2X%2X%2X", n,
+				server->tmpMem[0], server->tmpMem[1], server->tmpMem[2], server->tmpMem[3]);
 		return FCSERVER_RET_IOERR;
 	}
 	
@@ -357,6 +358,7 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 	int client = 0;
 	int i;
 	int newClientStarting = 0;
+	fcserver_ret_t clientRet = FCSERVER_RET_OK;
 	
 	/* Check for new waiting clients */
 	if (server == 0 || server->serversocket <= 0 || cycletime <= 0)
@@ -480,9 +482,18 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 		if (server->client[i].clientsocket > 0)
 		{
 			/* Found an open client ... speak with him */
-			if (process_client(server, &(server->client[i]) ) == FCSERVER_RET_CLOSED)
+			clientRet = process_client(server, &(server->client[i]) );
+			/* On problems throw the client out */
+			switch (clientRet)
 			{
-				DEBUG_PLINE("Client with socket %d closed", server->client[i].clientsocket);
+			case FCSERVER_RET_IOERR:
+				/* Reduce the reliability level as this client produces bad frames */
+				server->receivedLevelMs -= cycletime;
+				break;
+			case FCSERVER_RET_CLOSED:
+			{
+				DEBUG_PLINE("Client with socket %d closed (reading returned %d)",
+						server->client[i].clientsocket, clientRet);
 				if (server->onClientChange != NULL)
 				{
 					server->onClientChange(server->clientamount, 
@@ -492,6 +503,10 @@ fcserver_ret_t fcserver_process (fcserver_t* server, int cycletime)
 				hwal_socket_tcp_close(server->client[i].clientsocket);
 				hwal_memset( &(server->client[i]), 0, sizeof(fcclient_t) );
 				server->clientamount--;							
+			}
+				break;
+			default:
+				break;
 			}
 		}
 	}
