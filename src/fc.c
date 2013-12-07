@@ -900,7 +900,7 @@ int send_infoanswer(uint8_t *buffer, int offset, uint8_t *meta, int length_meta)
     
     offset = serialize(buffer, offset, SNIP_INFOANSWERSNIP, PROTOTYPE_LENGTHD);
     // calculate length of SNIP_Requestsnip
-    offset = serialize_number(buffer, offset, length_meta);
+    offset = serialize_number(buffer, offset, length_meta + 2 /*FIXME quick hack */);
     
     offset = add_lengthd(buffer, offset, INFOANSWERSNIP_META, meta, length_meta);
     

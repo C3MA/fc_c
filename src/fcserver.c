@@ -196,9 +196,12 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 				char *generator_version;
 				
 				offset = recv_request(server->tmpMem, offset, &color, &seqId, &meta_offset, &meta_length);
-				if (offset == -1) {
+				if (offset == -1)
+				{
 					DEBUG_PLINE("recv_request Faild!");
-				} else {
+				}
+				else
+				{
 					DEBUG_PLINE("Parse Request, Color: %s, seqId: %d",color,seqId);
 				}
 				offset = parse_metadata(server->tmpMem,meta_offset,&frames_per_second, 
@@ -303,7 +306,14 @@ static fcserver_ret_t process_client(fcserver_t* server, fcclient_t* client)
 												  server->width, server->height, 
 												  FCSERVER_DEFAULT_NAME,
 												  FCSERVER_DEFAULT_VERSION);
+					
+					DEBUG_PLINE("%dx%d pixel (%d fps) for '%s' on version '%s' generates",
+								server->width, server->height, FCSERVER_DEFAULT_FPS,
+								FCSERVER_DEFAULT_NAME,
+								FCSERVER_DEFAULT_VERSION);
+					
 					write_offset = send_infoanswer(buffer, write_offset, meta, offset_meta);
+					
 					add_header(buffer, output, write_offset);
 					hwal_socket_tcp_write(client->clientsocket, output, write_offset+HEADER_LENGTH);
 					DEBUG_PLINE("Answered %dx%d pixel (%d fps) for '%s' on version '%s'",
