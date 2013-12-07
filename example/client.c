@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
 	char buffer[25];
 	struct tm* tm_info;
 	
-	while (1) {
+	while (1)
+	{
 		/* call this function until we were successfull in receiving something */
 		
 		/* FIXME read from the network */
@@ -70,9 +71,12 @@ int main(int argc, char *argv[])
 			printf("\t\tReceived data [%d]\n", success);
 		}
 		
-		if (client->connected) {
-			for (x1=0; x1 < client->width; x1++) {
-				for (y1=0; y1 < client->height; y1++) {
+		if (client->connected)
+		{
+			for (x1=0; x1 < client->width; x1++)
+			{
+				for (y1=0; y1 < client->height; y1++)
+				{
 					if (x1 == x && y1 == y)
 					{
 						fcclient_addPixel(client, frame, 0, 0, 255, x1, y1);
@@ -105,7 +109,7 @@ int main(int argc, char *argv[])
 		}
 		
 		/*FIXME update the function using "select()" with an timeout */
-		usleep(50000);
+		usleep(500000);
 	}
 		
 	
