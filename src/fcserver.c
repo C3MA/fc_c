@@ -211,9 +211,9 @@ process_client(fcserver_t* server, fcclient_t* client)
   /* Add the already extracted bytes to the new ones */
   n += server->reading_offset;
 
-  DEBUG_PLINE(
+  /*DEBUG_PLINE(
       "%d [%d]. New Header typ: %d length of information: %d [fetched is %d byte from the network]",
-      client->clientsocket, server->clientamount, type, length, n);
+      client->clientsocket, server->clientamount, type, length, n);*/
 
   if (length > n)
     {
@@ -319,11 +319,11 @@ process_client(fcserver_t* server, fcclient_t* client)
               &frame_length);
           if (offset == -1)
             {
-              DEBUG_PLINE("recv_frame Faild!");
+              DEBUG_PLINE("recv_frame Failed!");
             }
           else
             {
-              DEBUG_PLINE("Parse Frame, frame_length: %d", frame_length);
+              DEBUG_PLINE("Parse Frame with a length of %d bytes", frame_length);
             }
           frame_offset_start = frame_offset;
           do

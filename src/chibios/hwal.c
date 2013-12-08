@@ -375,21 +375,41 @@ extern void hwal_free(void* memory)
 		chHeapFree(memory);
 }
 
+/** @fn static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t len)
+ * Callback, that is triggered on changes of the TCP socket.
+ *
+ * Source:
+ * http://www.ecoscentric.com/ecospro/doc/html/ref/lwip-api-sequential-netconn-new-with-callback.html
+ *
+ * @param[in]   conn    Network connection
+ * @param[in]   evnt    Event, that occurred
+ * @param[in]   len     Length of the information, that is sent or received
+ */
 static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t len)
 {
 	switch (evnt) {
-		case NETCONN_EVT_RCVPLUS:			
+		case NETCONN_EVT_RCVPLUS:
+		        /* Occurs at:
+		         * Used when new incoming data from a remote peer arrives.
+		         * The amount of data received is passed in len.
+		         * If len is 0 then a connection event has occurred:
+		         *  this may be an error, the acceptance of a connection
+		         *  for a listening connection (called for the listening connection), or deletion of the connection.
+		         *
+		         **/
 			chSysLock();
 			/* Put new events always in the first place */
 			chMBPostAheadI(&gTCPinMailbox, (uint32_t) conn);
 			chSysUnlock();
 			break;
 		case NETCONN_EVT_RCVMINUS:
+		        /* Used when new incoming data from a remote peer has been received and accepted by higher layers.
+		         * The amount of data accepted is passed in len. */
+			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			chSysLock();
-			/* Put new events always in the first place */
-			chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
-			chSysUnlock();
-			/*DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len); */
+                        /* Put new events always in the first place */
+                        chMBPostAheadI(&gTCPinMailbox, (uint32_t) conn);
+                        chSysUnlock();
 			break;
 		case NETCONN_EVT_SENDPLUS:
 			/* DEBUG_PLINE("write some bytes at %d [conn %d], exactly %d", conn, evnt, len); */
@@ -398,10 +418,14 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			/* DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_ERROR:
-			/* DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len); */
+			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		default:
-			//DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+                        chSysLock();
+                        /* Put new events always in the first place */
+                        chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
+                        chSysUnlock();
 			break;
 	}
 }
@@ -521,7 +545,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	case ERR_OK:
 	{
 		netbuf_data(inbuf, (void **)&buf, &buflen);
-		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
+		/*DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);*/
 		if (err != ERR_OK)
 		{
 			buflen = 0;
