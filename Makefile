@@ -4,16 +4,17 @@ RM = rm -f
 MKDIR= mkdir -p
 COPY=cp
 
-LIB_SOURCES=src/fc.c src/fcclient.c src/fcserver.c src/proto.c src/fcseq.c src/posix/hwal.c src/util.c
+LIB_SOURCES=src/fc.c src/proto.c src/fcseq.c src/posix/hwal.c src/util.c src/fcclient.c src/fcserver.c  
 LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
 CFLAGS=-c -Wall
 # Activate debugging with:
-CFLAGS += -DPRINT_DEBUG
+#CFLAGS += -DPRINT_DEBUG
+
 LDFLAGS= -I $(BUILD)/include -lm -L./$(BUILD) -lfc
-LDFLAGS_LIBRARY= -I$(BUILD)/include -lm
+LDFLAGS_LIBRARY= -I $(BUILD)/include  -lm
 
 all: client parsefile
 
@@ -21,18 +22,18 @@ mksystem:
 	$(MKDIR) $(BUILD)
 	
 client: libfc
-	$(CC) -o $@ example/client.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS)
+	$(CC) -o $@ example/client.c $(LDFLAGS)
 
 parsefile: libfc
-	$(CC) -o $@ example/parsefile.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS) 
+	$(CC) -o $@ example/parsefile.c $(LDFLAGS) 
 
 server: libfc
-	$(CC) -o $@ example/serverMain.c $(BUILD)/$(LIB_NAME).so $(LDFLAGS) 
+	$(CC) -o $@ example/serverMain.c $(LDFLAGS) 
 
 $(LIB_NAME): $(LIB_OBJECTS) mksystem
-	$(CC) $(LIB_OBJECTS) $(LDFLAGS_LIBRARY) -shared -o $(BUILD)/$@.so
 	$(MKDIR) $(BUILD)/include
 	$(COPY) src/*.h $(BUILD)/include/
+	$(CC) $(LDFLAGS_LIBRARY) -shared -o $(BUILD)/$@.so $(LIB_OBJECTS)
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@
