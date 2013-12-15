@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#include <panel.h>
 #include <curses.h>
 
 #include "fcserver.h"
@@ -20,6 +21,15 @@
 #define START_X_OFFSET 1
 #define START_Y_OFFSET 1
 #define COLOR_OFFSET 	10 /**< The first 10 colors can be used in the application, the upper ones are used to visualaize the wall */
+
+/******************************************************************************
+ * Local variable
+ ******************************************************************************/
+
+static PANEL *pnlSimulation;
+static WINDOW *winSimulation;
+
+static fcserver_t		server;
 
 /******************************************************************************
  * IMPLEMENTATION FOR THE NECESSARY CALLBACKS
@@ -50,7 +60,7 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 			ncX=START_X_OFFSET;
 		}
 	} */
-	refresh(); /*FIXME this update kills the programm */
+
 }
 
 void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocket)
@@ -63,13 +73,13 @@ void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocke
  * LOCAL FUNCTIONS
  ******************************************************************************/
 
-static fcserver_t		server;
-
 void quit()
 {
 	/* clean everything */
 	fcserver_close(&server);
 
+	del_panel(pnlSimulation);
+	delwin(winSimulation);
 	endwin();
 }
 
@@ -130,8 +140,12 @@ int main(int argc, char *argv[])
 	color_set(1, 0);
 	bkgd(COLOR_PAIR(1)); /* Fill the complete background */
 
-	mvprintw(3, 5, "LINES: %d", LINES);
-	mvprintw(4, 5, "COLS: %d", COLS);
+	winSimulation = newwin(height, width, 1, 1);
+	box(winSimulation, ACS_VLINE, ACS_HLINE);
+	pnlSimulation = new_panel(winSimulation);
+
+	update_panels();
+	doupdate();
 
 	mvprintw(LINES - 1, COLS - 30, "Server dimension [%2d, %2d]", width, height);
 	refresh();

@@ -49,7 +49,7 @@ $(BUILD)/cam: $(LIB_NAME)
 	gcc -o $@ example/cam.c $(BUILD)/$(LIB_NAME).so `pkg-config --cflags opencv` `pkg-config --libs opencv`  $(LDFLAGS)
 
 $(BUILD)/ncserver: $(LIB_NAME)
-	$(CC) -o $@ -I $(BUILD)/include -I /usr/include example/ncserver.c $(BUILD)/libfc.so -lncurses
+	$(CC) -o $@ -I $(BUILD)/include -I /usr/include example/ncserver.c $(BUILD)/libfc.so -lncurses -lpanel
 	
 docu:
 	cd doc ; doxygen fc_c_api ; cd ..
