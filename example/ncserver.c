@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#include <curses.h>
+
 #include "fcserver.h"
 
 /******************************************************************************
@@ -47,6 +49,14 @@ void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocke
 
 static fcserver_t		server;
 
+void quit()
+{
+	/* clean everything */
+	fcserver_close(&server);
+
+	endwin();
+}
+
 // Define the function to be called when ctrl-c (SIGINT) signal is sent to process
 void signal_callback_handler(int signum)
 {
@@ -55,8 +65,7 @@ void signal_callback_handler(int signum)
 
 	printf("Stopping the Server...\n");
 
-	/* clean everything */
-	fcserver_close(&server);
+	quit();
 
 	// Terminate program
 	exit(signum);
@@ -73,6 +82,9 @@ int main(int argc, char *argv[])
 	int height;
 	fcserver_ret_t	ret;
 	int sleeptime;
+
+	/* ncurses variables */
+	int x, y;
 
 	if (argc < 3)
 	{
@@ -92,6 +104,21 @@ int main(int argc, char *argv[])
 	}
 
 	fcserver_setactive(&server, 1 /* TRUE */);
+
+	/* initialize the ncurses environment */
+	initscr();
+	atexit(quit);
+	curs_set(0);
+	mvprintw(3, 5, "LINES: %d", LINES);
+	mvprintw(4, 5, "COLS: %d", COLS);
+	getyx(stdscr, y, x);
+	mvprintw(5, 5, "Current Cursor position: [%d, %d]", y, x);
+	getbegyx(stdscr, y, x);
+	mvprintw(6, 5, "origin: [%d, %d]", y, x);
+	getmaxyx(stdscr, y, x);
+	mvprintw(7, 5, "Window dimension: [%d, %d]", y, x);
+	refresh();
+
 
 	sleeptime = 10;
 	do {
