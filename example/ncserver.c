@@ -50,6 +50,7 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 			ncX=START_X_OFFSET;
 		}
 	} */
+	refresh(); /*FIXME this update kills the programm */
 }
 
 void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocket)
