@@ -9,7 +9,7 @@ LIB_NAME=libfc
 LIB_OBJECTS=$(LIB_SOURCES:.c=.o)
 BUILD=build
 
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -fPIC
 # Activate debugging with:
 #CFLAGS += -DPRINT_DEBUG
 
