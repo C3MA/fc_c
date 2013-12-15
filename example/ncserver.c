@@ -17,6 +17,10 @@
 
 #include "fcserver.h"
 
+#define START_X_OFFSET 1
+#define START_Y_OFFSET 1
+#define COLOR_OFFSET 	10 /**< The first 10 colors can be used in the application, the upper ones are used to visualaize the wall */
+
 /******************************************************************************
  * IMPLEMENTATION FOR THE NECESSARY CALLBACKS
  ******************************************************************************/
@@ -24,23 +28,34 @@
 void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 {
 	int i;
+	int ncX = START_X_OFFSET;
+	int ncY = START_Y_OFFSET;
 
-	//printf("%d x %d\n", width, height);
-	for (i=0; i < width * height; i++) {
-		printf("%02X%02X%02X|", rgb24Buffer[i * 3 + 0],
-			   rgb24Buffer[i * 3 + 1], rgb24Buffer[i * 3 + 2]);
+	color_set(1, 0);
+	mvprintw(0, 0, "Frame dimension: %2d x %2d", width, height);
+
+	/* Display the current wall on the virtual ncruses */
+
+	/*
+	for (i=0; i < width * height; i++)
+	{
+		init_color(COLOR_OFFSET + i, rgb24Buffer[i * 3 + 0],
+				   rgb24Buffer[i * 3 + 1], rgb24Buffer[i * 3 + 2]);
+		mvaddstr(ncY, ncX, "X");
+		ncX++;
 
 		if ( (i + 1) % width == 0)
 		{
-			printf("\n");
+			ncY++;
+			ncX=START_X_OFFSET;
 		}
-	}
-	printf("------------------------------------------\n");
+	} */
 }
 
 void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocket)
 {
-	printf("Callback client %d did %X\t[%d clients]\n", clientsocket, action, totalAmount);
+	mvprintw(LINES - 1, 1, "Callback client %d did %X [%d clients]", clientsocket, action, totalAmount);
+	refresh();
 }
 
 /******************************************************************************
@@ -60,14 +75,13 @@ void quit()
 // Define the function to be called when ctrl-c (SIGINT) signal is sent to process
 void signal_callback_handler(int signum)
 {
-	printf("Caught signal %d\n",signum);
+	/* Caught signal */
 
 
-	printf("Stopping the Server...\n");
-
+	/* Stopping the Server... */
 	quit();
 
-	// Terminate program
+	/* Terminate program */
 	exit(signum);
 }
 
@@ -117,16 +131,12 @@ int main(int argc, char *argv[])
 
 	mvprintw(3, 5, "LINES: %d", LINES);
 	mvprintw(4, 5, "COLS: %d", COLS);
-	getyx(stdscr, y, x);
-	mvprintw(5, 5, "Current Cursor position: [%d, %d]", y, x);
-	getbegyx(stdscr, y, x);
-	mvprintw(6, 5, "origin: [%d, %d]", y, x);
-	getmaxyx(stdscr, y, x);
-	mvprintw(7, 5, "Window dimension: [%d, %d]", y, x);
+
+	mvprintw(LINES - 1, COLS - 30, "Server dimension [%2d, %2d]", width, height);
 	refresh();
 
 
-	sleeptime = 10;
+	sleeptime = 20;
 	do {
 		ret = fcserver_process(&server, sleeptime);
 
