@@ -13,22 +13,23 @@ CFLAGS=-c -Wall -fPIC
 # Activate debugging with:
 #CFLAGS += -DPRINT_DEBUG
 
-LDFLAGS= -I $(BUILD)/include -lm -L./$(BUILD) -lfc
-LDFLAGS_LIBRARY= -I $(BUILD)/include  -lm
+LDFLAGS= -I $(BUILD)/include -L $(BUILD) -lfc -lm
+LDFLAGS_LIBRARY= -I $(BUILD)/include -lm
 
-all: client parsefile
+all: $(BUILD)/client $(BUILD)/parsefile $(BUILD)/server
 
 mksystem:
 	$(MKDIR) $(BUILD)
 	
-client: libfc
-	$(CC) -o $@ example/client.c $(LDFLAGS)
+$(BUILD)/client: libfc
+	$(CC) -o $@ -I $(BUILD)/include example/client.c $(BUILD)/libfc.so
 
-parsefile: libfc
-	$(CC) -o $@ example/parsefile.c $(LDFLAGS) 
+$(BUILD)/parsefile: libfc
+	$(CC) -o $@ -I $(BUILD)/include example/parsefile.c  $(BUILD)/libfc.so
 
-server: libfc
-	$(CC) -o $@ example/serverMain.c $(LDFLAGS) 
+$(BUILD)/server: libfc
+	$(CC) -o $@ -I $(BUILD)/include example/serverMain.c $(BUILD)/libfc.so
+
 
 $(LIB_NAME): $(LIB_OBJECTS) mksystem
 	$(MKDIR) $(BUILD)/include
@@ -44,7 +45,7 @@ clean:
 	$(RM) -r $(BUILD)
 	$(RM) client parsefile cam
 
-cam: $(LIB_NAME)
+$(BUILD)/cam: $(LIB_NAME)
 	gcc -o $@ example/cam.c $(BUILD)/$(LIB_NAME).so `pkg-config --cflags opencv` `pkg-config --libs opencv`  $(LDFLAGS)
 
 docu:
