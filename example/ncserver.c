@@ -108,7 +108,13 @@ int main(int argc, char *argv[])
 	/* initialize the ncurses environment */
 	initscr();
 	atexit(quit);
-	curs_set(0);
+	start_color();
+	clear();
+
+	init_pair(1, COLOR_WHITE, COLOR_BLUE);
+	color_set(1, 0);
+	bkgd(COLOR_PAIR(1)); /* Fill the complete background */
+
 	mvprintw(3, 5, "LINES: %d", LINES);
 	mvprintw(4, 5, "COLS: %d", COLS);
 	getyx(stdscr, y, x);
