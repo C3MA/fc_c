@@ -22,6 +22,8 @@
 #define START_Y_OFFSET 1
 #define COLOR_OFFSET 	10 /**< The first 10 colors can be used in the application, the upper ones are used to visualaize the wall */
 
+#define BORDER_WIDTH 2 /**< Width of the border of a window */
+
 /******************************************************************************
  * Local variable
  ******************************************************************************/
@@ -42,16 +44,16 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 	int ncY = START_Y_OFFSET;
 
 	color_set(1, 0);
-	mvprintw(0, 0, "Frame dimension: %2d x %2d", width, height);
 
+
+	mvwaddstr(winSimulation, 0, 0, "a");
 	/* Display the current wall on the virtual ncruses */
-
-	/*
 	for (i=0; i < width * height; i++)
 	{
 		init_color(COLOR_OFFSET + i, rgb24Buffer[i * 3 + 0],
 				   rgb24Buffer[i * 3 + 1], rgb24Buffer[i * 3 + 2]);
-		mvaddstr(ncY, ncX, "X");
+		color_set(COLOR_OFFSET + i, 0);
+		mvwaddstr(winSimulation, ncY, ncX, "X");
 		ncX++;
 
 		if ( (i + 1) % width == 0)
@@ -59,8 +61,11 @@ void onNewImage(uint8_t* rgb24Buffer, int width, int height)
 			ncY++;
 			ncX=START_X_OFFSET;
 		}
-	} */
+	}
+	wrefresh(winSimulation);
 
+	/* Reset the default color scheme */
+	color_set(1, 0);
 }
 
 void onClientChange(uint8_t totalAmount, fclientstatus_t action, int clientsocket)
@@ -140,7 +145,7 @@ int main(int argc, char *argv[])
 	color_set(1, 0);
 	bkgd(COLOR_PAIR(1)); /* Fill the complete background */
 
-	winSimulation = newwin(height, width, 1, 1);
+	winSimulation = newwin(height + BORDER_WIDTH, width * 3 + BORDER_WIDTH, 1, 1);
 	box(winSimulation, ACS_VLINE, ACS_HLINE);
 	pnlSimulation = new_panel(winSimulation);
 
