@@ -327,16 +327,23 @@ process_client(fcserver_t* server, fcclient_t* client)
             }
           frame_offset_start = frame_offset;
           do
-            {
+          {
               frame_offset = frame_parse_pixel(server->tmpMem, frame_offset,
                   &red, &green, &blue, &x, &y);
               index = (((x * server->width) + y) * 3);
               server->imageBuffer[index + 0] = red;
               server->imageBuffer[index + 1] = green;
               server->imageBuffer[index + 2] = blue;
-            }
+          
+	      if (frame_offset < 0)
+	      {
+		      DEBUG_PLINE("Bad offset of %d bytes", frame_offset);
+	      }  
+	  }
           while (frame_offset < (frame_offset_start + frame_length));
 
+          DEBUG_PLINE("Parsed OK, actual offset is %d", frame_offset);
+	
           /* Reset the counter to detect the death of the sending client */
           server->receivedLevelMs = FRAME_ALIVE_STARTLEVEL;
 
@@ -427,6 +434,7 @@ fcserver_process(fcserver_t* server, int cycletime)
       return FCSERVER_RET_PARAMERR;
     }
 
+  DEBUG_PLINE("Parameter are OK, cycle time is %d ms", cycletime);
   /* Check if a new client can get the wall */
   for (i = 0; i < FCSERVER_MAXCLIENT; i++)
     {
@@ -550,9 +558,13 @@ fcserver_process(fcserver_t* server, int cycletime)
     {
       if (server->client[i].clientsocket > 0)
         {
+	 
+          DEBUG_PLINE("Process client %d / %d ", i, FCSERVER_MAXCLIENT);
           /* Found an open client ... speak with him */
           clientRet = process_client(server, &(server->client[i]));
-          /* On problems throw the client out */
+          DEBUG_PLINE("Process client %d returned %d", i, clientRet);
+          
+	  /* On problems throw the client out */
           switch (clientRet)
             {
           case FCSERVER_RET_IOERR:

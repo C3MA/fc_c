@@ -473,6 +473,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		return -2;
 	}
 	
+	DEBUG_PLINE("Checking Mailbox supervised - callback");
 	/* Use nonblocking function to count incoming messages (if there are new bytes to read) */
 	newMsgProbMailbox = chMBGetUsedCountI( &gTCPinProblemMailbox );
 	
@@ -508,6 +509,7 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		return -1;
 	}
 	
+	DEBUG_PLINE("Got %d messages", newMessages);
 	/* ------ Search for new bytes to read -------- */
 	err = ERR_TIMEOUT;
 	for (i=0; i < newMessages; i++)
@@ -523,8 +525,8 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 			}
 			else
 			{
-				/* DEBUG_PLINE("[%d. / %d ] Socket %X expected, but %X has new bytes", (i + 1), (newMessages + 1),
-							clientSocket, ((uint32_t) msg1)); */
+				DEBUG_PLINE("[%d. / %d ] Socket %X expected, but %X has new bytes", (i + 1), (newMessages + 1),
+							clientSocket, ((uint32_t) msg1));
 				chMBPostI(&gTCPinMailbox, (uint32_t) msg1);				
 			}
 			chSysUnlock();
@@ -537,15 +539,16 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 		return -1;
 	}
 	
+	DEBUG_PLINE("%d reading...", conn);
 	err = netconn_recv(conn, &inbuf);
-	/* DEBUG_PLINE("%d read returned %d", conn, err); */
+	DEBUG_PLINE("%d read returned %d", conn, err);
 	
 	switch (err)
 	{
 	case ERR_OK:
 	{
 		netbuf_data(inbuf, (void **)&buf, &buflen);
-		/*DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);*/
+		DEBUG_PLINE("Buffer found %d bytes and returned %d", buflen, err);
 		if (err != ERR_OK)
 		{
 			buflen = 0;
