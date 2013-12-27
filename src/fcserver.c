@@ -434,7 +434,6 @@ fcserver_process(fcserver_t* server, int cycletime)
       return FCSERVER_RET_PARAMERR;
     }
 
-  DEBUG_PLINE("Parameter are OK, cycle time is %d ms", cycletime);
   /* Check if a new client can get the wall */
   for (i = 0; i < FCSERVER_MAXCLIENT; i++)
     {
