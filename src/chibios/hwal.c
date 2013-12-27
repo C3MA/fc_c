@@ -407,7 +407,7 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 		case NETCONN_EVT_RCVMINUS:
 		        /* Used when new incoming data from a remote peer has been received and accepted by higher layers.
 		         * The amount of data accepted is passed in len. */
-			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Callback [conn %d], exactly %d", (uint32_t) conn, len);
 			chSysLock();
                         /* Put new events always in the first place */
                         chMBPostAheadI(&gTCPinMailbox, (uint32_t) conn);
@@ -420,10 +420,10 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			/* DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_ERROR:
-			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Callback : Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		default:
-			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+			DEBUG_PLINE("Callback : Event %d [conn %d], with %d bytes", evnt, conn, len);
                         chSysLock();
                         /* Put new events always in the first place */
                         chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
