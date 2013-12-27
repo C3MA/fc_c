@@ -33,6 +33,8 @@
 
 #define	TCPINPUT_MAILBOX_SIZE	4
 
+#define	TCPINPUT_RECEIVE_TIMEOUT	20 /**< Timeout in milliseconds to wait at maximum */
+
 /** @var gTCPincommingBuf
  *	@var gTCPinMailbox
  *	@brief Internal mailbox, to indicate something new to read has arrived
@@ -538,6 +540,10 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	{
 		return -1;
 	}
+
+	/* Set an timeout for receiving */
+	DEBUG_PLINE("%d set timeout", conn);
+	netconn_set_recvtimeout(conn, TCPINPUT_RECEIVE_TIMEOUT);
 	
 	DEBUG_PLINE("%d reading...", conn);
 	err = netconn_recv(conn, &inbuf);
