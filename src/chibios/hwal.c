@@ -577,12 +577,19 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 				buflen = -2; /* There was not enough memory */
 			}
 		}
-		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
+
+		/* free the memory, provided by the netcon_recv function */
+		netbuf_delete(inbuf);
 		return buflen;
 	}
 	case ERR_TIMEOUT:
+		/* free the memory, provided by the netcon_recv function */
+		netbuf_delete(inbuf);
 		return -1; /* nothing new */
 	default:
+		/* free the memory, provided by the netcon_recv function */
+		netbuf_delete(inbuf);
+
 		return 0; /* connection closed by the client */
 	}
 
