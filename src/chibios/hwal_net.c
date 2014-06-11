@@ -57,13 +57,14 @@ static int gConnection = 0;
 		/* Create a new TCP connection handle */
 		conn = netconn_new_with_callback(NETCONN_TCP, callback);
 				
+		netconn_set_nonblocking(conn, TRUE);      // Don't block!
+
 		/* Bind to port with default IP address */
 		netconn_bind(conn, NULL, port);
 		
 		/* Put the connection into LISTEN state */
 		netconn_listen(conn);
 		
-		netconn_set_nonblocking(conn, TRUE);      // Don't block!
 		
 		gConnection = (int) conn;
 		

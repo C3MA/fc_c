@@ -33,6 +33,8 @@
 
 #define	TCPINPUT_MAILBOX_SIZE	4
 
+#define	TCPINPUT_RECEIVE_TIMEOUT	20 /**< Timeout in milliseconds to wait at maximum */
+
 /** @var gTCPincommingBuf
  *	@var gTCPinMailbox
  *	@brief Internal mailbox, to indicate something new to read has arrived
@@ -407,7 +409,7 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 		case NETCONN_EVT_RCVMINUS:
 		        /* Used when new incoming data from a remote peer has been received and accepted by higher layers.
 		         * The amount of data accepted is passed in len. */
-			DEBUG_PLINE("Read some bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Callback [conn %d], exactly %d", (uint32_t) conn, len);
 			chSysLock();
                         /* Put new events always in the first place */
                         chMBPostAheadI(&gTCPinMailbox, (uint32_t) conn);
@@ -420,10 +422,10 @@ static void socket_callback(struct netconn *conn, enum netconn_evt evnt, u16_t l
 			/* DEBUG_PLINE("Write too mutch bytes at %d [conn %d], exactly %d", conn, evnt, len); */
 			break;
 		case NETCONN_EVT_ERROR:
-			DEBUG_PLINE("Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
+			DEBUG_PLINE("Callback : Error with bytes at %d [conn %d], exactly %d", conn, evnt, len);
 			break;
 		default:
-			DEBUG_PLINE("Event %d [conn %d], with %d bytes", evnt, conn, len);
+			DEBUG_PLINE("Callback : Event %d [conn %d], with %d bytes", evnt, conn, len);
                         chSysLock();
                         /* Put new events always in the first place */
                         chMBPostAheadI(&gTCPinProblemMailbox, (uint32_t) conn);
@@ -540,6 +542,10 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 	{
 		return -1;
 	}
+
+	/* Set an timeout for receiving */
+	DEBUG_PLINE("%d set timeout", conn);
+	netconn_set_recvtimeout(conn, TCPINPUT_RECEIVE_TIMEOUT);
 	
 	DEBUG_PLINE("%d reading...", conn);
 	err = netconn_recv(conn, &inbuf);
@@ -573,12 +579,19 @@ extern int hwal_socket_tcp_read(int clientSocket, uint8_t* workingMem, uint32_t 
 				buflen = -2; /* There was not enough memory */
 			}
 		}
-		netbuf_delete(inbuf); /* free the memory, provided by the netcon_recv function */
+
+		/* free the memory, provided by the netcon_recv function */
+		netbuf_delete(inbuf);
 		return buflen;
 	}
 	case ERR_TIMEOUT:
+		/* free the memory, provided by the netcon_recv function */
+		netbuf_delete(inbuf);
 		return -1; /* nothing new */
 	default:
+		/* free the memory, provided by the netcon_recv function */
+		netbuf_delete(inbuf);
+
 		return 0; /* connection closed by the client */
 	}
 
