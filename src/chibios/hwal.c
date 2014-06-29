@@ -73,7 +73,7 @@ extern int hwal_fopen(char *filename, char* type)
 	
 	/* human counting adapted to the array (therefore the -1) */
 	/*FIXME only allow reading for an easy handling */
-	if ( f_open( &(fd_mappingtable[usedMapIndex - 1]), (TCHAR*) filename, FA_READ) != FR_OK)
+	if ( wf_open( &(fd_mappingtable[usedMapIndex - 1]), (TCHAR*) filename, FA_READ) != FR_OK)
 	{
 		fdNextFreecount--;
 		return 0; /* damn it did not work */
@@ -87,7 +87,7 @@ extern int hwal_fread(void* buffer, int length, int filedescriptor)
 {
 	int br;
 	FRESULT status;
-	status = f_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
+	status = wf_read( &(fd_mappingtable[filedescriptor -1]), (TCHAR*) buffer, length,(UINT*) &br);
 	/* DEBUG_PLINE("Read returned %d ", status ); */
 	if (status != FR_OK)
 	{

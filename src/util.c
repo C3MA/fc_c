@@ -39,7 +39,7 @@ int fc_util_itoa_rightalign(char* pBuffer, uint32_t width, int32_t number)
 	prefix = width - length;
 	
 	/* secure, that the expected size is large enough */
-	if (length > width)
+	if (length > (int) width)
 	{
 		return 0;
 	}
@@ -70,7 +70,7 @@ int fc_util_atoi_rightalign(char* pBuffer, uint32_t width, int32_t* pNumber)
 {
 	int32_t number = 0;
 	int digitCnt = 0;
-	int i;
+	uint32_t i;
 	
 	for (i = 0; i < width && pBuffer[i] != 0; i++)
 	{
