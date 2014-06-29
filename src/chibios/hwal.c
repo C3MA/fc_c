@@ -190,6 +190,7 @@ static char *ftoa(char *p, double num) {
 }
 #endif
 
+#ifndef _CHPRINTF_H_
 void chvprintf(BaseSequentialStream *chp, const char *fmt, va_list ap) {
   char *p, *s, c, filler;
   int i, precision, width;
@@ -341,6 +342,7 @@ unsigned_common:
     }
   }
 }
+#endif
 
 extern void hwal_debug(char* codefile, int linenumber, char* text, ...)
 {
